@@ -1,0 +1,2135 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thousand years battle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: #1e293b;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            background-color: #f8fafc;
+        }
+
+        /* UI Overlays */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .hud {
+            padding: 14px 22px;
+            position: absolute;
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 1px 1px 0 rgba(255, 255, 255, 0.8) inset;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 13.5px;
+            color: #334155;
+            z-index: 50;
+            transition: all 0.3s ease;
+        }
+
+        #top-left {
+            top: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        #top-right {
+            top: 20px;
+            right: 20px;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: flex-end;
+        }
+
+        /* Exp Bar */
+        #exp-container {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 45%;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            overflow: hidden;
+            pointer-events: auto;
+            z-index: 50;
+        }
+
+        #exp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+            width: 0%;
+            border-radius: 50px;
+            transition: width 0.15s ease-out;
+        }
+
+        #level-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 800;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            color: #1e293b;
+            text-shadow: none;
+            pointer-events: none;
+        }
+
+        /* Menus Flex layout */
+        .menu-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 252, 0.98) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 40px 20px;
+            z-index: 100;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            font-size: 44px;
+            font-weight: 800;
+            margin: 10px 0 20px 0;
+            background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.05));
+        }
+
+        .menu-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        @media (max-width: 968px) {
+            .menu-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .menu-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: left;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+            transition: transform 0.3s ease;
+        }
+
+        .menu-panel:hover {
+            transform: translateY(-2px);
+        }
+
+        .menu-panel h2 {
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 16px;
+            margin-top: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .panel-scroll {
+            height: 380px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .panel-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .panel-scroll::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: 10px;
+        }
+
+        .panel-scroll::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        .panel-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.25);
+        }
+
+        .btn {
+            padding: 14px 36px;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 14px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn:disabled {
+            background: #cbd5e1 !important;
+            color: #94a3b8 !important;
+            box-shadow: none !important;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Custom Button overrides */
+        #btn-start {
+            font-size: 20px;
+            padding: 16px 54px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff;
+            box-shadow: 0 10px 20px -10px rgba(16, 185, 129, 0.4);
+        }
+
+        #btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -8px rgba(16, 185, 129, 0.6);
+            filter: brightness(1.05);
+        }
+
+        #btn-open-shop {
+            font-size: 20px;
+            padding: 16px 42px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: #fff;
+            box-shadow: 0 10px 20px -10px rgba(99, 102, 241, 0.4);
+        }
+
+        #btn-open-shop:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -8px rgba(99, 102, 241, 0.6);
+            filter: brightness(1.05);
+        }
+
+        #btn-reset-save {
+            font-size: 11px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: #ef4444;
+            color: #fff;
+            opacity: 0.7;
+            margin-top: 40px;
+            box-shadow: none;
+        }
+
+        #btn-reset-save:hover {
+            opacity: 1;
+            transform: translateY(-1px);
+        }
+
+        #btn-close-shop {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            color: #fff;
+            font-size: 13.5px;
+            padding: 10px 24px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(71, 85, 105, 0.15);
+        }
+
+        #btn-close-shop:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(71, 85, 105, 0.3);
+        }
+
+        #reroll-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2);
+            font-size: 14.5px;
+            padding: 12px 30px;
+            border-radius: 12px;
+            margin-top: 30px;
+        }
+
+        #reroll-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(245, 158, 11, 0.35);
+        }
+
+        #btn-back-menu {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25);
+            font-size: 15px;
+            padding: 12px 32px;
+            border-radius: 12px;
+            margin-top: 15px;
+        }
+
+        #btn-back-menu:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .currency-box {
+            display: inline-flex;
+            gap: 30px;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 12px 28px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border-radius: 50px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+            margin-bottom: 25px;
+        }
+
+        .coin-text {
+            color: #d97706;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cosmic-text {
+            color: #0f766e;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Upgrade List UI */
+        .upgrade-item {
+            border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+            padding: 14px 0;
+            font-size: 13.5px;
+        }
+
+        .upgrade-item:last-child {
+            border-bottom: none;
+        }
+
+        .upgrade-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .upgrade-cell-left {
+            flex: 1;
+        }
+
+        .upgrade-cell-left strong {
+            font-size: 14.5px;
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .upgrade-cell-left small {
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .upgrade-cell-right {
+            flex-shrink: 0;
+        }
+
+        .upgrade-item button {
+            padding: 8px 16px;
+            font-size: 11.5px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.2);
+        }
+
+        .upgrade-item button:hover:not(:disabled) {
+            transform: scale(1.04);
+            box-shadow: 0 6px 12px -1px rgba(217, 119, 6, 0.35);
+        }
+
+        .upgrade-item button.cosmic-btn {
+            background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+            box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.2);
+        }
+
+        .upgrade-item button.cosmic-btn:hover:not(:disabled) {
+            box-shadow: 0 6px 12px -1px rgba(13, 148, 136, 0.35);
+        }
+
+        .upgrade-item button.art-btn {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.2);
+        }
+
+        .upgrade-item button.art-btn:hover:not(:disabled) {
+            box-shadow: 0 6px 12px -1px rgba(139, 92, 246, 0.35);
+        }
+
+        /* Cards */
+        .cards-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 24px;
+            margin-top: 30px;
+        }
+
+        .card {
+            width: 250px;
+            height: 340px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 20px;
+            text-align: center;
+            padding: 28px 20px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-12px) scale(1.03);
+            border-color: #3b82f6;
+            box-shadow: 0 20px 35px -10px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(59, 130, 246, 0.2) inset;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: #3b82f6;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card h3 {
+            margin: 0;
+            font-size: 19px;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.3;
+        }
+
+        .card p {
+            font-size: 13.5px;
+            color: #475569;
+            line-height: 1.5;
+            margin: 15px 0;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card .badge {
+            display: inline-block;
+            padding: 6px 16px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 30px;
+            font-weight: 800;
+            color: #fff;
+            margin-top: auto;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="ui-layer">
+        <div id="exp-container" class="hidden">
+            <div id="exp-bar"></div>
+            <div id="level-text">LVL 1</div>
+        </div>
+        <div id="top-left" class="hud hidden">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span style="font-size: 16px;">❤️</span>
+                <span id="hp-text">100/100</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; color: #64748b;">
+                <span style="font-size: 16px;">⏱️</span>
+                <span id="time-text">00:00</span>
+            </div>
+        </div>
+        <div id="top-right" class="hud hidden">
+            <div style="margin-bottom: 6px;">
+                ⚡ Dash: <span id="dash-text">Siap</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 2px; align-items: flex-end;">
+                <span class="coin-text">🪙 <span id="run-coin">0</span></span>
+                <span class="cosmic-text">🔮 <span id="run-cosmic">0</span></span>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-menu" class="menu-screen">
+        <h1>Thousand years battle</h1>
+        <div class="currency-box">
+            <span class="coin-text">🪙 Koin: <span id="menu-coin">0</span></span>
+            <span class="cosmic-text">🔮 Cosmic: <span id="menu-cosmic">0</span></span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 20px;">
+            <button class="btn" id="btn-start">MULAI BERMAIN</button>
+            <button class="btn" id="btn-open-shop">TOKO UPGRADE PERMANEN</button>
+        </div>
+        <button class="btn" id="btn-reset-save">Reset Seluruh Save Data</button>
+    </div>
+
+    <div id="shop-modal" class="menu-screen hidden">
+        <h1>Toko Upgrade Evolusi</h1>
+        <div class="currency-box">
+            <span class="coin-text">🪙 Koin: <span id="shop-coin">0</span></span>
+            <span class="cosmic-text">🔮 Cosmic: <span id="shop-cosmic">0</span></span>
+        </div>
+        <button class="btn" id="btn-close-shop">KEMBALI KE MENU UTAMA</button>
+
+        <div class="menu-container">
+            <div class="menu-panel">
+                <h2>Statistik Utama (Koin)</h2>
+                <div class="panel-scroll" id="stat-list"></div>
+            </div>
+            <div class="menu-panel">
+                <h2>Permanen Senjata (Cosmic Koin)</h2>
+                <div class="panel-scroll" id="weapon-list"></div>
+            </div>
+            <div class="menu-panel">
+                <h2>Inventaris Artefak (Koin)</h2>
+                <div class="panel-scroll" id="artifact-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="levelup-screen" class="menu-screen hidden">
+        <h1>LEVEL TERLAMPUI!</h1>
+        <h2 style="font-size: 16px; font-weight: 600; color: #64748b; margin-top: 0; margin-bottom: 20px;">Pilih salah
+            satu peningkatan acak murni</h2>
+        <div class="cards-container" id="cards-container"></div>
+        <button class="btn" id="reroll-btn">Reroll Pilihan (<span id="reroll-count">3</span>/3)</button>
+    </div>
+
+    <div id="game-over-screen" class="menu-screen hidden">
+        <h1>PERMAINAN BERAKHIR</h1>
+
+        <div
+            style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 24px; padding: 30px 40px; margin-bottom: 25px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03); text-align: center; max-width: 450px; width: 100%;">
+            <div
+                style="font-size: 15px; font-weight: 700; color: #64748b; margin-bottom: 12px; display: flex; justify-content: space-between; gap: 40px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 12px;">
+                <span>⏱️ Waktu Bertahan</span>
+                <span id="survive-time" style="color: #1e293b; font-size: 17px;">00:00</span>
+            </div>
+            <div
+                style="font-size: 15px; font-weight: 700; color: #64748b; margin-bottom: 24px; display: flex; justify-content: space-between; gap: 40px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 12px;">
+                <span>⭐ Level Akhir</span>
+                <span id="final-level" style="color: #1e293b; font-size: 17px;">1</span>
+            </div>
+            <div class="currency-box"
+                style="margin-bottom: 0; width: 100%; display: flex; justify-content: center; gap: 20px;">
+                <span class="coin-text">🪙 +<span id="earned-coin">0</span></span>
+                <span class="cosmic-text">🔮 +<span id="earned-cosmic">0</span></span>
+            </div>
+        </div>
+
+        <button class="btn" id="btn-back-menu">Kembali ke Menu Utama</button>
+    </div>
+
+    <script>
+        // =========================================================================
+        // 1. BALANCING CONFIGURATION
+        // =========================================================================
+        const CONFIG = {
+            LIFESTEAL_PER_KILL: 0.8,
+            BASE_PLAYER_HP: 100,
+            BASE_PLAYER_SPEED: 3.2,
+            MAGNET_BASE_RANGE: 65,
+            CRIT_DAMAGE_MULTIPLIER: 2,
+            BOSS_SPAWN_INTERVAL: 60,
+            EXP_NEEDED_BASE: 12,
+            EXP_NEEDED_EXPONENT: 1.65,
+        };
+
+        // ==========================================
+        // 2. DICTIONARIES DEFINITIONS (NEW LIST)
+        // ==========================================
+        const WEAPON_DEFS = {
+            pistol: { name: "Pistol", max: 10, costBase: 1, desc: "Menembakan peluru, tiap upgrade menambah 1 peluru." },
+            boomerang: { name: "Boomerang", max: 8, costBase: 2, desc: "Menembakan boomerang pierce max 3. Tiap upgrade +1 boomerang +1 pierce. Max level menembak ke 8 arah mata angin." },
+            missile: { name: "Missile", max: 10, costBase: 4, desc: "Menembakan missile lambat namun kuat dan AOE tinggi. Level 1-3 menambah jumlah missile, 4-10 menambah AOE." },
+            poison: { name: "Poison bottle", max: 15, costBase: 2, desc: "Melempar botol berisi kabut beracun. Level 1-5 tambah botol, 6-10 tambah DoT, 11-15 tambah AOE." },
+            thunder: { name: "Thunder", max: 10, costBase: 5, desc: "Mensummon petir kemusuh acak. Upgrade menambah jumlah petir." },
+            chain: { name: "Chain lightning", max: 10, costBase: 3, desc: "Menembakan listrik menyebar ke max 5 orang. Level 1-5 menambah damage, 6-10 menambah rantai pantulan." },
+            pulse: { name: "Heavy pulse", max: 5, costBase: 6, desc: "Menciptakan dorongan energi kuat berkala dengan damage dan knockback ke sekitar." },
+            minion: { name: "Minion", max: 3, costBase: 8, desc: "Summon minion mengelilingi player yang menyerang acak 1 level di bawah senjata Anda." },
+            blue_lapse: { name: "Blue Lapse", max: 1, costBase: 12, desc: "Setiap 10 detik memicu Blue Flame. Saat dash klik kanan, memicu Blue Lapse yang bergerak lurus secara lambat selama 5 detik." },
+            reversal_red: { name: "Reversal Red", max: 1, costBase: 15, desc: "Setiap 10 detik memicu Red Flame. Saat dash klik kiri, memicu Reversal Red cepat yang bergerak lurus, damage tinggi, knockback tinggi, & meledak setelah 3 detik." },
+            // 15 NEW WEAPONS
+            laser: { name: "Sinar Laser", max: 10, costBase: 5, desc: "Menembakan sinar laser penembus tebal ke arah musuh terdekat secara periodik." },
+            meteor: { name: "Hujan Meteor", max: 10, costBase: 7, desc: "Memanggil meteor dari langit jatuh ke posisi musuh acak, membakar tanah." },
+            frost_nova: { name: "Frost Nova", max: 8, costBase: 4, desc: "Melepaskan gelombang es yang melambatkan musuh dan memberikan damage di sekitar." },
+            lava_trail: { name: "Lava Trail", max: 8, costBase: 3, desc: "Meninggalkan genangan lava panas di belakang player yang membakar musuh." },
+            blade_ring: { name: "Blade Ring", max: 8, costBase: 5, desc: "Pisau berputar yang mengelilingi player untuk melukai musuh terdekat." },
+            tesla_coil: { name: "Tesla Coil", max: 10, costBase: 6, desc: "Meletakkan menara listrik yang menyetrum musuh secara otomatis." },
+            black_hole: { name: "Singularity", max: 5, costBase: 9, desc: "Menembakkan lubang hitam mini yang menghisap musuh ke pusatnya." },
+            earthquake: { name: "Earthquake", max: 5, costBase: 8, desc: "Membuat gempa bumi periodik yang memberikan damage dan knockback ke seluruh layar." },
+            poison_dart: { name: "Poison Dart", max: 10, costBase: 3, desc: "Menembakan jarum beracun dengan kecepatan tinggi yang memberikan efek DoT." },
+            tornado: { name: "Tornado", max: 8, costBase: 6, desc: "Memunculkan angin puting beliung acak yang bergerak bebas menyapu musuh." },
+            holy_cross: { name: "Holy Cross", max: 10, costBase: 7, desc: "Menjatuhkan salib suci yang memicu area suci pemberi damage berkelanjutan." },
+            energy_shield: { name: "Energy Shield", max: 8, costBase: 4, desc: "Menciptakan perisai energi berputar yang melukai musuh saat menyentuhnya." },
+            scatter_shot: { name: "Scatter Shot", max: 10, costBase: 4, desc: "Menembakan serpihan peluru ke 8 arah mata angin secara berkala." },
+            combustion: { name: "Combustion", max: 10, costBase: 5, desc: "Menyebabkan musuh yang terbakar/teracuni meledak dan memicu AOE damage." },
+            overcharge: { name: "Overcharge", max: 10, costBase: 7, desc: "Meningkatkan kecepatan serang dan damage dari semua senjata tipe listrik." }
+        };
+
+        const ARTIFACT_DEFS = {
+            art_eagle_eye: { name: "Eagle eye", max: 8, costBase: 120, desc: "Mata melihat kelemahan. +10% Crit Chance di lv 1, upgrade +5%." },
+            art_the_force: { name: "The Force", max: 8, costBase: 140, desc: "Kekuatan supranatural. +2% Magnet Range & +10% knockback/detik di area magnet. Tiap upgrade +1% range, +5% knockback." },
+            art_ultimate_dasher: { name: "Ultimate Dasher", max: 8, costBase: 200, desc: "+10% jarak dash, -10% cooldown, & kebal permanen saat dash (bisa menembus musuh)." },
+            art_los: { name: "Layer Of Safety (L.O.S)", max: 10, costBase: 180, desc: "Memberikan +1 layer shield setara 100 HP. Tiap upgrade +1 layer." },
+            art_aegis_shoes: { name: "Aegis Shoes", max: 8, costBase: 100, desc: "Sepatu dewa lari. +10% Movement Speed awal, tiap upgrade selanjutnya +5%." },
+            // 5 NEW UNIQUE ARTIFACTS
+            art_phoenix_feather: { name: "Phoenix Feather", max: 5, costBase: 350, desc: "Menghidupkan kembali player dengan 30% (+10% per lv) HP saat mati (sekali per permainan)." },
+            art_philosopher_stone: { name: "Philosopher Stone", max: 5, costBase: 250, desc: "Peluang 10% (+5% per lv) untuk menggandakan koin/cosmic koin yang dikumpulkan." },
+            art_juggernaut_armor: { name: "Juggernaut Armor", max: 5, costBase: 220, desc: "Mengurangi seluruh damage yang diterima sebesar 5% (+3% per lv)." },
+            art_vampire_flesh: { name: "Vampire Flesh", max: 5, costBase: 160, desc: "Memulihkan 0.2 (+0.1 per lv) HP setiap berhasil membunuh musuh." },
+            art_chronos_watch: { name: "Chronos Watch", max: 5, costBase: 300, desc: "Mengurangi cooldown semua senjata aktif sebesar 4% (+3% per lv)." }
+        };
+
+        // ==========================================
+        // 3. SAVE DATA STRUCTURE
+        // ==========================================
+        const BASE_SAVE = {
+            coins: 0, cosmicCoins: 0,
+            stats: {
+                hp: { level: 0, max: 25, costBase: 45, val: 15, name: "Max HP Up" },
+                atk: { level: 0, max: 25, costBase: 65, val: 0.1, name: "All Weapon Damage" },
+                spd: { level: 0, max: 25, costBase: 50, val: 0.2, name: "Movement Speed" },
+                magnet: { level: 0, max: 25, costBase: 30, val: 20, name: "Magnet Range" }
+            },
+            weapons: {},
+            artifacts: {}
+        };
+
+        for (let w in WEAPON_DEFS) {
+            BASE_SAVE.weapons[w] = { level: (w === 'pistol' ? 1 : 0), max: WEAPON_DEFS[w].max, costBase: WEAPON_DEFS[w].costBase };
+        }
+        for (let a in ARTIFACT_DEFS) {
+            BASE_SAVE.artifacts[a] = { level: 0, max: ARTIFACT_DEFS[a].max, costBase: ARTIFACT_DEFS[a].costBase };
+        }
+
+        let saveData = JSON.parse(localStorage.getItem('thousandYearsBattleSave')) || JSON.parse(JSON.stringify(BASE_SAVE));
+
+        // Failsafe migrasi data save - cek semua senjata & artefak baru ada
+        if (!saveData.weapons || !saveData.weapons.pistol || !saveData.artifacts 
+            || !saveData.weapons.laser || !saveData.weapons.blue_lapse 
+            || !saveData.artifacts.art_phoenix_feather || !saveData.weapons.overcharge) {
+            saveData = JSON.parse(JSON.stringify(BASE_SAVE));
+        }
+
+        // Force all stats max levels to 25
+        if (saveData.stats) {
+            for (let k in saveData.stats) {
+                saveData.stats[k].max = 25;
+            }
+        }
+
+        function saveGame() {
+            localStorage.setItem('thousandYearsBattleSave', JSON.stringify(saveData));
+            updateMenuUI();
+        }
+
+        // ==========================================
+        // SYSTEM ENGINE CONSTANTS & STATE
+        // ==========================================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+
+        const keys = {};
+        window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
+        window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+
+        let gameState = 'menu', gameTime = 0, frameCount = 0, runCoins = 0, runCosmic = 0;
+        let player, camera;
+        let entities = { enemies: [], drops: [], projectiles: [], damageTexts: [], particles: [] };
+        let bossActive = false, currentLevel = 1, currentExp = 0, expNeeded = 10, rerollsLeft = 3, currentChoices = [];
+
+        window.addEventListener('contextmenu', e => {
+            e.preventDefault();
+        });
+
+        window.addEventListener('mousedown', e => {
+            if (gameState !== 'playing') return;
+            // Abaikan jika klik di HUD overlays
+            if (e.target.closest('.hud') || e.target.closest('#exp-container')) return;
+
+            if (player.dashCooldown <= 0) {
+                if (e.button === 0) {
+                    player.triggerDash('left');
+                } else if (e.button === 2) {
+                    player.triggerDash('right');
+                }
+            }
+        });
+
+        // ==========================================
+        // UTILITIES MATHEMATICS
+        // ==========================================
+        function drawHexagon(ctx, x, y, size, fill, stroke, strokeWidth = 2, rotation = 0) {
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = rotation + (Math.PI / 3) * i;
+                ctx.lineTo(x + size * Math.cos(angle), y + size * Math.sin(angle));
+            }
+            ctx.closePath();
+            if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+            if (stroke) { ctx.lineWidth = strokeWidth; ctx.strokeStyle = stroke; ctx.stroke(); }
+        }
+        function getDistance(x1, y1, x2, y2) { return Math.hypot(x2 - x1, y2 - y1); }
+        function getAngle(x1, y1, x2, y2) { return Math.atan2(y2 - y1, x2 - x1); }
+
+        // ==========================================
+        // GAME OBJECT CLASSES
+        // ==========================================
+        class Camera {
+            constructor() { this.x = 0; this.y = 0; }
+            update(target) {
+                this.x += (target.x - canvas.width / 2 - this.x) * 0.1;
+                this.y += (target.y - canvas.height / 2 - this.y) * 0.1;
+            }
+            apply(ctx) { ctx.save(); ctx.translate(-this.x, -this.y); }
+            reset(ctx) { ctx.restore(); }
+        }
+
+        class Player {
+            constructor() {
+                this.x = 0; this.y = 0; this.size = 18;
+                this.maxHp = CONFIG.BASE_PLAYER_HP + (saveData.stats.hp.level * saveData.stats.hp.val);
+                this.hp = this.maxHp;
+                this.speed = CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val);
+                this.baseDmgMulti = 1 + (saveData.stats.atk.level * saveData.stats.atk.val);
+                this.magnetArea = CONFIG.MAGNET_BASE_RANGE + (saveData.stats.magnet.level * saveData.stats.magnet.val);
+
+                this.dashCooldownMax = 180; this.dashCooldown = 0; this.dashDuration = 0; this.dashSpeed = 11;
+
+                // Hollow Purple Systems
+                this.purpleFlames = 0;
+                this.purpleTimer = 0;
+                this.redFlames = 0;
+                this._redTimer = 0;
+                this.lastMoveAngle = 0;
+
+                // Process Modifiers dari Artefak Baru
+                this.artMods = {
+                    crit: 0, forceKnockback: 0, dashCdRed: 0, dashDistMod: 1, maxShield: 0,
+                    reviveCount: 0, reviveHpPercent: 0, doubleCoinsChance: 0, dmgReduction: 0, healPerKill: 0, cooldownReduction: 0
+                };
+                this.shieldHp = 0;
+
+                for (let key in saveData.artifacts) {
+                    let lv = saveData.artifacts[key].level;
+                    if (lv <= 0) continue;
+                    if (key === 'art_eagle_eye') this.artMods.crit += 0.10 + (lv - 1) * 0.05;
+                    if (key === 'art_the_force') {
+                        this.magnetArea += this.magnetArea * (0.02 + (lv - 1) * 0.01);
+                        this.artMods.forceKnockback += 10 + (lv - 1) * 5;
+                    }
+                    if (key === 'art_ultimate_dasher') {
+                        this.artMods.dashDistMod += 0.10 + (lv - 1) * 0.05;
+                        this.artMods.dashCdRed += 0.10 + (lv - 1) * 0.05;
+                    }
+                    if (key === 'art_los') {
+                        this.artMods.maxShield += lv * 100;
+                    }
+                    if (key === 'art_aegis_shoes') {
+                        this.speed += CONFIG.BASE_PLAYER_SPEED * (0.10 + (lv - 1) * 0.05);
+                    }
+                    // Process the 5 new artifacts
+                    if (key === 'art_phoenix_feather') {
+                        this.artMods.reviveCount = 1;
+                        this.artMods.reviveHpPercent = 0.20 + lv * 0.10;
+                    }
+                    if (key === 'art_philosopher_stone') {
+                        this.artMods.doubleCoinsChance = 0.05 + lv * 0.05;
+                    }
+                    if (key === 'art_juggernaut_armor') {
+                        this.artMods.dmgReduction = 0.02 + lv * 0.03;
+                    }
+                    if (key === 'art_vampire_flesh') {
+                        this.artMods.healPerKill = lv * 0.15;
+                    }
+                    if (key === 'art_chronos_watch') {
+                        this.artMods.cooldownReduction = lv * 0.03;
+                    }
+                }
+                this.dashCooldownMax = Math.max(30, Math.floor(this.dashCooldownMax * (1 - this.artMods.dashCdRed)));
+                this.dashSpeed = 11 * this.artMods.dashDistMod;
+                this.shieldHp = this.artMods.maxShield;
+
+                this.weapons = [];
+                for (let wId in saveData.weapons) {
+                    let pWpn = saveData.weapons[wId];
+                    if (pWpn && pWpn.level > 0) {
+                        this.weapons.push(new WeaponInstance(wId, pWpn.level));
+                    }
+                }
+                if (this.weapons.length === 0) {
+                    this.weapons.push(new WeaponInstance('pistol', 1));
+                }
+            }
+            triggerDash(clickType) {
+                this.dashDuration = 14;
+                this.dashCooldown = this.dashCooldownMax;
+                createParticles(this.x, this.y, '#339af0', 12);
+
+                let hasLapse = this.weapons.find(w => w.id === 'blue_lapse');
+                let hasRed = this.weapons.find(w => w.id === 'reversal_red');
+
+                if (clickType === 'right' && hasLapse && this.purpleFlames >= 1) {
+                    this.purpleFlames -= 1;
+                    createDamageText(this.x, this.y - 30, "BLUE LAPSE! 🌀", '#3b82f6', 20);
+                    
+                    let blDmg = (15 + hasLapse.level * 10) * this.baseDmgMulti;
+                    let blRadius = 130;
+                    let blAng = this.lastMoveAngle;
+                    let blStartX = this.x + Math.cos(blAng) * 60;
+                    let blStartY = this.y + Math.sin(blAng) * 60;
+                    
+                    entities.particles.push({
+                        id: 'blue_lapse',
+                        x: blStartX, y: blStartY, radius: blRadius, life: 300, dmg: blDmg,
+                        vx: Math.cos(blAng) * 1.2, vy: Math.sin(blAng) * 1.2,
+                        update() {
+                            this.life--;
+                            this.x += this.vx;
+                            this.y += this.vy;
+                            // Hisap dan damage musuh (setiap 4 frame untuk performa)
+                            if (this.life % 4 === 0) {
+                                for (let i = entities.enemies.length - 1; i >= 0; i--) {
+                                    let e = entities.enemies[i];
+                                    if (!e || e.dead) continue;
+                                    let d = getDistance(this.x, this.y, e.x, e.y);
+                                    if (d < this.radius) {
+                                        let da = getAngle(e.x, e.y, this.x, this.y);
+                                        e.x += Math.cos(da) * 4;
+                                        e.y += Math.sin(da) * 4;
+                                    }
+                                    if (d < this.radius * 0.5 && this.life % 12 === 0) {
+                                        e.takeDamage(this.dmg * 0.3);
+                                    }
+                                }
+                            }
+                        },
+                        draw(ctx) {
+                            let pulse = 0.8 + 0.2 * Math.sin(frameCount * 0.15);
+                            // Lingkaran luar transparan
+                            ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * pulse, 0, Math.PI * 2);
+                            ctx.strokeStyle = 'rgba(59, 130, 246, 0.2)'; ctx.lineWidth = 1.5; ctx.stroke();
+                            // Inti biru
+                            ctx.beginPath(); ctx.arc(this.x, this.y, 14 + 5 * Math.sin(frameCount * 0.2), 0, Math.PI * 2);
+                            ctx.fillStyle = '#3b82f6'; ctx.fill();
+                            // Glow area
+                            ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * 0.4 * pulse, 0, Math.PI * 2);
+                            ctx.fillStyle = 'rgba(96, 165, 250, 0.06)'; ctx.fill();
+                        }
+                    });
+                    createParticles(blStartX, blStartY, '#3b82f6', 8);
+                } else if (clickType === 'left' && hasRed && this.redFlames >= 1) {
+                    this.redFlames -= 1;
+                    createDamageText(this.x, this.y - 30, "REVERSAL RED! 🔴", '#dc2626', 20);
+                    
+                    let redDmg = (35 + hasRed.level * 20) * this.baseDmgMulti;
+                    let redRadius = 150;
+                    let redAng = this.lastMoveAngle;
+                    let redStartX = this.x + Math.cos(redAng) * 60;
+                    let redStartY = this.y + Math.sin(redAng) * 60;
+                    let playerRef = this;
+                    
+                    entities.particles.push({
+                        id: 'reversal_red',
+                        x: redStartX, y: redStartY, radius: redRadius, life: 180, dmg: redDmg,
+                        vx: Math.cos(redAng) * 4.5, vy: Math.sin(redAng) * 4.5,
+                        level: hasRed.level,
+                        baseDmgMulti: playerRef.baseDmgMulti,
+                        update() {
+                            this.life--;
+                            this.x += this.vx;
+                            this.y += this.vy;
+                            // Tolak dan damage musuh (setiap 4 frame)
+                            if (this.life % 4 === 0) {
+                                for (let i = entities.enemies.length - 1; i >= 0; i--) {
+                                    let e = entities.enemies[i];
+                                    if (!e || e.dead) continue;
+                                    let d = getDistance(this.x, this.y, e.x, e.y);
+                                    if (d < this.radius) {
+                                        let da = getAngle(e.x, e.y, this.x, this.y);
+                                        e.x += Math.cos(da) * 8;
+                                        e.y += Math.sin(da) * 8;
+                                    }
+                                    if (d < this.radius * 0.5 && this.life % 12 === 0) {
+                                        e.takeDamage(this.dmg * 0.3);
+                                    }
+                                }
+                            }
+                            // Meledak setelah 3 detik
+                            if (this.life <= 0) {
+                                let explodeDmg = (100 + this.level * 50) * this.baseDmgMulti;
+                                let explodeRadius = 250;
+                                let explodeKb = 70;
+                                
+                                createDamageText(this.x, this.y, "RED EXPLOSION! 💥", '#dc2626', 22);
+                                createParticles(this.x, this.y, '#dc2626', 25);
+                                
+                                for (let i = entities.enemies.length - 1; i >= 0; i--) {
+                                    let e = entities.enemies[i];
+                                    if (!e || e.dead) continue;
+                                    let d = getDistance(this.x, this.y, e.x, e.y);
+                                    if (d < explodeRadius) {
+                                        e.takeDamage(explodeDmg);
+                                        let ka = getAngle(this.x, this.y, e.x, e.y);
+                                        e.x += Math.cos(ka) * explodeKb;
+                                        e.y += Math.sin(ka) * explodeKb;
+                                    }
+                                }
+                                
+                                entities.particles.push({
+                                    x: this.x, y: this.y, radius: explodeRadius, life: 20, max: 20,
+                                    update() { this.life--; },
+                                    draw(ctx) {
+                                        let prog = 1 - this.life / this.max;
+                                        ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * prog, 0, Math.PI * 2);
+                                        ctx.strokeStyle = `rgba(220, 38, 38, ${0.7 * (1 - prog)})`;
+                                        ctx.lineWidth = 5; ctx.stroke();
+                                        ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * prog * 0.8, 0, Math.PI * 2);
+                                        ctx.fillStyle = `rgba(239, 68, 68, ${0.2 * (1 - prog)})`; ctx.fill();
+                                    }
+                                });
+                            }
+                        },
+                        draw(ctx) {
+                            let pulse = 0.8 + 0.2 * Math.sin(frameCount * 0.2);
+                            ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * pulse, 0, Math.PI * 2);
+                            ctx.strokeStyle = 'rgba(220, 38, 38, 0.3)'; ctx.lineWidth = 2; ctx.stroke();
+                            ctx.beginPath(); ctx.arc(this.x, this.y, 16 + 6 * Math.sin(frameCount * 0.25), 0, Math.PI * 2);
+                            ctx.fillStyle = '#dc2626'; ctx.fill();
+                            ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * 0.4 * pulse, 0, Math.PI * 2);
+                            ctx.fillStyle = 'rgba(239, 68, 68, 0.08)'; ctx.fill();
+                        }
+                    });
+                    createParticles(redStartX, redStartY, '#dc2626', 8);
+                }
+            }
+            update() {
+                let dx = 0, dy = 0;
+                if (keys['w'] || keys['arrowup']) dy -= 1;
+                if (keys['s'] || keys['arrowdown']) dy += 1;
+                if (keys['a'] || keys['arrowleft']) dx -= 1;
+                if (keys['d'] || keys['arrowright']) dx += 1;
+
+                if (dx !== 0 && dy !== 0) { let len = Math.hypot(dx, dy); dx /= len; dy /= len; }
+                if (dx !== 0 || dy !== 0) {
+                    this.lastMoveAngle = Math.atan2(dy, dx);
+                }
+
+                let activeSpeed = this.dashDuration > 0 ? this.dashSpeed : this.speed;
+                if (this.dashDuration > 0) { this.dashDuration--; createParticles(this.x, this.y, '#f1f3f5', 1); }
+
+                this.x += dx * activeSpeed; this.y += dy * activeSpeed;
+                if (this.dashCooldown > 0) this.dashCooldown--;
+
+                // Pemicu Pengumpulan Blue Flame berkala (Blue Lapse)
+                if (this.weapons.find(w => w.id === 'blue_lapse')) {
+                    this.purpleTimer++;
+                    if (this.purpleTimer >= 600) { // 10 Detik konstan
+                        this.purpleFlames++;
+                        this.purpleTimer = 0;
+                        createDamageText(this.x, this.y - 40, "Blue Flame Menyala! 🔵", '#3b82f6', 12);
+                        // Blue Flame otomatis meledak di posisi player
+                        let bfDmg = 20 * this.baseDmgMulti;
+                        createStrikeEffect(this.x, this.y, 80, bfDmg, 'rgba(59, 130, 246, 0.25)');
+                        createParticles(this.x, this.y, '#3b82f6', 8);
+                    }
+                }
+
+                // Pemicu Pengumpulan Red Flame berkala (Reversal Red)
+                if (this.weapons.find(w => w.id === 'reversal_red')) {
+                    this._redTimer++;
+                    if (this._redTimer >= 600) { // 10 Detik konstan
+                        this.redFlames++;
+                        this._redTimer = 0;
+                        createDamageText(this.x, this.y - 40, "Red Flame Menyala! 🔴", '#dc2626', 12);
+                        // Red Flame otomatis meledak di posisi player
+                        let rfDmg = 20 * this.baseDmgMulti;
+                        createStrikeEffect(this.x, this.y, 80, rfDmg, 'rgba(220, 38, 38, 0.25)');
+                        createParticles(this.x, this.y, '#dc2626', 8);
+                    }
+                }
+
+                // The Force Knockback Proksimitas Area Magnet per detik
+                if (this.artMods.forceKnockback > 0 && frameCount % 60 === 0) {
+                    entities.enemies.forEach(e => {
+                        if (getDistance(this.x, this.y, e.x, e.y) < this.magnetArea) {
+                            let ang = getAngle(this.x, this.y, e.x, e.y);
+                            e.x += Math.cos(ang) * (this.artMods.forceKnockback * 0.4);
+                            e.y += Math.sin(ang) * (this.artMods.forceKnockback * 0.4);
+                        }
+                    });
+                }
+
+                this.weapons.forEach(w => w.update());
+
+                // Penarikan Magnet Drop Item
+                for (let i = entities.drops.length - 1; i >= 0; i--) {
+                    let drop = entities.drops[i];
+                    let d = getDistance(this.x, this.y, drop.x, drop.y);
+                    if (d < this.magnetArea) drop.magnetized = true;
+                    if (drop.magnetized) {
+                        let angle = getAngle(drop.x, drop.y, this.x, this.y);
+                        drop.x += Math.cos(angle) * 9; drop.y += Math.sin(angle) * 9;
+                        if (getDistance(this.x, this.y, drop.x, drop.y) < this.size + drop.size) {
+                            drop.collect(); entities.drops.splice(i, 1);
+                        }
+                    }
+                }
+            }
+            draw(ctx) {
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.magnetArea, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(59, 130, 246, 0.02)"; ctx.fill();
+
+                ctx.save();
+                ctx.shadowColor = 'rgba(15, 23, 42, 0.08)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetY = 4;
+                let visualColor = this.dashDuration > 0 ? '#6366f1' : '#1e293b';
+                drawHexagon(ctx, this.x, this.y, this.size, '#ffffff', visualColor, 3, frameCount * 0.04);
+                ctx.restore();
+
+                let flameTexts = [];
+                if (this.purpleFlames > 0) flameTexts.push(`🔵 ${this.purpleFlames}`);
+                if (this.redFlames > 0) flameTexts.push(`🔴 ${this.redFlames}`);
+                if (flameTexts.length > 0) {
+                    ctx.fillStyle = '#1e293b'; ctx.font = 'bold 11px sans-serif';
+                    ctx.fillText(flameTexts.join(' '), this.x - 18, this.y - 24);
+                }
+
+                this.weapons.forEach(w => w.draw(ctx));
+            }
+            takeDamage(amount) {
+                if (this.dashDuration > 0) return; // Ultimate Dasher Invincibility
+
+                let damageToInflict = amount * (1 - this.artMods.dmgReduction);
+                if (this.shieldHp > 0) {
+                    if (this.shieldHp >= damageToInflict) {
+                        this.shieldHp -= damageToInflict;
+                        createDamageText(this.x, this.y, `Shield Blocked`, '#339af0');
+                        damageToInflict = 0;
+                    } else {
+                        damageToInflict -= this.shieldHp;
+                        this.shieldHp = 0;
+                        createDamageText(this.x, this.y, `Shield Broke!`, '#e03131');
+                    }
+                }
+
+                if (damageToInflict > 0) {
+                    this.hp -= damageToInflict;
+                    createDamageText(this.x, this.y, Math.floor(damageToInflict), '#c92a2a');
+                    if (this.hp <= 0) {
+                        if (this.artMods.reviveCount > 0) {
+                            this.artMods.reviveCount = 0; // Trigger once
+                            this.hp = this.maxHp * this.artMods.reviveHpPercent;
+                            createParticles(this.x, this.y, '#e03131', 20);
+                            createDamageText(this.x, this.y - 30, "BANGKIT KEMBALI! ⚡", '#e03131', 18);
+                        } else {
+                            triggerGameOver();
+                        }
+                    }
+                }
+            }
+        }
+
+        // ==========================================
+        // DYNAMIC MODULAR WEAPON INSTANCE
+        // ==========================================
+        class WeaponInstance {
+            constructor(id, level) {
+                this.id = id; this.level = level;
+                this.def = WEAPON_DEFS[id]; this.cooldown = 0;
+            }
+            update() {
+                if (this.cooldown > 0) {
+                    // Apply Chronos Watch cooldown reduction
+                    let cdRed = player.artMods.cooldownReduction || 0;
+                    this.cooldown -= (1 + cdRed);
+                    if (this.cooldown > 0) return;
+                }
+
+                let dmgBase = 10 + (this.level * 5);
+                let finalDmg = dmgBase * player.baseDmgMulti;
+                let isCrit = Math.random() < player.artMods.crit;
+                if (isCrit) finalDmg *= CONFIG.CRIT_DAMAGE_MULTIPLIER;
+
+                let near = getNearestEnemy(player.x, player.y, 600);
+
+                switch (this.id) {
+                    case 'pistol':
+                        let bulletCount = this.level;
+                        let baseAngle = near ? getAngle(player.x, player.y, near.x, near.y) : 0;
+                        for (let i = 0; i < bulletCount; i++) {
+                            let spread = (i - (bulletCount - 1) / 2) * 0.15;
+                            fireBullet(player.x, player.y, baseAngle + spread, finalDmg, 9, '#228be6', 5, isCrit, 1);
+                        }
+                        this.cooldown = 35;
+                        break;
+
+                    case 'boomerang':
+                        let maxPierce = 3 + (this.level - 1);
+                        if (this.level >= 8) {
+                            // Tembak 8 Arah Mata Angin Konstan di level max
+                            for (let i = 0; i < 8; i++) {
+                                let ang = (Math.PI / 4) * i;
+                                fireBullet(player.x, player.y, ang, finalDmg, 7, '#22b8cf', 6, isCrit, maxPierce, true);
+                            }
+                        } else {
+                            let bCount = this.level;
+                            let targetAng = near ? getAngle(player.x, player.y, near.x, near.y) : 0;
+                            for (let i = 0; i < bCount; i++) {
+                                let spread = (i - (bCount - 1) / 2) * 0.2;
+                                fireBullet(player.x, player.y, targetAng + spread, finalDmg, 7, '#22b8cf', 6, isCrit, maxPierce, true);
+                            }
+                        }
+                        this.cooldown = 55;
+                        break;
+
+                    case 'missile':
+                        let mCount = Math.min(3, this.level);
+                        let mAoe = 45 + (this.level >= 4 ? (this.level - 3) * 15 : 0);
+                        let mAng = near ? getAngle(player.x, player.y, near.x, near.y) : Math.random() * Math.PI * 2;
+                        for (let i = 0; i < mCount; i++) {
+                            let spread = (i - (mCount - 1) / 2) * 0.25;
+                            fireBullet(player.x, player.y, mAng + spread, finalDmg * 1.8, 4.5, '#fd7e14', 8, isCrit, 1, false, false, mAoe);
+                        }
+                        this.cooldown = 75;
+                        break;
+
+                    case 'poison':
+                        let bottles = Math.min(5, this.level);
+                        let dotDmg = 4 + (this.level >= 6 ? Math.min(5, this.level - 5) * 3 : 0);
+                        let pRadius = 40 + (this.level >= 11 ? (this.level - 10) * 12 : 0);
+
+                        for (let i = 0; i < bottles; i++) {
+                            let tx = player.x + (Math.random() * 360 - 180);
+                            let ty = player.y + (Math.random() * 360 - 180);
+                            if (near && i === 0) { tx = near.x; ty = near.y; }
+
+                            entities.particles.push({
+                                x: tx, y: ty, radius: pRadius, life: 180, dmg: dotDmg * player.baseDmgMulti,
+                                update() {
+                                    this.life--;
+                                    if (this.life % 30 === 0) {
+                                        entities.enemies.forEach(e => {
+                                            if (getDistance(this.x, this.y, e.x, e.y) < this.radius) e.takeDamage(this.dmg);
+                                        });
+                                    }
+                                },
+                                draw(ctx) {
+                                    ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                                    ctx.fillStyle = "rgba(40, 167, 69, 0.15)"; ctx.fill();
+                                }
+                            });
+                        }
+                        this.cooldown = 80;
+                        break;
+
+                    case 'thunder':
+                        for (let i = 0; i < this.level; i++) {
+                            let tTarget = getRandomEnemy();
+                            if (tTarget) {
+                                createStrikeEffect(tTarget.x, tTarget.y, 35, finalDmg * 1.5, 'rgba(156, 54, 181, 0.3)');
+                                let tx = tTarget.x, ty = tTarget.y;
+                                entities.particles.push({
+                                    life: 8, draw(ctx) { ctx.beginPath(); ctx.moveTo(tx, ty - 300); ctx.lineTo(tx, ty); ctx.strokeStyle = '#be4bdb'; ctx.lineWidth = 3; ctx.stroke(); }, update() { this.life--; }
+                                });
+                            }
+                        }
+                        this.cooldown = 60;
+                        break;
+
+                    case 'chain':
+                        let chainJumps = 5 + (this.level >= 6 ? (this.level - 5) : 0);
+                        let chainDmg = finalDmg * (this.level <= 5 ? (1 + this.level * 0.15) : 1.75);
+                        let cTarget = getRandomEnemy();
+                        if (cTarget) triggerChainLightning(cTarget, chainJumps, chainDmg);
+                        this.cooldown = 50;
+                        break;
+
+                    case 'pulse':
+                        let pulseRad = 55 + this.level * 22;
+                        let pulseDmg = (12 + this.level * 6) * player.baseDmgMulti;
+                        let pulseKb = 6 + this.level * 3;
+
+                        entities.enemies.forEach(e => {
+                            if (getDistance(player.x, player.y, e.x, e.y) < pulseRad) {
+                                e.takeDamage(pulseDmg);
+                                let a = getAngle(player.x, player.y, e.x, e.y);
+                                e.x += Math.cos(a) * pulseKb; e.y += Math.sin(a) * pulseKb;
+                            }
+                        });
+                        entities.particles.push({
+                            x: player.x, y: player.y, radius: pulseRad, life: 12, max: 12,
+                            update() { this.life--; this.x = player.x; this.y = player.y; },
+                            draw(ctx) { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * (1 - this.life / this.max), 0, Math.PI * 2); ctx.strokeStyle = "rgba(33,37,41,0.3)"; ctx.lineWidth = 3; ctx.stroke(); }
+                        });
+                        this.cooldown = 90;
+                        break;
+
+                    case 'minion': {
+                        // Minion menyerang dengan senjata acak, 1 level lebih rendah
+                        let minionCount = this.level;
+                        let availableWeapons = player.weapons.filter(w => w.id !== 'minion' && w.id !== 'blue_lapse' && w.id !== 'reversal_red');
+                        for (let i = 0; i < minionCount; i++) {
+                            let orbitAngle = (frameCount * 0.03) + (Math.PI * 2 / minionCount) * i;
+                            let mx = player.x + Math.cos(orbitAngle) * 50;
+                            let my = player.y + Math.sin(orbitAngle) * 50;
+                            let mNear = getNearestEnemy(mx, my, 400);
+                            if (mNear && availableWeapons.length > 0) {
+                                let rw = availableWeapons[Math.floor(Math.random() * availableWeapons.length)];
+                                let mLvl = Math.max(1, rw.level - 1);
+                                let mDmg = (8 + mLvl * 4) * player.baseDmgMulti;
+                                let mAng = getAngle(mx, my, mNear.x, mNear.y);
+                                // Tembakan senjata acak
+                                switch(rw.id) {
+                                    case 'pistol': fireBullet(mx, my, mAng, mDmg, 9, '#228be6', 4, isCrit, 1); break;
+                                    case 'boomerang': fireBullet(mx, my, mAng, mDmg, 7, '#22b8cf', 5, isCrit, 2, true); break;
+                                    case 'missile': fireBullet(mx, my, mAng, mDmg * 1.5, 4.5, '#fd7e14', 6, isCrit, 1, false, false, 30 + mLvl * 8); break;
+                                    case 'poison': createStrikeEffect(mNear.x, mNear.y, 25 + mLvl * 5, mDmg * 0.5, 'rgba(40,167,69,0.2)'); break;
+                                    case 'thunder': createStrikeEffect(mNear.x, mNear.y, 30, mDmg, 'rgba(156,54,181,0.3)'); break;
+                                    case 'chain': mNear.takeDamage(mDmg); createParticles(mNear.x, mNear.y, '#4dabf7', 3); break;
+                                    case 'pulse': createStrikeEffect(mx, my, 35 + mLvl * 8, mDmg * 0.7, 'rgba(33,37,41,0.2)'); break;
+                                    case 'laser': fireBullet(mx, my, mAng, mDmg * 1.2, 14, '#ef4444', 3, isCrit, 5); break;
+                                    case 'meteor': createStrikeEffect(mNear.x, mNear.y, 35 + mLvl * 5, mDmg * 1.3, 'rgba(234,88,12,0.3)'); break;
+                                    case 'frost_nova': createStrikeEffect(mx, my, 40 + mLvl * 5, mDmg * 0.6, 'rgba(56,189,248,0.2)'); break;
+                                    case 'scatter_shot': for(let s=0;s<4;s++) fireBullet(mx,my,mAng+(s-1.5)*0.4,mDmg*0.5,8,'#a855f7',3,isCrit,1); break;
+                                    default: fireBullet(mx, my, mAng, mDmg, 8, '#be4bdb', 4, isCrit, 1); break;
+                                }
+                            }
+                        }
+                        this.cooldown = 50 + Math.floor(Math.random() * 30); // randomize cooldown
+                        break;
+                    }
+
+                    case 'blue_lapse': case 'reversal_red':
+                        this.cooldown = 9999; // Dipicu secara pasif di Player.update()
+                        break;
+
+                    // ======== 15 SENJATA BARU ========
+                    case 'laser': {
+                        // Sinar laser penembus tebal
+                        let lNear = getNearestEnemy(player.x, player.y, 600);
+                        let lAng = lNear ? getAngle(player.x, player.y, lNear.x, lNear.y) : 0;
+                        let lPierce = 3 + Math.floor(this.level / 2);
+                        let lDmg = finalDmg * (1 + this.level * 0.15);
+                        fireBullet(player.x, player.y, lAng, lDmg, 16, '#ef4444', 3, isCrit, lPierce);
+                        // Efek visual sinar
+                        let lx2 = player.x + Math.cos(lAng) * 500, ly2 = player.y + Math.sin(lAng) * 500;
+                        entities.particles.push({
+                            life: 6, draw(ctx) { ctx.beginPath(); ctx.moveTo(player.x, player.y); ctx.lineTo(lx2, ly2); ctx.strokeStyle = 'rgba(239,68,68,0.4)'; ctx.lineWidth = 2 + this.level; ctx.stroke(); }, update() { this.life--; }
+                        });
+                        this.cooldown = Math.max(15, 40 - this.level * 2);
+                        break;
+                    }
+                    case 'meteor': {
+                        let mtCount = Math.min(this.level, 6);
+                        let mtDmg = finalDmg * 2;
+                        let mtAoe = 50 + this.level * 8;
+                        for (let i = 0; i < mtCount; i++) {
+                            let tgt = getRandomEnemy();
+                            let mtx = tgt ? tgt.x + (Math.random()*40-20) : player.x + (Math.random()*400-200);
+                            let mty = tgt ? tgt.y + (Math.random()*40-20) : player.y + (Math.random()*400-200);
+                            setTimeout(() => {
+                                createStrikeEffect(mtx, mty, mtAoe, mtDmg * player.baseDmgMulti, 'rgba(234, 88, 12, 0.35)');
+                                createParticles(mtx, mty, '#ea580c', 6);
+                                // Tanah terbakar
+                                entities.particles.push({
+                                    x: mtx, y: mty, radius: mtAoe * 0.6, life: 90, dmg: mtDmg * 0.15 * player.baseDmgMulti,
+                                    update() { this.life--; if (this.life % 20 === 0) entities.enemies.forEach(e => { if (getDistance(this.x,this.y,e.x,e.y) < this.radius) e.takeDamage(this.dmg); }); },
+                                    draw(ctx) { ctx.beginPath(); ctx.arc(this.x,this.y,this.radius,0,Math.PI*2); ctx.fillStyle = `rgba(234,88,12,${0.08 * (this.life/90)})`; ctx.fill(); }
+                                });
+                            }, i * 120);
+                        }
+                        this.cooldown = 100;
+                        break;
+                    }
+                    case 'frost_nova': {
+                        let fnRadius = 80 + this.level * 15;
+                        let fnDmg = finalDmg * 0.8;
+                        entities.enemies.forEach(e => {
+                            if (getDistance(player.x, player.y, e.x, e.y) < fnRadius) {
+                                e.takeDamage(fnDmg);
+                                e.speed = e.initialSpeed * 0.3; // slow
+                                setTimeout(() => { if(e && !e.dead) e.speed = e.initialSpeed; }, 2500);
+                            }
+                        });
+                        entities.particles.push({
+                            x: player.x, y: player.y, radius: fnRadius, life: 15, max: 15,
+                            update() { this.life--; this.x = player.x; this.y = player.y; },
+                            draw(ctx) { ctx.beginPath(); ctx.arc(this.x,this.y,this.radius*(1-this.life/this.max),0,Math.PI*2); ctx.fillStyle='rgba(56,189,248,0.12)'; ctx.fill(); ctx.strokeStyle='rgba(56,189,248,0.4)'; ctx.lineWidth=2; ctx.stroke(); }
+                        });
+                        this.cooldown = 80;
+                        break;
+                    }
+                    case 'lava_trail': {
+                        let ltDmg = (6 + this.level * 3) * player.baseDmgMulti;
+                        let ltRad = 18 + this.level * 3;
+                        entities.particles.push({
+                            x: player.x, y: player.y, radius: ltRad, life: 180, dmg: ltDmg,
+                            update() { this.life--; if(this.life % 25 === 0) entities.enemies.forEach(e => { if(getDistance(this.x,this.y,e.x,e.y)<this.radius) e.takeDamage(this.dmg); }); },
+                            draw(ctx) { ctx.beginPath(); ctx.arc(this.x,this.y,this.radius,0,Math.PI*2); ctx.fillStyle=`rgba(239,68,68,${0.15*(this.life/180)})`; ctx.fill(); }
+                        });
+                        this.cooldown = 12;
+                        break;
+                    }
+                    case 'blade_ring': {
+                        let brCount = 2 + Math.floor(this.level / 2);
+                        let brDmg = finalDmg * 0.6;
+                        let brRad = 55 + this.level * 6;
+                        entities.enemies.forEach(e => {
+                            if (getDistance(player.x, player.y, e.x, e.y) < brRad) {
+                                e.takeDamage(brDmg);
+                            }
+                        });
+                        this.cooldown = 25;
+                        break;
+                    }
+                    case 'tesla_coil': {
+                        let tcCount = Math.min(this.level, 4);
+                        let tcDmg = finalDmg * 1.2;
+                        let tcRad = 100 + this.level * 10;
+                        // Place tesla at player pos
+                        for(let i=0; i < tcCount; i++) {
+                            let tx = player.x + (Math.random()*200-100);
+                            let ty = player.y + (Math.random()*200-100);
+                            entities.particles.push({
+                                x: tx, y: ty, radius: tcRad, life: 120, dmg: tcDmg,
+                                update() { this.life--; if(this.life % 20 === 0) { let hit = getNearestEnemy(this.x,this.y,this.radius); if(hit) { hit.takeDamage(this.dmg); entities.particles.push({ life:6, draw(ctx){ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(hit.x,hit.y);ctx.strokeStyle='#a78bfa';ctx.lineWidth=2;ctx.stroke();}, update(){this.life--;} }); } } },
+                                draw(ctx) { ctx.beginPath(); ctx.arc(this.x,this.y,6,0,Math.PI*2); ctx.fillStyle='#7c3aed'; ctx.fill(); ctx.beginPath();ctx.arc(this.x,this.y,this.radius*(0.3+0.1*Math.sin(frameCount*0.1)),0,Math.PI*2);ctx.strokeStyle='rgba(124,58,237,0.1)';ctx.lineWidth=1;ctx.stroke(); }
+                            });
+                        }
+                        this.cooldown = 150;
+                        break;
+                    }
+                    case 'black_hole': {
+                        let bhNear = getNearestEnemy(player.x, player.y, 500);
+                        let bhAng = bhNear ? getAngle(player.x, player.y, bhNear.x, bhNear.y) : Math.random()*Math.PI*2;
+                        let bhx = player.x + Math.cos(bhAng) * 150;
+                        let bhy = player.y + Math.sin(bhAng) * 150;
+                        let bhDmg = finalDmg * 0.4;
+                        let bhRad = 80 + this.level * 20;
+                        entities.particles.push({
+                            x: bhx, y: bhy, radius: bhRad, life: 180, dmg: bhDmg,
+                            update() { this.life--; entities.enemies.forEach(e => { let d = getDistance(this.x,this.y,e.x,e.y); if(d < this.radius) { let a = getAngle(e.x,e.y,this.x,this.y); e.x += Math.cos(a)*5; e.y += Math.sin(a)*5; if(this.life%10===0) e.takeDamage(this.dmg); } }); },
+                            draw(ctx) { ctx.beginPath(); ctx.arc(this.x,this.y,12+4*Math.sin(frameCount*0.15),0,Math.PI*2); ctx.fillStyle='#1e1b4b'; ctx.fill(); ctx.beginPath();ctx.arc(this.x,this.y,this.radius,0,Math.PI*2);ctx.strokeStyle='rgba(99,102,241,0.15)';ctx.lineWidth=1;ctx.stroke(); }
+                        });
+                        this.cooldown = 160;
+                        break;
+                    }
+                    case 'earthquake': {
+                        let eqDmg = finalDmg * 1.5;
+                        let eqKb = 8 + this.level * 3;
+                        entities.enemies.forEach(e => {
+                            e.takeDamage(eqDmg);
+                            let a = getAngle(player.x, player.y, e.x, e.y);
+                            e.x += Math.cos(a) * eqKb; e.y += Math.sin(a) * eqKb;
+                        });
+                        entities.particles.push({
+                            x: player.x, y: player.y, radius: canvas.width*0.6, life: 10, max: 10,
+                            update() { this.life--; },
+                            draw(ctx) { ctx.beginPath(); ctx.arc(this.x,this.y,this.radius*(1-this.life/this.max),0,Math.PI*2); ctx.strokeStyle='rgba(120,53,15,0.25)'; ctx.lineWidth=4; ctx.stroke(); }
+                        });
+                        this.cooldown = 200;
+                        break;
+                    }
+                    case 'poison_dart': {
+                        let pdCount = 1 + Math.floor(this.level / 2);
+                        let pdDmg = finalDmg * 0.7;
+                        let pdNear = near;
+                        let pdAng = pdNear ? getAngle(player.x, player.y, pdNear.x, pdNear.y) : 0;
+                        for (let i = 0; i < pdCount; i++) {
+                            let spread = (i - (pdCount-1)/2) * 0.12;
+                            fireBullet(player.x, player.y, pdAng + spread, pdDmg, 12, '#16a34a', 3, isCrit, 2);
+                        }
+                        this.cooldown = 18;
+                        break;
+                    }
+                    case 'tornado': {
+                        let tnCount = Math.min(this.level, 4);
+                        let tnDmg = finalDmg * 0.6;
+                        for (let i = 0; i < tnCount; i++) {
+                            let ta = Math.random() * Math.PI * 2;
+                            let tsx = player.x + Math.cos(ta) * 100;
+                            let tsy = player.y + Math.sin(ta) * 100;
+                            let tvx = Math.cos(ta) * 2, tvy = Math.sin(ta) * 2;
+                            entities.particles.push({
+                                x: tsx, y: tsy, radius: 35 + this.level * 5, life: 180, dmg: tnDmg,
+                                update() { this.life--; this.x += tvx + Math.sin(frameCount*0.05)*1.5; this.y += tvy + Math.cos(frameCount*0.05)*1.5; if(this.life%12===0) entities.enemies.forEach(e => { if(getDistance(this.x,this.y,e.x,e.y)<this.radius) e.takeDamage(this.dmg); }); },
+                                draw(ctx) { ctx.beginPath(); ctx.arc(this.x,this.y,this.radius*(0.7+0.3*Math.sin(frameCount*0.2)),0,Math.PI*2); ctx.strokeStyle='rgba(100,116,139,0.3)'; ctx.lineWidth=3; ctx.stroke(); }
+                            });
+                        }
+                        this.cooldown = 120;
+                        break;
+                    }
+                    case 'holy_cross': {
+                        let hcNear = getRandomEnemy();
+                        let hcx = hcNear ? hcNear.x : player.x + (Math.random()*300-150);
+                        let hcy = hcNear ? hcNear.y : player.y + (Math.random()*300-150);
+                        let hcDmg = finalDmg * 0.5;
+                        let hcRad = 45 + this.level * 8;
+                        entities.particles.push({
+                            x: hcx, y: hcy, radius: hcRad, life: 150, dmg: hcDmg,
+                            update() { this.life--; if(this.life%15===0) entities.enemies.forEach(e => { if(getDistance(this.x,this.y,e.x,e.y)<this.radius) e.takeDamage(this.dmg); }); },
+                            draw(ctx) { ctx.fillStyle=`rgba(234,179,8,${0.1*(this.life/150)})`; ctx.fillRect(this.x-3,this.y-this.radius,6,this.radius*2); ctx.fillRect(this.x-this.radius*0.6,this.y-3,this.radius*1.2,6); }
+                        });
+                        this.cooldown = 70;
+                        break;
+                    }
+                    case 'energy_shield': {
+                        let esRad = 40 + this.level * 6;
+                        let esDmg = finalDmg * 0.4;
+                        // Perisai berkelanjutan lewat particles
+                        entities.enemies.forEach(e => {
+                            if(getDistance(player.x,player.y,e.x,e.y) < esRad) {
+                                e.takeDamage(esDmg);
+                                let ka = getAngle(player.x,player.y,e.x,e.y);
+                                e.x += Math.cos(ka)*3; e.y += Math.sin(ka)*3;
+                            }
+                        });
+                        this.cooldown = 20;
+                        break;
+                    }
+                    case 'scatter_shot': {
+                        let ssDmg = finalDmg * (0.5 + this.level * 0.08);
+                        for (let i = 0; i < 8; i++) {
+                            let ssAng = (Math.PI / 4) * i;
+                            fireBullet(player.x, player.y, ssAng, ssDmg, 7, '#a855f7', 4, isCrit, 1);
+                        }
+                        this.cooldown = 50;
+                        break;
+                    }
+                    case 'combustion': {
+                        // Musuh yang mati meledak AOE
+                        let cbDmg = finalDmg * 1.5;
+                        let cbRad = 50 + this.level * 8;
+                        // Apply combustion mark to nearby enemies
+                        entities.enemies.forEach(e => {
+                            if (!e._combustion && getDistance(player.x,player.y,e.x,e.y) < 300) {
+                                e._combustion = { dmg: cbDmg, rad: cbRad };
+                            }
+                        });
+                        this.cooldown = 40;
+                        break;
+                    }
+                    case 'overcharge': {
+                        // Boost semua senjata listrik (thunder, chain, tesla_coil)
+                        player.weapons.forEach(w => {
+                            if (w.id === 'thunder' || w.id === 'chain' || w.id === 'tesla_coil') {
+                                if (w.cooldown > 5) w.cooldown -= Math.floor(this.level * 1.5);
+                            }
+                        });
+                        this.cooldown = 30;
+                        break;
+                    }
+                }
+            }
+            draw(ctx) {
+                if (this.id === 'minion') {
+                    let mCount = this.level;
+                    for (let i = 0; i < mCount; i++) {
+                        let orbitAngle = (frameCount * 0.03) + (Math.PI * 2 / mCount) * i;
+                        let mx = player.x + Math.cos(orbitAngle) * 50;
+                        let my = player.y + Math.sin(orbitAngle) * 50;
+                        drawHexagon(ctx, mx, my, 7, '#be4bdb', '#ffffff', 2, orbitAngle);
+                    }
+                }
+                if (this.id === 'blade_ring') {
+                    let brCount = 2 + Math.floor(this.level / 2);
+                    let brRad = 55 + this.level * 6;
+                    for (let i = 0; i < brCount; i++) {
+                        let a = (frameCount * 0.08) + (Math.PI * 2 / brCount) * i;
+                        let bx = player.x + Math.cos(a) * brRad;
+                        let by = player.y + Math.sin(a) * brRad;
+                        ctx.save(); ctx.translate(bx, by); ctx.rotate(a);
+                        ctx.fillStyle = '#475569'; ctx.fillRect(-6, -2, 12, 4);
+                        ctx.restore();
+                    }
+                }
+                if (this.id === 'energy_shield') {
+                    let esRad = 40 + this.level * 6;
+                    ctx.beginPath(); ctx.arc(player.x, player.y, esRad, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(56,189,248,${0.2 + 0.1 * Math.sin(frameCount * 0.1)})`;
+                    ctx.lineWidth = 2; ctx.stroke();
+                }
+            }
+        }
+
+        // ==========================================
+        // PROJECTILES SYSTEM
+        // ==========================================
+        class Bullet {
+            constructor(x, y, angle, damage, speed, color, size, isCrit, pierce, boom, isMissileAoe) {
+                this.x = x; this.y = y; this.angle = angle; this.damage = damage; this.speed = speed;
+                this.color = color; this.size = size; this.isCrit = isCrit;
+                this.pierce = pierce; this.boom = boom; this.isMissileAoe = isMissileAoe;
+                this.life = 140; this.vX = Math.cos(angle) * speed; this.vY = Math.sin(angle) * speed;
+            }
+            update() {
+                this.x += this.vX; this.y += this.vY; this.life--;
+
+                if (this.boom && this.life < 75) {
+                    let angToP = getAngle(this.x, this.y, player.x, player.y);
+                    this.vX = Math.cos(angToP) * this.speed; this.vY = Math.sin(angToP) * this.speed;
+                    if (getDistance(this.x, this.y, player.x, player.y) < player.size + this.size) { this.life = 0; return; }
+                }
+
+                for (let i = entities.enemies.length - 1; i >= 0; i--) {
+                    let e = entities.enemies[i];
+                    if (getDistance(this.x, this.y, e.x, e.y) < e.size + this.size) {
+                        if (this.isMissileAoe) {
+                            createStrikeEffect(this.x, this.y, this.isMissileAoe, this.damage, 'rgba(253, 126, 20, 0.4)');
+                            this.life = 0; break;
+                        }
+
+                        e.takeDamage(this.damage);
+                        createParticles(this.x, this.y, this.color, 3);
+                        this.pierce--;
+                        if (this.pierce <= 0) { this.life = 0; break; }
+                    }
+                }
+                if (this.isMissileAoe && this.life <= 0) {
+                    createStrikeEffect(this.x, this.y, this.isMissileAoe, this.damage, 'rgba(253, 126, 20, 0.4)');
+                }
+            }
+            draw(ctx) {
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color; ctx.fill();
+                if (this.isCrit) { ctx.strokeStyle = '#c92a2a'; ctx.lineWidth = 1.5; ctx.stroke(); }
+            }
+        }
+
+        function fireBullet(x, y, angle, dmg, spd, col, sz, cr = false, pr = 1, bm = false, sl = false, mAs = 0) {
+            entities.projectiles.push(new Bullet(x, y, angle, dmg, spd, col, sz, cr, pr, bm, mAs));
+        }
+
+        // ==========================================
+        // ENEMIES SYSTEM
+        // ==========================================
+        class Enemy {
+            constructor(x, y, type, timeScale) {
+                this.x = x; this.y = y; this.type = type;
+                let hpMulti = 1 + (timeScale / 50) * 1.8;
+                this.dead = false;
+
+                if (type === 'fast') {
+                    this.initialSpeed = 2.8; this.hp = 12 * hpMulti; this.size = 11; this.stroke = '#ea580c'; this.damage = 4;
+                } else if (type === 'tank') {
+                    this.initialSpeed = 0.7; this.hp = 70 * hpMulti; this.size = 23; this.stroke = '#16a34a'; this.damage = 16;
+                } else if (type === 'boss') {
+                    this.initialSpeed = 1.1; this.hp = 600 * hpMulti; this.size = 36; this.stroke = '#dc2626'; this.damage = 30;
+                    this.isBoss = true;
+                } else {
+                    this.initialSpeed = 1.4; this.hp = 22 * hpMulti; this.size = 14; this.stroke = '#475569'; this.damage = 7;
+                }
+                this.speed = this.initialSpeed;
+                this.maxHp = this.hp;
+            }
+            update() {
+                let angle = getAngle(this.x, this.y, player.x, player.y);
+                this.x += Math.cos(angle) * this.speed; this.y += Math.sin(angle) * this.speed;
+
+                if (getDistance(this.x, this.y, player.x, player.y) < this.size + player.size) {
+                    player.takeDamage(this.damage);
+                    this.x -= Math.cos(angle) * 15; this.y -= Math.sin(angle) * 15;
+                }
+            }
+            draw(ctx) {
+                drawHexagon(ctx, this.x, this.y, this.size, '#ffffff', this.stroke, 3, frameCount * 0.02);
+                if (this.isBoss) {
+                    ctx.fillStyle = '#dee2e6'; ctx.fillRect(this.x - 25, this.y - 45, 50, 5);
+                    ctx.fillStyle = '#c92a2a'; ctx.fillRect(this.x - 25, this.y - 45, 50 * (this.hp / this.maxHp), 5);
+                }
+            }
+            takeDamage(amount) {
+                this.hp -= amount;
+                createDamageText(this.x, this.y, Math.floor(amount), '#495057');
+
+                if (this.hp <= 0 && !this.dead) {
+                    this.dead = true;
+                    createParticles(this.x, this.y, this.stroke, 12);
+                    triggerGuaranteedDrop(this.x, this.y, this.isBoss);
+
+                    // Lifesteal + Vampire Flesh heal
+                    let healAmount = CONFIG.LIFESTEAL_PER_KILL + (player.artMods.healPerKill || 0);
+                    if (player.hp < player.maxHp) {
+                        player.hp = Math.min(player.maxHp, player.hp + healAmount);
+                    }
+
+                    // Combustion explosion
+                    if (this._combustion) {
+                        createStrikeEffect(this.x, this.y, this._combustion.rad, this._combustion.dmg, 'rgba(239,68,68,0.3)');
+                        createParticles(this.x, this.y, '#ef4444', 6);
+                    }
+                }
+            }
+        }
+
+        // ==========================================
+        // GUARANTEED DROPS SYSTEM
+        // ==========================================
+        class Drop {
+            constructor(x, y, type, value) {
+                this.x = x + (Math.random() * 16 - 8); this.y = y + (Math.random() * 16 - 8);
+                this.type = type; this.value = value; this.magnetized = false;
+                this.size = type === 'exp' ? 6 : 8;
+            }
+            draw(ctx) {
+                let bobbing = Math.sin(frameCount * 0.08) * 2;
+                if (this.type === 'exp') drawHexagon(ctx, this.x, this.y + bobbing, this.size, '#3b82f6', '#2563eb', 1);
+                else if (this.type === 'coin') drawHexagon(ctx, this.x, this.y + bobbing, this.size, '#f59e0b', '#d97706', 2);
+                else if (this.type === 'cosmic') drawHexagon(ctx, this.x, this.y + bobbing, this.size + 1, '#06b6d4', '#0891b2', 2, frameCount * 0.05);
+            }
+            collect() {
+                if (this.type === 'exp') {
+                    currentExp += this.value;
+                    createDamageText(this.x, this.y, `+${this.value} EXP`, '#3b82f6', 11);
+                    if(currentExp >= expNeeded) { 
+                        currentExp -= expNeeded; currentLevel++; 
+                        expNeeded = Math.floor(CONFIG.EXP_NEEDED_BASE * Math.pow(currentLevel, CONFIG.EXP_NEEDED_EXPONENT)); 
+                        triggerLevelUp(); 
+                    }
+                } else if (this.type === 'coin') {
+                    let mult = Math.random() < player.artMods.doubleCoinsChance ? 2 : 1;
+                    let finalVal = this.value * mult;
+                    runCoins += finalVal;
+                    createDamageText(this.x, this.y, `+${finalVal}${mult > 1 ? ' (x2!)' : ''}`, '#d97706', mult > 1 ? 14 : 11);
+                } else if (this.type === 'cosmic') {
+                    let mult = Math.random() < player.artMods.doubleCoinsChance ? 2 : 1;
+                    let finalVal = 1 * mult;
+                    runCosmic += finalVal;
+                    createDamageText(this.x, this.y, `+${finalVal} COSMIC${mult > 1 ? ' (x2!)' : ''}`, '#0d9488', mult > 1 ? 15 : 13);
+                }
+                updateHUD();
+            }
+        }
+
+        function triggerGuaranteedDrop(x, y, isBoss) {
+            if (isBoss) bossActive = false;
+            let numDrops = Math.random() < 0.15 ? 2 : 1;
+            if (isBoss) numDrops = 3;
+
+            let expValue = Math.floor(1 + Math.pow(gameTime / 25, 1.4));
+
+            for (let i = 0; i < numDrops; i++) {
+                let typeRoll = Math.random();
+                if (typeRoll < 0.82) entities.drops.push(new Drop(x, y, 'exp', expValue));
+                else if (typeRoll < 0.96) entities.drops.push(new Drop(x, y, 'coin', 1));
+                else entities.drops.push(new Drop(x, y, 'cosmic', 1));
+            }
+        }
+
+        // ==========================================
+        // ADDITIONAL GRAPHICS VFX CLASSES
+        // ==========================================
+        function createParticles(x, y, color, qty) {
+            for (let i = 0; i < qty; i++) {
+                let ang = Math.random() * Math.PI * 2, sp = Math.random() * 2 + 1;
+                entities.particles.push({
+                    x: x, y: y, vX: Math.cos(ang) * sp, vY: Math.sin(ang) * sp, life: 25, color: color,
+                    update() { this.x += this.vX; this.y += this.vY; this.life--; },
+                    draw(ctx) { ctx.beginPath(); ctx.arc(this.x, this.y, 2.5, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill(); }
+                });
+            }
+        }
+        function createStrikeEffect(x, y, radius, damage, color) {
+            entities.particles.push({
+                x: x, y: y, radius: radius, life: 14, max: 14,
+                update() {
+                    this.life--;
+                    if (this.life === 8 && damage > 0) {
+                        entities.enemies.forEach(e => {
+                            if (getDistance(this.x, this.y, e.x, e.y) < this.radius) e.takeDamage(damage);
+                        });
+                    }
+                },
+                draw(ctx) {
+                    ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * (1 - this.life / this.max), 0, Math.PI * 2);
+                    ctx.fillStyle = color; ctx.fill();
+                }
+            });
+        }
+        function triggerChainLightning(startEnemy, jumps, dmg) {
+            let current = startEnemy;
+            let hitList = [current];
+            current.takeDamage(dmg);
+
+            for (let k = 0; k < jumps; k++) {
+                let next = null, minDist = 250;
+                entities.enemies.forEach(e => {
+                    if (!hitList.includes(e)) {
+                        let d = getDistance(current.x, current.y, e.x, e.y);
+                        if (d < minDist) { minDist = d; next = e; }
+                    }
+                });
+                if (next) {
+                    let sx = current.x, sy = current.y, tx = next.x, ty = next.y;
+                    entities.particles.push({
+                        life: 8, draw(ctx) { ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(tx, ty); ctx.strokeStyle = '#4dabf7'; ctx.lineWidth = 2; ctx.stroke(); }, update() { this.life--; }
+                    });
+                    next.takeDamage(dmg * 0.85);
+                    hitList.push(next);
+                    current = next;
+                } else break;
+            }
+        }
+
+        class DamageText {
+            constructor(x, y, t, c, sz = 14) { this.x = x + Math.random() * 12 - 6; this.y = y; this.t = t; this.c = c; this.sz = sz; this.life = 35; }
+            update() { this.y -= 0.7; this.life--; }
+            draw(ctx) { ctx.globalAlpha = this.life / 35; ctx.fillStyle = this.c; ctx.font = `bold ${this.sz}px sans-serif`; ctx.fillText(this.t, this.x, this.y); ctx.globalAlpha = 1; }
+        }
+        function createDamageText(x, y, t, c, sz) { entities.damageTexts.push(new DamageText(x, y, t, c, sz)); }
+
+        function getNearestEnemy(x, y, range) {
+            let target = null, dist = range;
+            entities.enemies.forEach(e => { let d = getDistance(x, y, e.x, e.y); if (d < dist) { dist = d; target = e; } });
+            return target;
+        }
+        function getRandomEnemy() { if (entities.enemies.length === 0) return null; return entities.enemies[Math.floor(Math.random() * entities.enemies.length)]; }
+
+        // ==========================================
+        // TIME SPAWNING LOGIC WAVES
+        // ==========================================
+        function handleSpawning() {
+            let rate = Math.max(12, 55 - Math.floor(gameTime / 8));
+            if (frameCount % rate === 0) {
+                let batch = 1 + Math.floor(gameTime / 24);
+                for (let i = 0; i < batch; i++) {
+                    let a = Math.random() * Math.PI * 2;
+                    let px = player.x + Math.cos(a) * (canvas.width / 1.4);
+                    let py = player.y + Math.sin(a) * (canvas.width / 1.4);
+
+                    let variant = 'normal';
+                    let r = Math.random();
+                    if (gameTime > 40 && r < 0.25) variant = 'fast';
+                    if (gameTime > 80 && r > 0.75) variant = 'tank';
+
+                    entities.enemies.push(new Enemy(px, py, variant, gameTime));
+                }
+            }
+
+            if (gameTime > 0 && gameTime % CONFIG.BOSS_SPAWN_INTERVAL === 0 && !bossActive) {
+                entities.enemies.push(new Enemy(player.x + 400, player.y + 400, 'boss', gameTime));
+                bossActive = true;
+                createDamageText(player.x, player.y - 40, "PERINGATAN: BOS MUNCUL!", '#c92a2a', 24);
+            }
+        }
+
+        // ==========================================
+        // LEVEL UP CHOICES CORE
+        // ==========================================
+        function triggerLevelUp() {
+            gameState = 'levelup';
+            document.getElementById('levelup-screen').classList.remove('hidden');
+            buildLevelUpChoices();
+        }
+
+        function buildLevelUpChoices() {
+            let pool = [];
+
+            pool.push({ type: 'stat', name: "Sembuh Total HP & Shield", desc: "Memulihkan kondisi HP dan Shield hingga penuh.", action: p => { p.hp = p.maxHp; p.shieldHp = p.artMods.maxShield; } });
+            pool.push({ type: 'stat', name: "Suplemen Stamina (+15 HP)", desc: "Meningkatkan Max HP tempur sebesar 15.", action: p => { p.maxHp += 15; p.hp += 15; } });
+            pool.push({ type: 'stat', name: "Sepatu Lari Kinetik (+10% Speed)", desc: "Kecepatan gerak player meningkat instan.", action: p => p.speed += 0.35 });
+
+            player.weapons.forEach(w => {
+                if (w.level < WEAPON_DEFS[w.id].max) pool.push({ type: 'upgrade_wpn', id: w.id, name: `Upgrade: ${w.def.name}`, desc: `Naikkan tingkat efektifitas senjata ini ke Lv ${w.level + 1}.`, instance: w });
+            });
+
+            for (let wId in WEAPON_DEFS) {
+                let owned = player.weapons.find(pw => pw.id === wId);
+                if (!owned) {
+                    if (wId === 'reversal_red') {
+                        let checkLapse = player.weapons.find(pw => pw.id === 'blue_lapse');
+                        if (!checkLapse) continue; // Reversal Red butuh Blue Lapse terbuka terlebih dahulu
+                    }
+                    pool.push({ type: 'new_wpn', id: wId, name: `Senjata Baru: ${WEAPON_DEFS[wId].name}`, desc: WEAPON_DEFS[wId].desc });
+                }
+            }
+
+            for (let i = pool.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+
+            currentChoices = pool.slice(0, 3);
+            const box = document.getElementById('cards-container');
+            box.innerHTML = '';
+
+            currentChoices.forEach(choice => {
+                let card = document.createElement('div');
+                card.className = 'card';
+
+                let badgeCol = choice.type === 'stat' ? '#10b981' : (choice.type === 'new_wpn' ? '#8b5cf6' : '#f59e0b');
+                let badgeTxt = choice.type === 'stat' ? 'Stat' : (choice.type === 'new_wpn' ? 'Baru' : 'Upgrade');
+
+                card.innerHTML = `
+            <h3>${choice.name}</h3>
+            <p>${choice.desc}</p>
+            <span class="badge" style="background:${badgeCol}">${badgeTxt}</span>
+        `;
+                card.onclick = () => selectChoice(choice);
+                box.appendChild(card);
+            });
+
+            document.getElementById('reroll-count').innerText = rerollsLeft;
+            document.getElementById('reroll-btn').disabled = rerollsLeft <= 0;
+        }
+
+        document.getElementById('reroll-btn').onclick = () => {
+            if (rerollsLeft > 0) { rerollsLeft--; buildLevelUpChoices(); }
+        };
+
+        function selectChoice(c) {
+            if (c.type === 'stat') c.action(player);
+            else if (c.type === 'upgrade_wpn') c.instance.level = c.instance.level + 1;
+            else if (c.type === 'new_wpn') player.weapons.push(new WeaponInstance(c.id, 1));
+
+            document.getElementById('levelup-screen').classList.add('hidden');
+            for (let k in keys) keys[k] = false;
+            gameState = 'playing';
+            requestAnimationFrame(gameLoop);
+        }
+
+        function triggerHollowNuke(x, y) {
+            let nukeRadius = 365; // area magnet level 15: 65 + 15 * 20 = 365
+            
+            createDamageText(x, y - 50, "HOLLOW PURPLE NUKE! 💥🟣", '#a855f7', 28);
+            createParticles(x, y, '#a855f7', 40);
+            createParticles(x, y, '#3b82f6', 20);
+            createParticles(x, y, '#dc2626', 20);
+            
+            // Damage all enemies in the area for infinite/huge damage to kill them
+            for (let i = entities.enemies.length - 1; i >= 0; i--) {
+                let e = entities.enemies[i];
+                if (!e || e.dead) continue;
+                let d = getDistance(x, y, e.x, e.y);
+                if (d < nukeRadius) {
+                    e.takeDamage(9999999);
+                }
+            }
+            
+            // Visual effect: massive purple expanding shockwave
+            entities.particles.push({
+                x: x, y: y, radius: nukeRadius, life: 40, max: 40,
+                update() { this.life--; },
+                draw(ctx) {
+                    let prog = 1 - this.life / this.max;
+                    ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * prog, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(168, 85, 247, ${0.8 * (1 - prog)})`;
+                    ctx.lineWidth = 10; ctx.stroke();
+                    
+                    ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * prog * 0.9, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(99, 102, 241, ${0.5 * (1 - prog)})`;
+                    ctx.lineWidth = 6; ctx.stroke();
+
+                    ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * prog * 0.7, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(168, 85, 247, ${0.25 * (1 - prog)})`; ctx.fill();
+                }
+            });
+        }
+
+        // ==========================================
+        // CORE LOOP ANIMATION
+        // ==========================================
+        let prevTimestamp = 0;
+        function gameLoop(timestamp) {
+            if (gameState !== 'playing') return;
+
+            if (timestamp - prevTimestamp >= 1000) { gameTime++; prevTimestamp = timestamp; }
+            frameCount++;
+
+            handleSpawning();
+            player.update();
+            camera.update(player);
+
+            // COLLISION CHECK FOR HOLLOW NUKE
+            let blueLapses = entities.particles.filter(p => p.id === 'blue_lapse' && p.life > 0);
+            let redReversals = entities.particles.filter(p => p.id === 'reversal_red' && p.life > 0);
+            for (let bl of blueLapses) {
+                for (let rr of redReversals) {
+                    let dist = getDistance(bl.x, bl.y, rr.x, rr.y);
+                    if (dist < 60) {
+                        let nukeX = (bl.x + rr.x) / 2;
+                        let nukeY = (bl.y + rr.y) / 2;
+                        bl.life = 0;
+                        rr.life = 0;
+                        triggerHollowNuke(nukeX, nukeY);
+                        break;
+                    }
+                }
+            }
+
+            entities.projectiles.forEach((p, i) => { p.update(); if (p.life <= 0) entities.projectiles.splice(i, 1); });
+            entities.enemies.forEach((e, i) => { e.update(); if (e.dead) entities.enemies.splice(i, 1); });
+            entities.damageTexts.forEach((d, i) => { d.update(); if (d.life <= 0) entities.damageTexts.splice(i, 1); });
+            entities.particles.forEach((pt, i) => { pt.update(); if (pt.life <= 0) entities.particles.splice(i, 1); });
+
+            ctx.fillStyle = '#f8fafc'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = '#edf2f7'; ctx.lineWidth = 1;
+            let gSz = 90;
+            for (let x = (-camera.x % gSz); x < canvas.width; x += gSz) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+            for (let y = (-camera.y % gSz); y < canvas.height; y += gSz) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+
+            camera.apply(ctx);
+            entities.drops.forEach(d => d.draw(ctx));
+            entities.particles.forEach(pt => pt.draw(ctx));
+            entities.projectiles.forEach(p => p.draw(ctx));
+            entities.enemies.forEach(e => e.draw(ctx));
+            player.draw(ctx);
+            entities.damageTexts.forEach(d => d.draw(ctx));
+            camera.reset(ctx);
+
+            updateHUD();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateHUD() {
+            let shieldIndicator = player.shieldHp > 0 ? ` (+${Math.floor(player.shieldHp)} S)` : '';
+            document.getElementById('hp-text').innerText = `${Math.floor(Math.max(0, player.hp))}/${player.maxHp}${shieldIndicator}`;
+            let m = Math.floor(gameTime / 60).toString().padStart(2, '0'), s = (gameTime % 60).toString().padStart(2, '0');
+            document.getElementById('time-text').innerText = `${m}:${s}`;
+            document.getElementById('run-coin').innerText = runCoins;
+            document.getElementById('run-cosmic').innerText = runCosmic;
+            document.getElementById('dash-text').innerText = player.dashCooldown <= 0 ? "Siap" : "Cooldown";
+            document.getElementById('dash-text').style.color = player.dashCooldown <= 0 ? "#10b981" : "#ef4444";
+            document.getElementById('exp-bar').style.width = `${(currentExp / expNeeded) * 100}%`;
+            document.getElementById('level-text').innerText = `LVL ${currentLevel}`;
+        }
+
+        function triggerGameOver() {
+            gameState = 'gameover';
+            document.getElementById('game-over-screen').classList.remove('hidden');
+            saveData.coins += runCoins; saveData.cosmicCoins += runCosmic;
+            saveGame();
+
+            let m = Math.floor(gameTime / 60).toString().padStart(2, '0'), s = (gameTime % 60).toString().padStart(2, '0');
+            document.getElementById('survive-time').innerText = `${m}:${s}`;
+            document.getElementById('final-level').innerText = currentLevel;
+            document.getElementById('earned-coin').innerText = runCoins;
+            document.getElementById('earned-cosmic').innerText = runCosmic;
+        }
+
+        // ==========================================
+        // TOKO UPGRADE MODAL POPUP & META PROGRESSION
+        // ==========================================
+        function initMenu() {
+            updateMenuUI();
+            document.getElementById('main-menu').classList.remove('hidden');
+            document.getElementById('shop-modal').classList.add('hidden');
+            document.getElementById('ui-layer').querySelectorAll('.hud, #exp-container').forEach(el => el.classList.add('hidden'));
+        }
+
+        function updateMenuUI() {
+            document.getElementById('menu-coin').innerText = saveData.coins;
+            document.getElementById('menu-cosmic').innerText = saveData.cosmicCoins;
+            document.getElementById('shop-coin').innerText = saveData.coins;
+            document.getElementById('shop-cosmic').innerText = saveData.cosmicCoins;
+
+            // 1. GENERATE STATS
+            const sBox = document.getElementById('stat-list'); sBox.innerHTML = '';
+            for (let k in saveData.stats) {
+                let st = saveData.stats[k], cost = st.costBase * (st.level + 1), maxed = st.level >= st.max;
+                sBox.innerHTML += `
+            <div class="upgrade-item"><div class="upgrade-row">
+                <div class="upgrade-cell-left"><strong>${st.name}</strong><br><small>Lv ${st.level}/${st.max}</small></div>
+                <div class="upgrade-cell-right"><button ${maxed || saveData.coins < cost ? 'disabled' : ''} onclick="buyStat('${k}')">${maxed ? 'MAX' : cost + ' Koin'}</button></div>
+            </div></div>`;
+            }
+
+            // 2. GENERATE WEAPONS
+            const wBox = document.getElementById('weapon-list'); wBox.innerHTML = '';
+            for (let k in saveData.weapons) {
+                let wp = saveData.weapons[k];
+                let info = WEAPON_DEFS[k];
+                if (!info) continue;
+                let cost = wp.costBase * (wp.level + 1), maxed = wp.level >= info.max;
+                let statusTag = wp.level > 0 ? `<span style="color:#10b981; font-weight:700;">[Aktif]</span>` : `<span style="color:#8b5cf6;">[Terkunci]</span>`;
+
+                wBox.innerHTML += `
+            <div class="upgrade-item"><div class="upgrade-row">
+                <div class="upgrade-cell-left">
+                    <strong>${info.name}</strong> ${statusTag}<br>
+                    <small style="color:#666; display:block; margin: 2px 0;">${info.desc}</small>
+                    <small>Level Mulai: Lv +${wp.level}/${info.max}</small>
+                </div>
+                <div class="upgrade-cell-right"><button class="cosmic-btn" ${maxed || saveData.cosmicCoins < cost ? 'disabled' : ''} onclick="buyWeapon('${k}')">${maxed ? 'MAX' : cost + ' Cosmic'}</button></div>
+            </div></div>`;
+            }
+
+            // 3. GENERATE ARTEFAK
+            const aBox = document.getElementById('artifact-list'); aBox.innerHTML = '';
+            for (let k in ARTIFACT_DEFS) {
+                if (!saveData.artifacts[k]) saveData.artifacts[k] = { level: 0 };
+                let art = saveData.artifacts[k];
+                let info = ARTIFACT_DEFS[k];
+                let cost = info.costBase * (art.level + 1);
+                let maxed = art.level >= info.max;
+
+                aBox.innerHTML += `
+            <div class="upgrade-item"><div class="upgrade-row">
+                <div class="upgrade-cell-left">
+                    <strong>${info.name}</strong><br>
+                    <small style="color:#666; display:block; margin: 2px 0;">${info.desc}</small>
+                    <small>Tingkat: Lv ${art.level}/${info.max}</small>
+                </div>
+                <div class="upgrade-cell-right"><button class="art-btn" ${maxed || saveData.coins < cost ? 'disabled' : ''} onclick="buyArtifact('${k}')">${maxed ? 'MAX' : cost + ' Koin'}</button></div>
+            </div></div>`;
+            }
+        }
+
+        document.getElementById('btn-open-shop').onclick = () => { updateMenuUI(); document.getElementById('shop-modal').classList.remove('hidden'); };
+        document.getElementById('btn-close-shop').onclick = () => { document.getElementById('shop-modal').classList.add('hidden'); };
+
+        window.buyStat = function (k) {
+            let st = saveData.stats[k], cost = st.costBase * (st.level + 1);
+            if (saveData.coins >= cost && st.level < st.max) { saveData.coins -= cost; st.level++; saveGame(); }
+        };
+        window.buyWeapon = function (k) {
+            let wp = saveData.weapons[k], cost = wp.costBase * (wp.level + 1);
+            if (saveData.cosmicCoins >= cost && wp.level < WEAPON_DEFS[k].max) { saveData.cosmicCoins -= cost; wp.level++; saveGame(); }
+        };
+        window.buyArtifact = function (k) {
+            let art = saveData.artifacts[k], cost = ARTIFACT_DEFS[k].costBase * (art.level + 1);
+            if (saveData.coins >= cost && art.level < ARTIFACT_DEFS[k].max) { saveData.coins -= cost; art.level++; saveGame(); }
+        };
+
+        document.getElementById('btn-reset-save').onclick = () => {
+            if (confirm("Apakah kamu yakin ingin menghapus seluruh data permainan?")) {
+                localStorage.removeItem('thousandYearsBattleSave');
+                saveData = JSON.parse(JSON.stringify(BASE_SAVE));
+                saveGame();
+                initMenu();
+            }
+        };
+
+        document.getElementById('btn-start').onclick = () => {
+            gameTime = 0; frameCount = 0; runCoins = 0; runCosmic = 0; currentLevel = 1; currentExp = 0; expNeeded = 10; rerollsLeft = 3;
+            entities = { enemies: [], drops: [], projectiles: [], damageTexts: [], particles: [] }; bossActive = false;
+
+            player = new Player(); camera = new Camera();
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('shop-modal').classList.add('hidden');
+            document.getElementById('ui-layer').querySelectorAll('.hud, #exp-container').forEach(el => el.classList.remove('hidden'));
+
+            gameState = 'playing'; prevTimestamp = performance.now(); updateHUD();
+            requestAnimationFrame(gameLoop);
+        };
+
+        document.getElementById('btn-back-menu').onclick = () => { document.getElementById('game-over-screen').classList.add('hidden'); initMenu(); };
+
+        initMenu();
+    </script>
+</body>
+
+</html>
