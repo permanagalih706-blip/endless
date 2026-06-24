@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <style>
-        * {
+        ddddddddddddddddd * {
             box-sizing: border-box;
             user-select: none;
         }
@@ -130,7 +130,7 @@
             align-items: center;
             justify-content: center;
             overflow-y: auto;
-            padding: 40px 20px;
+            padding: 20px 20px;
             z-index: 100;
         }
 
@@ -139,9 +139,9 @@
         }
 
         h1 {
-            font-size: 44px;
+            font-size: 32px;
             font-weight: 800;
-            margin: 10px 0 20px 0;
+            margin: 6px 0 10px 0;
             background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
             -webkit-background-clip: text;
             background-clip: text;
@@ -313,7 +313,7 @@
             font-size: 14.5px;
             padding: 12px 30px;
             border-radius: 12px;
-            margin-top: 30px;
+            margin-top: 12px;
         }
 
         #reroll-btn:hover:not(:disabled) {
@@ -444,20 +444,20 @@
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 24px;
-            margin-top: 30px;
+            gap: 16px;
+            margin-top: 14px;
         }
 
         .card {
-            width: 250px;
-            height: 340px;
+            width: 220px;
+            height: 240px;
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(226, 232, 240, 0.8);
-            border-radius: 20px;
+            border-radius: 16px;
             text-align: center;
-            padding: 28px 20px;
+            padding: 18px 16px;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             display: flex;
@@ -493,17 +493,17 @@
 
         .card h3 {
             margin: 0;
-            font-size: 19px;
+            font-size: 15px;
             font-weight: 700;
             color: #0f172a;
-            line-height: 1.3;
+            line-height: 1.25;
         }
 
         .card p {
-            font-size: 13.5px;
+            font-size: 12px;
             color: #475569;
-            line-height: 1.5;
-            margin: 15px 0;
+            line-height: 1.4;
+            margin: 8px 0;
             flex: 1;
             display: flex;
             align-items: center;
@@ -512,8 +512,8 @@
 
         .card .badge {
             display: inline-block;
-            padding: 6px 16px;
-            font-size: 11px;
+            padding: 4px 12px;
+            font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 1px;
             border-radius: 30px;
@@ -561,9 +561,12 @@
             <span class="coin-text">🪙 Koin: <span id="menu-coin">0</span></span>
             <span class="cosmic-text">🔮 Cosmic: <span id="menu-cosmic">0</span></span>
         </div>
-        <div class="highscore-box" style="display: flex; gap: 20px; font-size: 14.5px; color: #475569; margin-bottom: 20px; font-weight: 700; background: rgba(255,255,255,0.5); padding: 8px 20px; border-radius: 12px; border: 1px solid rgba(226, 232, 240, 0.8);">
-            <span>🏆 Rekor Level: <span id="menu-highscore-level" style="color: #1e293b; font-weight: 800;">1</span></span>
-            <span>⏱️ Rekor Waktu: <span id="menu-highscore-time" style="color: #1e293b; font-weight: 800;">00:00</span></span>
+        <div class="highscore-box"
+            style="display: flex; gap: 20px; font-size: 14.5px; color: #475569; margin-bottom: 20px; font-weight: 700; background: rgba(255,255,255,0.5); padding: 8px 20px; border-radius: 12px; border: 1px solid rgba(226, 232, 240, 0.8);">
+            <span>🏆 Rekor Level: <span id="menu-highscore-level"
+                    style="color: #1e293b; font-weight: 800;">1</span></span>
+            <span>⏱️ Rekor Waktu: <span id="menu-highscore-time"
+                    style="color: #1e293b; font-weight: 800;">00:00</span></span>
         </div>
         <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 10px;">
             <button class="btn" id="btn-start">MULAI BERMAIN</button>
@@ -598,8 +601,7 @@
 
     <div id="levelup-screen" class="menu-screen hidden">
         <h1>LEVEL TERLAMPUI!</h1>
-        <h2 style="font-size: 16px; font-weight: 600; color: #64748b; margin-top: 0; margin-bottom: 20px;">Pilih salah
-            satu peningkatan acak murni</h2>
+        <h2 style="font-size: 13px; font-weight: 600; color: #64748b; margin-top: 0; margin-bottom: 8px;">Pilih salah satu peningkatan acak murni</h2>
         <div class="cards-container" id="cards-container"></div>
         <button class="btn" id="reroll-btn">Reroll Pilihan (<span id="reroll-count">3</span>/3)</button>
     </div>
@@ -609,7 +611,8 @@
 
         <div
             style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 24px; padding: 30px 40px; margin-bottom: 25px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03); text-align: center; max-width: 450px; width: 100%;">
-            <div id="new-highscore-alert" style="color: #10b981; font-weight: 800; font-size: 15px; margin-bottom: 18px; display: none; background: rgba(16, 185, 129, 0.1); padding: 8px 16px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2);">
+            <div id="new-highscore-alert"
+                style="color: #10b981; font-weight: 800; font-size: 15px; margin-bottom: 18px; display: none; background: rgba(16, 185, 129, 0.1); padding: 8px 16px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2);">
                 🎉 REKOR BARU TERCAPAI!
             </div>
             <div
@@ -634,13 +637,21 @@
 
     <div id="pause-screen" class="menu-screen hidden">
         <h1 style="font-size: 40px;">PERMAINAN DITANGGUHKAN</h1>
-        <div style="font-size: 14.5px; font-weight: 700; color: #64748b; margin-bottom: 25px; text-align: center; max-width: 400px; line-height: 1.5;">
-            Permainan dijeda. Gunakan tombol di bawah ini atau tekan kembali <kbd style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">ESC</kbd> untuk melanjutkan.
+        <div
+            style="font-size: 14.5px; font-weight: 700; color: #64748b; margin-bottom: 25px; text-align: center; max-width: 400px; line-height: 1.5;">
+            Permainan dijeda. Gunakan tombol di bawah ini atau tekan kembali <kbd
+                style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">ESC</kbd> untuk melanjutkan.
         </div>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 320px; width: 100%;">
-            <button class="btn" id="btn-resume" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; width: 100%; margin: 0;">Lanjutkan</button>
-            <button class="btn" id="btn-restart-run" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; width: 100%; margin: 0;">Mulai Ulang</button>
-            <button class="btn" id="btn-exit-menu" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; width: 100%; margin: 0;">Kembali ke Menu Utama</button>
+        <div
+            style="display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 320px; width: 100%;">
+            <button class="btn" id="btn-resume"
+                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; width: 100%; margin: 0;">Lanjutkan</button>
+            <button class="btn" id="btn-restart-run"
+                style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; width: 100%; margin: 0;">Mulai
+                Ulang</button>
+            <button class="btn" id="btn-exit-menu"
+                style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; width: 100%; margin: 0;">Kembali
+                ke Menu Utama</button>
         </div>
     </div>
 
@@ -714,10 +725,10 @@
         const BASE_SAVE = {
             coins: 100, cosmicCoins: 10,
             stats: {
-                hp: { level: 0, max: 25, costBase: 45, val: 15, name: "Max HP Up" },
-                atk: { level: 0, max: 25, costBase: 65, val: 0.1, name: "All Weapon Damage" },
-                spd: { level: 0, max: 25, costBase: 50, val: 0.2, name: "Movement Speed" },
-                magnet: { level: 0, max: 25, costBase: 30, val: 20, name: "Magnet Range" }
+                hp: { level: 0, max: 50, costBase: 50, val: 15, name: "Max HP Up" },
+                atk: { level: 0, max: 75, costBase: 40, val: 0.1, name: "All Weapon Damage" },
+                spd: { level: 0, max: 25, costBase: 60, val: 0.2, name: "Movement Speed" },
+                magnet: { level: 0, max: 100, costBase: 30, val: 20, name: "Magnet Range" }
             },
             weapons: {},
             artifacts: {},
@@ -735,8 +746,8 @@
         let saveData = JSON.parse(localStorage.getItem('thousandYearsBattleSave')) || JSON.parse(JSON.stringify(BASE_SAVE));
 
         // Failsafe migrasi data save - cek semua senjata & artefak baru ada
-        if (!saveData.weapons || !saveData.weapons.pistol || !saveData.artifacts 
-            || !saveData.weapons.laser || !saveData.weapons.blue_lapse 
+        if (!saveData.weapons || !saveData.weapons.pistol || !saveData.artifacts
+            || !saveData.weapons.laser || !saveData.weapons.blue_lapse
             || !saveData.artifacts.art_phoenix_feather || !saveData.weapons.overcharge) {
             saveData = JSON.parse(JSON.stringify(BASE_SAVE));
         }
@@ -882,6 +893,8 @@
                 this.magnetArea = CONFIG.MAGNET_BASE_RANGE + (saveData.stats.magnet.level * saveData.stats.magnet.val);
 
                 this.dashCooldownMax = 180; this.dashCooldown = 0; this.dashDuration = 0; this.dashSpeed = 11;
+                this.superMagnetTimer = 0;
+                this.reviveInvulnerableTimer = 0;
 
                 // Hollow Purple Systems
                 this.purpleFlames = 0;
@@ -959,13 +972,13 @@
                 if (clickType === 'right' && hasLapse && this.purpleFlames >= 1) {
                     this.purpleFlames -= 1;
                     createDamageText(this.x, this.y - 30, "BLUE LAPSE! 🌀", '#3b82f6', 20);
-                    
+
                     let blDmg = (15 + hasLapse.level * 10) * this.baseDmgMulti;
                     let blRadius = 130;
                     let blAng = this.lastMoveAngle;
                     let blStartX = this.x + Math.cos(blAng) * 60;
                     let blStartY = this.y + Math.sin(blAng) * 60;
-                    
+
                     entities.particles.push({
                         id: 'blue_lapse',
                         x: blStartX, y: blStartY, radius: blRadius, life: 300, dmg: blDmg,
@@ -982,8 +995,9 @@
                                     let d = getDistance(this.x, this.y, e.x, e.y);
                                     if (d < this.radius) {
                                         let da = getAngle(e.x, e.y, this.x, this.y);
-                                        e.x += Math.cos(da) * 4;
-                                        e.y += Math.sin(da) * 4;
+                                        let force = 4 * (e.knockbackResist ? 0.1 : 1);
+                                        e.x += Math.cos(da) * force;
+                                        e.y += Math.sin(da) * force;
                                     }
                                     if (d < this.radius * 0.5 && this.life % 12 === 0) {
                                         e.takeDamage(this.dmg * 0.3);
@@ -1008,14 +1022,14 @@
                 } else if (clickType === 'left' && hasRed && this.redFlames >= 1) {
                     this.redFlames -= 1;
                     createDamageText(this.x, this.y - 30, "REVERSAL RED! 🔴", '#dc2626', 20);
-                    
+
                     let redDmg = (35 + hasRed.level * 20) * this.baseDmgMulti;
                     let redRadius = 150;
                     let redAng = this.lastMoveAngle;
                     let redStartX = this.x + Math.cos(redAng) * 60;
                     let redStartY = this.y + Math.sin(redAng) * 60;
                     let playerRef = this;
-                    
+
                     entities.particles.push({
                         id: 'reversal_red',
                         x: redStartX, y: redStartY, radius: redRadius, life: 180, dmg: redDmg,
@@ -1047,10 +1061,10 @@
                                 let explodeDmg = (100 + this.level * 50) * this.baseDmgMulti;
                                 let explodeRadius = 250;
                                 let explodeKb = 70;
-                                
+
                                 createDamageText(this.x, this.y, "RED EXPLOSION! 💥", '#dc2626', 22);
                                 createParticles(this.x, this.y, '#dc2626', 25);
-                                
+
                                 for (let i = entities.enemies.length - 1; i >= 0; i--) {
                                     let e = entities.enemies[i];
                                     if (!e || e.dead) continue;
@@ -1062,7 +1076,7 @@
                                         e.y += Math.sin(ka) * explodeKb;
                                     }
                                 }
-                                
+
                                 entities.particles.push({
                                     x: this.x, y: this.y, radius: explodeRadius, life: 20, max: 20,
                                     update() { this.life--; },
@@ -1152,8 +1166,9 @@
                         if (distSq < areaSq) {
                             let dist = Math.sqrt(distSq);
                             if (dist > 0) {
-                                e.x += (dx / dist) * fkVal;
-                                e.y += (dy / dist) * fkVal;
+                                let force = fkVal * (e.knockbackResist ? 0.1 : 1);
+                                e.x += (dx / dist) * force;
+                                e.y += (dy / dist) * force;
                             }
                         }
                     }
@@ -1162,6 +1177,15 @@
                 // Ganti .forEach dengan loop for klasik untuk performa
                 for (let i = 0; i < this.weapons.length; i++) {
                     this.weapons[i].update();
+                }
+
+                // Super Magnet & Revive Invulnerability timers
+                if (this.superMagnetTimer > 0) {
+                    this.superMagnetTimer--;
+                    entities.drops.forEach(d => d.magnetized = true);
+                }
+                if (this.reviveInvulnerableTimer > 0) {
+                    this.reviveInvulnerableTimer--;
                 }
 
                 // Penarikan Magnet Drop Item & Pembersihan Drop Jauh
@@ -1175,7 +1199,7 @@
                     let dy = drop.y - py;
                     let adx = Math.abs(dx);
                     let ady = Math.abs(dy);
-                    if (adx > 1500 || ady > 1500) {
+                    if (!drop.magnetized && (adx > 1500 || ady > 1500)) {
                         entities.drops.splice(i, 1);
                         continue;
                     }
@@ -1203,6 +1227,22 @@
                 ctx.beginPath(); ctx.arc(this.x, this.y, this.magnetArea, 0, Math.PI * 2);
                 ctx.fillStyle = "rgba(59, 130, 246, 0.02)"; ctx.fill();
 
+                if (this.superMagnetTimer > 0) {
+                    let auraRadius = this.size + 15 + Math.sin(frameCount * 0.15) * 5;
+                    ctx.beginPath(); ctx.arc(this.x, this.y, auraRadius, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(245, 158, 11, ${0.4 + 0.2 * Math.sin(frameCount * 0.1)})`;
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+
+                if (this.reviveInvulnerableTimer > 0) {
+                    let shieldRadius = this.size + 10 + Math.sin(frameCount * 0.25) * 3;
+                    ctx.beginPath(); ctx.arc(this.x, this.y, shieldRadius, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(255, 212, 59, ${0.6 + 0.3 * Math.sin(frameCount * 0.25)})`;
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+                }
+
                 ctx.save();
                 ctx.shadowColor = 'rgba(15, 23, 42, 0.08)';
                 ctx.shadowBlur = 10;
@@ -1214,6 +1254,9 @@
                 let flameTexts = [];
                 if (this.purpleFlames > 0) flameTexts.push(`🔵 ${this.purpleFlames}`);
                 if (this.redFlames > 0) flameTexts.push(`🔴 ${this.redFlames}`);
+                if (this.superMagnetTimer > 0) {
+                    flameTexts.push(`🧲 ${(this.superMagnetTimer / 60).toFixed(1)}s`);
+                }
                 if (flameTexts.length > 0) {
                     ctx.fillStyle = '#1e293b'; ctx.font = 'bold 11px sans-serif';
                     ctx.fillText(flameTexts.join(' '), this.x - 18, this.y - 24);
@@ -1223,6 +1266,7 @@
             }
             takeDamage(amount) {
                 if (this.dashDuration > 0) return; // Ultimate Dasher Invincibility
+                if (this.reviveInvulnerableTimer > 0) return; // Invulnerability after revive
 
                 let damageToInflict = amount * (1 - this.artMods.dmgReduction);
                 if (this.shieldHp > 0) {
@@ -1244,8 +1288,42 @@
                         if (this.artMods.reviveCount > 0) {
                             this.artMods.reviveCount = 0; // Trigger once
                             this.hp = this.maxHp * this.artMods.reviveHpPercent;
-                            createParticles(this.x, this.y, '#e03131', 20);
-                            createDamageText(this.x, this.y - 30, "BANGKIT KEMBALI! ⚡", '#e03131', 18);
+                            
+                            let px = this.x;
+                            let py = this.y;
+                            
+                            entities.enemies.forEach(e => {
+                                let dx = e.x - px;
+                                let dy = e.y - py;
+                                let dist = Math.sqrt(dx * dx + dy * dy);
+                                if (dist < 320) {
+                                    e.takeDamage(180);
+                                    if (dist > 0) {
+                                        e.x += (dx / dist) * 140;
+                                        e.y += (dy / dist) * 140;
+                                    }
+                                }
+                            });
+                            
+                            entities.particles.push({
+                                x: px, y: py, radius: 320, life: 35, max: 35,
+                                update() { this.life--; },
+                                draw(ctx) {
+                                    let prog = 1 - this.life / this.max;
+                                    ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * prog, 0, Math.PI * 2);
+                                    ctx.strokeStyle = `rgba(255, 212, 59, ${0.8 * (1 - prog)})`;
+                                    ctx.lineWidth = 8; ctx.stroke();
+                                    ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * prog * 0.8, 0, Math.PI * 2);
+                                    ctx.fillStyle = `rgba(255, 224, 102, ${0.25 * (1 - prog)})`; ctx.fill();
+                                }
+                            });
+                            
+                            createParticles(px, py, '#ffd43b', 35);
+                            createParticles(px, py, '#f1f3f5', 20);
+                            createParticles(px, py, '#4dabf7', 20);
+                            
+                            this.reviveInvulnerableTimer = 180;
+                            createDamageText(this.x, this.y - 40, "BANGKIT KEMBALI! ⚡", '#ffd43b', 20);
                         } else {
                             triggerGameOver();
                         }
@@ -1384,8 +1462,9 @@
                                 e.takeDamage(pulseDmg);
                                 let dist = Math.sqrt(distSq);
                                 if (dist > 0) {
-                                    e.x += (dx / dist) * pulseKb;
-                                    e.y += (dy / dist) * pulseKb;
+                                    let force = pulseKb * (e.knockbackResist ? 0.1 : 1);
+                                    e.x += (dx / dist) * force;
+                                    e.y += (dy / dist) * force;
                                 }
                             }
                         });
@@ -1412,7 +1491,7 @@
                                 let mDmg = (8 + mLvl * 4) * player.baseDmgMulti;
                                 let mAng = getAngle(mx, my, mNear.x, mNear.y);
                                 // Tembakan senjata acak
-                                switch(rw.id) {
+                                switch (rw.id) {
                                     case 'pistol': fireBullet(mx, my, mAng, mDmg, 9, '#228be6', 4, isCrit, 1); break;
                                     case 'boomerang': fireBullet(mx, my, mAng, mDmg, 7, '#22b8cf', 5, isCrit, 2, true); break;
                                     case 'missile': fireBullet(mx, my, mAng, mDmg * 1.5, 4.5, '#fd7e14', 6, isCrit, 1, false, false, 30 + mLvl * 8); break;
@@ -1423,7 +1502,7 @@
                                     case 'laser': fireBullet(mx, my, mAng, mDmg * 1.2, 14, '#ef4444', 3, isCrit, 5); break;
                                     case 'meteor': createStrikeEffect(mNear.x, mNear.y, 35 + mLvl * 5, mDmg * 1.3, 'rgba(234,88,12,0.3)'); break;
                                     case 'frost_nova': createStrikeEffect(mx, my, 40 + mLvl * 5, mDmg * 0.6, 'rgba(56,189,248,0.2)'); break;
-                                    case 'scatter_shot': for(let s=0;s<4;s++) fireBullet(mx,my,mAng+(s-1.5)*0.4,mDmg*0.5,8,'#a855f7',3,isCrit,1); break;
+                                    case 'scatter_shot': for (let s = 0; s < 4; s++) fireBullet(mx, my, mAng + (s - 1.5) * 0.4, mDmg * 0.5, 8, '#a855f7', 3, isCrit, 1); break;
                                     default: fireBullet(mx, my, mAng, mDmg, 8, '#be4bdb', 4, isCrit, 1); break;
                                 }
                             }
@@ -1459,8 +1538,8 @@
                         const pDmgMulti = player.baseDmgMulti;
                         for (let i = 0; i < mtCount; i++) {
                             let tgt = getRandomEnemy();
-                            let mtx = tgt ? tgt.x + (Math.random()*40-20) : player.x + (Math.random()*400-200);
-                            let mty = tgt ? tgt.y + (Math.random()*40-20) : player.y + (Math.random()*400-200);
+                            let mtx = tgt ? tgt.x + (Math.random() * 40 - 20) : player.x + (Math.random() * 400 - 200);
+                            let mty = tgt ? tgt.y + (Math.random() * 40 - 20) : player.y + (Math.random() * 400 - 200);
                             setTimeout(() => {
                                 if (gameState !== 'playing') return;
                                 createStrikeEffect(mtx, mty, mtAoe, mtDmg * pDmgMulti, 'rgba(234, 88, 12, 0.35)');
@@ -1481,7 +1560,7 @@
                                             }
                                         }
                                     },
-                                    draw(ctx) { ctx.beginPath(); ctx.arc(this.x,this.y,this.radius,0,Math.PI*2); ctx.fillStyle = `rgba(234,88,12,${0.08 * (this.life/90)})`; ctx.fill(); }
+                                    draw(ctx) { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = `rgba(234,88,12,${0.08 * (this.life / 90)})`; ctx.fill(); }
                                 });
                             }, i * 120);
                         }
@@ -1513,7 +1592,7 @@
                         entities.particles.push({
                             x: player.x, y: player.y, radius: fnRadius, life: 15, max: 15,
                             update() { this.life--; this.x = player.x; this.y = player.y; },
-                            draw(ctx) { ctx.beginPath(); ctx.arc(this.x,this.y,this.radius*(1-this.life/this.max),0,Math.PI*2); ctx.fillStyle='rgba(56,189,248,0.12)'; ctx.fill(); ctx.strokeStyle='rgba(56,189,248,0.4)'; ctx.lineWidth=2; ctx.stroke(); }
+                            draw(ctx) { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * (1 - this.life / this.max), 0, Math.PI * 2); ctx.fillStyle = 'rgba(56,189,248,0.12)'; ctx.fill(); ctx.strokeStyle = 'rgba(56,189,248,0.4)'; ctx.lineWidth = 2; ctx.stroke(); }
                         });
                         this.cooldown = 80;
                         break;
@@ -1524,8 +1603,8 @@
                         let ltRad = 18 + this.level * 3;
                         entities.particles.push({
                             x: player.x, y: player.y, radius: ltRad, life: 180, dmg: ltDmg,
-                            update() { this.life--; if(this.life % 25 === 0) { let radSq = this.radius * this.radius; entities.enemies.forEach(e => { if(getDistanceSq(this.x,this.y,e.x,e.y)<radSq) e.takeDamage(this.dmg); }); } },
-                            draw(ctx) { ctx.beginPath(); ctx.arc(this.x,this.y,this.radius,0,Math.PI*2); ctx.fillStyle=`rgba(239,68,68,${0.15*(this.life/180)})`; ctx.fill(); }
+                            update() { this.life--; if (this.life % 25 === 0) { let radSq = this.radius * this.radius; entities.enemies.forEach(e => { if (getDistanceSq(this.x, this.y, e.x, e.y) < radSq) e.takeDamage(this.dmg); }); } },
+                            draw(ctx) { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = `rgba(239,68,68,${0.15 * (this.life / 180)})`; ctx.fill(); }
                         });
                         this.cooldown = 12;
                         break;
@@ -1548,13 +1627,13 @@
                         let tcDmg = finalDmg * 1.2;
                         let tcRad = 100 + this.level * 10;
                         // Place tesla at player pos
-                        for(let i=0; i < tcCount; i++) {
-                            let tx = player.x + (Math.random()*200-100);
-                            let ty = player.y + (Math.random()*200-100);
+                        for (let i = 0; i < tcCount; i++) {
+                            let tx = player.x + (Math.random() * 200 - 100);
+                            let ty = player.y + (Math.random() * 200 - 100);
                             entities.particles.push({
                                 x: tx, y: ty, radius: tcRad, life: 120, dmg: tcDmg,
-                                update() { this.life--; if(this.life % 20 === 0) { let hit = getNearestEnemy(this.x,this.y,this.radius); if(hit) { hit.takeDamage(this.dmg); entities.particles.push({ life:6, draw(ctx){ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(hit.x,hit.y);ctx.strokeStyle='#a78bfa';ctx.lineWidth=2;ctx.stroke();}, update(){this.life--;} }); } } },
-                                draw(ctx) { ctx.beginPath(); ctx.arc(this.x,this.y,6,0,Math.PI*2); ctx.fillStyle='#7c3aed'; ctx.fill(); ctx.beginPath();ctx.arc(this.x,this.y,this.radius*(0.3+0.1*Math.sin(frameCount*0.1)),0,Math.PI*2);ctx.strokeStyle='rgba(124,58,237,0.1)';ctx.lineWidth=1;ctx.stroke(); }
+                                update() { this.life--; if (this.life % 20 === 0) { let hit = getNearestEnemy(this.x, this.y, this.radius); if (hit) { hit.takeDamage(this.dmg); entities.particles.push({ life: 6, draw(ctx) { ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(hit.x, hit.y); ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 2; ctx.stroke(); }, update() { this.life--; } }); } } },
+                                draw(ctx) { ctx.beginPath(); ctx.arc(this.x, this.y, 6, 0, Math.PI * 2); ctx.fillStyle = '#7c3aed'; ctx.fill(); ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * (0.3 + 0.1 * Math.sin(frameCount * 0.1)), 0, Math.PI * 2); ctx.strokeStyle = 'rgba(124,58,237,0.1)'; ctx.lineWidth = 1; ctx.stroke(); }
                             });
                         }
                         this.cooldown = 150;
@@ -1562,15 +1641,15 @@
                     }
                     case 'black_hole': {
                         let bhNear = getNearestEnemy(player.x, player.y, 500);
-                        let bhAng = bhNear ? getAngle(player.x, player.y, bhNear.x, bhNear.y) : Math.random()*Math.PI*2;
+                        let bhAng = bhNear ? getAngle(player.x, player.y, bhNear.x, bhNear.y) : Math.random() * Math.PI * 2;
                         let bhx = player.x + Math.cos(bhAng) * 150;
                         let bhy = player.y + Math.sin(bhAng) * 150;
                         let bhDmg = finalDmg * 0.4;
                         let bhRad = 80 + this.level * 20;
                         entities.particles.push({
                             x: bhx, y: bhy, radius: bhRad, life: 180, dmg: bhDmg,
-                            update() { this.life--; let bhRadSq = this.radius * this.radius; entities.enemies.forEach(e => { let dx = this.x - e.x; let dy = this.y - e.y; let distSq = dx * dx + dy * dy; if(distSq < bhRadSq) { let dist = Math.sqrt(distSq); if (dist > 0) { e.x += (dx / dist)*5; e.y += (dy / dist)*5; } if(this.life%10===0) e.takeDamage(this.dmg); } }); },
-                            draw(ctx) { ctx.beginPath(); ctx.arc(this.x,this.y,12+4*Math.sin(frameCount*0.15),0,Math.PI*2); ctx.fillStyle='#1e1b4b'; ctx.fill(); ctx.beginPath();ctx.arc(this.x,this.y,this.radius,0,Math.PI*2);ctx.strokeStyle='rgba(99,102,241,0.15)';ctx.lineWidth=1;ctx.stroke(); }
+                            update() { this.life--; let bhRadSq = this.radius * this.radius; entities.enemies.forEach(e => { let dx = this.x - e.x; let dy = this.y - e.y; let distSq = dx * dx + dy * dy; if (distSq < bhRadSq) { let dist = Math.sqrt(distSq); if (dist > 0) { let force = 5 * (e.knockbackResist ? 0.1 : 1); e.x += (dx / dist) * force; e.y += (dy / dist) * force; } if (this.life % 10 === 0) e.takeDamage(this.dmg); } }); },
+                            draw(ctx) { ctx.beginPath(); ctx.arc(this.x, this.y, 12 + 4 * Math.sin(frameCount * 0.15), 0, Math.PI * 2); ctx.fillStyle = '#1e1b4b'; ctx.fill(); ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(99,102,241,0.15)'; ctx.lineWidth = 1; ctx.stroke(); }
                         });
                         this.cooldown = 160;
                         break;
@@ -1584,14 +1663,15 @@
                             let dy = e.y - player.y;
                             let dist = Math.sqrt(dx * dx + dy * dy);
                             if (dist > 0) {
-                                e.x += (dx / dist) * eqKb;
-                                e.y += (dy / dist) * eqKb;
+                                let force = eqKb * (e.knockbackResist ? 0.1 : 1);
+                                e.x += (dx / dist) * force;
+                                e.y += (dy / dist) * force;
                             }
                         });
                         entities.particles.push({
-                            x: player.x, y: player.y, radius: canvas.width*0.6, life: 10, max: 10,
+                            x: player.x, y: player.y, radius: canvas.width * 0.6, life: 10, max: 10,
                             update() { this.life--; },
-                            draw(ctx) { ctx.beginPath(); ctx.arc(this.x,this.y,this.radius*(1-this.life/this.max),0,Math.PI*2); ctx.strokeStyle='rgba(120,53,15,0.25)'; ctx.lineWidth=4; ctx.stroke(); }
+                            draw(ctx) { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * (1 - this.life / this.max), 0, Math.PI * 2); ctx.strokeStyle = 'rgba(120,53,15,0.25)'; ctx.lineWidth = 4; ctx.stroke(); }
                         });
                         this.cooldown = 200;
                         break;
@@ -1602,7 +1682,7 @@
                         let pdNear = near;
                         let pdAng = pdNear ? getAngle(player.x, player.y, pdNear.x, pdNear.y) : 0;
                         for (let i = 0; i < pdCount; i++) {
-                            let spread = (i - (pdCount-1)/2) * 0.12;
+                            let spread = (i - (pdCount - 1) / 2) * 0.12;
                             fireBullet(player.x, player.y, pdAng + spread, pdDmg, 12, '#16a34a', 3, isCrit, 2);
                         }
                         this.cooldown = 18;
@@ -1618,8 +1698,8 @@
                             let tvx = Math.cos(ta) * 2, tvy = Math.sin(ta) * 2;
                             entities.particles.push({
                                 x: tsx, y: tsy, radius: 35 + this.level * 5, life: 180, dmg: tnDmg,
-                                update() { this.life--; this.x += tvx + Math.sin(frameCount*0.05)*1.5; this.y += tvy + Math.cos(frameCount*0.05)*1.5; if(this.life%12===0) { let radSq = this.radius * this.radius; entities.enemies.forEach(e => { if(getDistanceSq(this.x,this.y,e.x,e.y)<radSq) e.takeDamage(this.dmg); }); } },
-                                draw(ctx) { ctx.beginPath(); ctx.arc(this.x,this.y,this.radius*(0.7+0.3*Math.sin(frameCount*0.2)),0,Math.PI*2); ctx.strokeStyle='rgba(100,116,139,0.3)'; ctx.lineWidth=3; ctx.stroke(); }
+                                update() { this.life--; this.x += tvx + Math.sin(frameCount * 0.05) * 1.5; this.y += tvy + Math.cos(frameCount * 0.05) * 1.5; if (this.life % 12 === 0) { let radSq = this.radius * this.radius; entities.enemies.forEach(e => { if (getDistanceSq(this.x, this.y, e.x, e.y) < radSq) e.takeDamage(this.dmg); }); } },
+                                draw(ctx) { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * (0.7 + 0.3 * Math.sin(frameCount * 0.2)), 0, Math.PI * 2); ctx.strokeStyle = 'rgba(100,116,139,0.3)'; ctx.lineWidth = 3; ctx.stroke(); }
                             });
                         }
                         this.cooldown = 120;
@@ -1627,14 +1707,14 @@
                     }
                     case 'holy_cross': {
                         let hcNear = getRandomEnemy();
-                        let hcx = hcNear ? hcNear.x : player.x + (Math.random()*300-150);
-                        let hcy = hcNear ? hcNear.y : player.y + (Math.random()*300-150);
+                        let hcx = hcNear ? hcNear.x : player.x + (Math.random() * 300 - 150);
+                        let hcy = hcNear ? hcNear.y : player.y + (Math.random() * 300 - 150);
                         let hcDmg = finalDmg * 0.5;
                         let hcRad = 45 + this.level * 8;
                         entities.particles.push({
                             x: hcx, y: hcy, radius: hcRad, life: 150, dmg: hcDmg,
-                            update() { this.life--; if(this.life%15===0) { let radSq = this.radius * this.radius; entities.enemies.forEach(e => { if(getDistanceSq(this.x,this.y,e.x,e.y)<radSq) e.takeDamage(this.dmg); }); } },
-                            draw(ctx) { ctx.fillStyle=`rgba(234,179,8,${0.1*(this.life/150)})`; ctx.fillRect(this.x-3,this.y-this.radius,6,this.radius*2); ctx.fillRect(this.x-this.radius*0.6,this.y-3,this.radius*1.2,6); }
+                            update() { this.life--; if (this.life % 15 === 0) { let radSq = this.radius * this.radius; entities.enemies.forEach(e => { if (getDistanceSq(this.x, this.y, e.x, e.y) < radSq) e.takeDamage(this.dmg); }); } },
+                            draw(ctx) { ctx.fillStyle = `rgba(234,179,8,${0.1 * (this.life / 150)})`; ctx.fillRect(this.x - 3, this.y - this.radius, 6, this.radius * 2); ctx.fillRect(this.x - this.radius * 0.6, this.y - 3, this.radius * 1.2, 6); }
                         });
                         this.cooldown = 70;
                         break;
@@ -1648,11 +1728,12 @@
                             let dx = e.x - player.x;
                             let dy = e.y - player.y;
                             let distSq = dx * dx + dy * dy;
-                            if(distSq < esRadSq) {
+                            if (distSq < esRadSq) {
                                 e.takeDamage(esDmg);
                                 let dist = Math.sqrt(distSq);
                                 if (dist > 0) {
-                                    e.x += (dx / dist)*3; e.y += (dy / dist)*3;
+                                    let force = 3 * (e.knockbackResist ? 0.1 : 1);
+                                    e.x += (dx / dist) * force; e.y += (dy / dist) * force;
                                 }
                             }
                         });
@@ -1675,7 +1756,7 @@
                         // Apply combustion mark to nearby enemies
                         let checkDistSq = 300 * 300;
                         entities.enemies.forEach(e => {
-                            if (!e._combustion && getDistanceSq(player.x,player.y,e.x,e.y) < checkDistSq) {
+                            if (!e._combustion && getDistanceSq(player.x, player.y, e.x, e.y) < checkDistSq) {
                                 e._combustion = { dmg: cbDmg, rad: cbRad };
                             }
                         });
@@ -1753,30 +1834,46 @@
                 const by = this.y;
                 const bSize = this.size;
 
-                for (let i = entities.enemies.length - 1; i >= 0; i--) {
-                    let e = entities.enemies[i];
-                    if (e.dead) continue;
-                    let minDist = e.size + bSize;
-                    let dx = Math.abs(bx - e.x);
-                    if (dx > minDist) continue;
-                    let dy = Math.abs(by - e.y);
-                    if (dy > minDist) continue;
-
-                    let distSq = dx * dx + dy * dy;
-                    if (distSq < minDist * minDist) {
-                        if (this.isMissileAoe) {
-                            createStrikeEffect(bx, by, this.isMissileAoe, this.damage, 'rgba(253, 126, 20, 0.4)');
-                            this.life = 0; break;
+                if (this.isEnemy) {
+                    let minDist = player.size + bSize;
+                    let dx = Math.abs(bx - player.x);
+                    if (dx <= minDist) {
+                        let dy = Math.abs(by - player.y);
+                        if (dy <= minDist) {
+                            let distSq = dx * dx + dy * dy;
+                            if (distSq < minDist * minDist) {
+                                player.takeDamage(this.damage);
+                                createParticles(bx, by, this.color, 3);
+                                this.life = 0;
+                            }
                         }
-
-                        e.takeDamage(this.damage);
-                        createParticles(bx, by, this.color, 3);
-                        this.pierce--;
-                        if (this.pierce <= 0) { this.life = 0; break; }
                     }
-                }
-                if (this.isMissileAoe && this.life <= 0) {
-                    createStrikeEffect(bx, by, this.isMissileAoe, this.damage, 'rgba(253, 126, 20, 0.4)');
+                } else {
+                    for (let i = entities.enemies.length - 1; i >= 0; i--) {
+                        let e = entities.enemies[i];
+                        if (e.dead) continue;
+                        let minDist = e.size + bSize;
+                        let dx = Math.abs(bx - e.x);
+                        if (dx > minDist) continue;
+                        let dy = Math.abs(by - e.y);
+                        if (dy > minDist) continue;
+
+                        let distSq = dx * dx + dy * dy;
+                        if (distSq < minDist * minDist) {
+                            if (this.isMissileAoe) {
+                                createStrikeEffect(bx, by, this.isMissileAoe, this.damage, 'rgba(253, 126, 20, 0.4)');
+                                this.life = 0; break;
+                            }
+
+                            e.takeDamage(this.damage);
+                            createParticles(bx, by, this.color, 3);
+                            this.pierce--;
+                            if (this.pierce <= 0) { this.life = 0; break; }
+                        }
+                    }
+                    if (this.isMissileAoe && this.life <= 0) {
+                        createStrikeEffect(bx, by, this.isMissileAoe, this.damage, 'rgba(253, 126, 20, 0.4)');
+                    }
                 }
             }
             draw(ctx) {
@@ -1804,8 +1901,23 @@
                 } else if (type === 'tank') {
                     this.initialSpeed = 0.7; this.hp = 70 * hpMulti; this.size = 23; this.stroke = '#16a34a'; this.damage = 16;
                 } else if (type === 'boss') {
-                    this.initialSpeed = 1.1; this.hp = 600 * hpMulti; this.size = 36; this.stroke = '#dc2626'; this.damage = 30;
                     this.isBoss = true;
+                    const variants = [
+                        { name: 'Goliath', stroke: '#6b21a8', hpBase: 1600, speed: 0.7, size: 48, damage: 60, subType: 'goliath' },
+                        { name: 'Phantom', stroke: '#0d9488', hpBase: 900, speed: 1.9, size: 30, damage: 35, subType: 'phantom' },
+                        { name: 'Pyromancer', stroke: '#ea580c', hpBase: 1100, speed: 1.1, size: 36, damage: 40, subType: 'pyromancer' },
+                        { name: 'Void Sentinel', stroke: '#dc2626', hpBase: 1300, speed: 1.3, size: 38, damage: 45, subType: 'sentinel' }
+                    ];
+                    let v = variants[Math.floor(Math.random() * variants.length)];
+                    this.bossName = v.name;
+                    this.bossSubType = v.subType;
+                    this.initialSpeed = v.speed;
+                    this.hp = v.hpBase * hpMulti;
+                    this.size = v.size;
+                    this.stroke = v.stroke;
+                    this.damage = v.damage;
+                    this.shootCooldown = 0;
+                    this.knockbackResist = (v.subType === 'goliath');
                 } else {
                     this.initialSpeed = 1.4; this.hp = 22 * hpMulti; this.size = 14; this.stroke = '#475569'; this.damage = 7;
                 }
@@ -1823,6 +1935,35 @@
                     this.y += (dy / dist) * this.speed;
                 }
 
+                // Boss subtype custom behaviors
+                if (this.isBoss && !this.dead) {
+                    if (this.bossSubType === 'phantom') {
+                        this.shootCooldown++;
+                        if (this.shootCooldown >= 120) {
+                            this.shootCooldown = 0;
+                            this.speed = this.initialSpeed * 3.5;
+                            createParticles(this.x, this.y, this.stroke, 8);
+                            setTimeout(() => {
+                                if (gameState === 'playing' && !this.dead) {
+                                    this.speed = this.initialSpeed;
+                                }
+                            }, 500);
+                        }
+                    } else if (this.bossSubType === 'pyromancer') {
+                        this.shootCooldown++;
+                        if (this.shootCooldown >= 90) {
+                            this.shootCooldown = 0;
+                            if (dist > 0) {
+                                let angle = Math.atan2(dy, dx);
+                                let fireball = new Bullet(this.x, this.y, angle, 16, 4.5, '#ea580c', 8, false, 1, false, false);
+                                fireball.isEnemy = true;
+                                entities.projectiles.push(fireball);
+                                createParticles(this.x, this.y, '#ea580c', 4);
+                            }
+                        }
+                    }
+                }
+
                 let minDist = this.size + player.size;
                 if (dist < minDist) {
                     player.takeDamage(this.damage);
@@ -1836,9 +1977,19 @@
                 drawFastHexagon(ctx, this.x, this.y, this.size, '#ffffff', this.stroke, 3);
                 if (this.isBoss) {
                     ctx.beginPath(); ctx.arc(this.x, this.y, this.size + 10, 0, Math.PI * 2);
-                    ctx.strokeStyle = 'rgba(220, 38, 38, 0.4)'; ctx.lineWidth = 2; ctx.stroke();
-                    ctx.fillStyle = '#dee2e6'; ctx.fillRect(this.x - 25, this.y - 45, 50, 5);
-                    ctx.fillStyle = '#c92a2a'; ctx.fillRect(this.x - 25, this.y - 45, 50 * (this.hp / this.maxHp), 5);
+                    ctx.strokeStyle = this.stroke + '44'; ctx.lineWidth = 2.5; ctx.stroke();
+                    
+                    let barW = this.size * 1.5;
+                    let barH = 5;
+                    let barX = this.x - barW / 2;
+                    let barY = this.y - this.size - 15;
+                    
+                    ctx.fillStyle = '#dee2e6'; ctx.fillRect(barX, barY, barW, barH);
+                    ctx.fillStyle = this.stroke; ctx.fillRect(barX, barY, barW * (this.hp / this.maxHp), barH);
+                    
+                    ctx.fillStyle = '#1e293b'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
+                    ctx.fillText(this.bossName, this.x, barY - 7);
+                    ctx.textAlign = 'left';
                 }
             }
             takeDamage(amount) {
@@ -1872,14 +2023,14 @@
             constructor(x, y, type, value) {
                 this.x = x + (Math.random() * 16 - 8); this.y = y + (Math.random() * 16 - 8);
                 this.type = type; this.value = value; this.magnetized = false;
-                this.size = type === 'exp' ? 6 : 8;
+                this.size = type === 'exp' ? 6 : (type === 'magnet' || type === 'super_magnet' ? 9 : 8);
             }
             draw(ctx) {
                 let bobbing = Math.sin(frameCount * 0.08) * 2;
                 let drawX = this.x - this.size;
                 let drawY = this.y + bobbing - this.size;
                 let s = this.size * 2;
-                
+
                 if (this.type === 'exp') {
                     ctx.fillStyle = '#3b82f6'; ctx.fillRect(drawX, drawY, s, s);
                     ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 1; ctx.strokeRect(drawX, drawY, s, s);
@@ -1889,16 +2040,43 @@
                 } else if (this.type === 'cosmic') {
                     ctx.fillStyle = '#06b6d4'; ctx.fillRect(drawX - 1, drawY - 1, s + 2, s + 2);
                     ctx.strokeStyle = '#0891b2'; ctx.lineWidth = 2; ctx.strokeRect(drawX - 1, drawY - 1, s + 2, s + 2);
+                } else if (this.type === 'magnet') {
+                    ctx.save();
+                    ctx.translate(this.x, this.y + bobbing);
+                    // Glowing outer circle
+                    ctx.beginPath(); ctx.arc(0, 0, this.size + 4, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(239, 68, 68, 0.15)'; ctx.fill();
+                    // U-shape magnet
+                    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 3.5;
+                    ctx.beginPath(); ctx.arc(0, -2, this.size - 3, Math.PI, 0); ctx.stroke();
+                    // Polar tips
+                    ctx.fillStyle = '#3b82f6'; ctx.fillRect(-this.size + 3, -2, 3.5, 3.5);
+                    ctx.fillStyle = '#ef4444'; ctx.fillRect(this.size - 6.5, -2, 3.5, 3.5);
+                    ctx.restore();
+                } else if (this.type === 'super_magnet') {
+                    ctx.save();
+                    ctx.translate(this.x, this.y + bobbing);
+                    // Glowing pulsing outer circle
+                    let pulse = 1 + 0.3 * Math.sin(frameCount * 0.25);
+                    ctx.beginPath(); ctx.arc(0, 0, (this.size + 6) * pulse, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(245, 158, 11, 0.25)'; ctx.fill();
+                    // Golden U-shape magnet
+                    ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 4;
+                    ctx.beginPath(); ctx.arc(0, -2, this.size - 3, Math.PI, 0); ctx.stroke();
+                    // Polar tips
+                    ctx.fillStyle = '#3b82f6'; ctx.fillRect(-this.size + 3, -2, 4, 4);
+                    ctx.fillStyle = '#ef4444'; ctx.fillRect(this.size - 7, -2, 4, 4);
+                    ctx.restore();
                 }
             }
             collect() {
                 if (this.type === 'exp') {
                     currentExp += this.value;
                     createDamageText(this.x, this.y, `+${this.value} EXP`, '#3b82f6', 11);
-                    if(currentExp >= expNeeded) { 
-                        currentExp -= expNeeded; currentLevel++; 
-                        expNeeded = Math.floor(CONFIG.EXP_NEEDED_BASE * Math.pow(currentLevel, CONFIG.EXP_NEEDED_EXPONENT)); 
-                        triggerLevelUp(); 
+                    if (currentExp >= expNeeded) {
+                        currentExp -= expNeeded; currentLevel++;
+                        expNeeded = Math.floor(CONFIG.EXP_NEEDED_BASE * Math.pow(currentLevel, CONFIG.EXP_NEEDED_EXPONENT));
+                        triggerLevelUp();
                     }
                 } else if (this.type === 'coin') {
                     let mult = Math.random() < player.artMods.doubleCoinsChance ? 2 : 1;
@@ -1910,6 +2088,13 @@
                     let finalVal = 1 * mult;
                     runCosmic += finalVal;
                     createDamageText(this.x, this.y, `+${finalVal} COSMIC${mult > 1 ? ' (x2!)' : ''}`, '#0d9488', mult > 1 ? 15 : 13);
+                } else if (this.type === 'magnet') {
+                    createDamageText(player.x, player.y - 30, "MAGNET! 🧲", '#ef4444', 16);
+                    entities.drops.forEach(d => d.magnetized = true);
+                } else if (this.type === 'super_magnet') {
+                    createDamageText(player.x, player.y - 30, "SUPER MAGNET! 🧲⚡", '#f59e0b', 18);
+                    player.superMagnetTimer = 600;
+                    entities.drops.forEach(d => d.magnetized = true);
                 }
                 updateHUD();
             }
@@ -1923,10 +2108,17 @@
             let expValue = Math.floor(1 + Math.pow(gameTime / 25, 1.4));
 
             for (let i = 0; i < numDrops; i++) {
-                let typeRoll = Math.random();
-                if (typeRoll < 0.82) entities.drops.push(new Drop(x, y, 'exp', expValue));
-                else if (typeRoll < 0.96) entities.drops.push(new Drop(x, y, 'coin', 1));
-                else entities.drops.push(new Drop(x, y, 'cosmic', 1));
+                let magnetRoll = Math.random();
+                if (magnetRoll < 0.0001) {
+                    entities.drops.push(new Drop(x, y, 'super_magnet', 0));
+                } else if (magnetRoll < 0.0011) {
+                    entities.drops.push(new Drop(x, y, 'magnet', 0));
+                } else {
+                    let typeRoll = Math.random();
+                    if (typeRoll < 0.82) entities.drops.push(new Drop(x, y, 'exp', expValue));
+                    else if (typeRoll < 0.96) entities.drops.push(new Drop(x, y, 'coin', 1));
+                    else entities.drops.push(new Drop(x, y, 'cosmic', 1));
+                }
             }
         }
 
@@ -2044,7 +2236,8 @@
 
             // Spawn boss menggunakan interval dinamis
             if (gameTime >= nextBossAt && !bossActive) {
-                entities.enemies.push(new Enemy(player.x + 400, player.y + 400, 'boss', gameTime));
+                let boss = new Enemy(player.x + 400, player.y + 400, 'boss', gameTime);
+                entities.enemies.push(boss);
                 bossActive = true;
                 // Kurangi interval boss untuk boss berikutnya
                 currentBossInterval = Math.max(
@@ -2052,8 +2245,8 @@
                     Math.floor(currentBossInterval * (1 - CONFIG.BOSS_INTERVAL_REDUCTION))
                 );
                 nextBossAt = gameTime + currentBossInterval;
-                let bossMsg = `⚠️ BOS MUNCUL! (Berikutnya: ${currentBossInterval}s)`;
-                createDamageText(player.x, player.y - 40, bossMsg, '#c92a2a', 22);
+                let bossMsg = `⚠️ BOS MUNCUL: ${boss.bossName.toUpperCase()}! (Berikutnya: ${currentBossInterval}s)`;
+                createDamageText(player.x, player.y - 40, bossMsg, boss.stroke, 22);
             }
         }
 
@@ -2135,12 +2328,12 @@
 
         function triggerHollowNuke(x, y) {
             let nukeRadius = 365; // area magnet level 15: 65 + 15 * 20 = 365
-            
+
             createDamageText(x, y - 50, "HOLLOW PURPLE NUKE! 💥🟣", '#a855f7', 28);
             createParticles(x, y, '#a855f7', 40);
             createParticles(x, y, '#3b82f6', 20);
             createParticles(x, y, '#dc2626', 20);
-            
+
             // Damage all enemies in the area for infinite/huge damage to kill them
             for (let i = entities.enemies.length - 1; i >= 0; i--) {
                 let e = entities.enemies[i];
@@ -2150,7 +2343,7 @@
                     e.takeDamage(9999999);
                 }
             }
-            
+
             // Visual effect: massive purple expanding shockwave
             entities.particles.push({
                 x: x, y: y, radius: nukeRadius, life: 40, max: 40,
@@ -2160,7 +2353,7 @@
                     ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * prog, 0, Math.PI * 2);
                     ctx.strokeStyle = `rgba(168, 85, 247, ${0.8 * (1 - prog)})`;
                     ctx.lineWidth = 10; ctx.stroke();
-                    
+
                     ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * prog * 0.9, 0, Math.PI * 2);
                     ctx.strokeStyle = `rgba(99, 102, 241, ${0.5 * (1 - prog)})`;
                     ctx.lineWidth = 6; ctx.stroke();
