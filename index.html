@@ -522,6 +522,215 @@
             margin-top: auto;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
+
+        /* Modern Minimalist Shop Grid */
+        .shop-categories-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            width: 100%;
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 15px;
+            pointer-events: auto;
+        }
+
+        @media (max-width: 768px) {
+            .shop-categories-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+
+        .shop-category-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            pointer-events: auto;
+        }
+
+        .shop-category-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 30px -10px rgba(99, 102, 241, 0.15);
+            border-color: #6366f1;
+        }
+
+        .shop-category-card .category-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .shop-category-card:hover .category-icon {
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        .shop-category-card h3 {
+            margin: 6px 0;
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .shop-category-card p {
+            font-size: 12.5px;
+            color: #64748b;
+            margin: 4px 0 14px 0;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        .shop-category-card .key-badge {
+            font-size: 10.5px;
+            font-weight: 800;
+            padding: 4px 10px;
+            background: rgba(99, 102, 241, 0.1);
+            color: #4f46e5;
+            border-radius: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: auto;
+        }
+
+        /* Overlay sub-shop panel style */
+        .subshop-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(248, 250, 252, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            z-index: 110;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            pointer-events: auto;
+        }
+
+        .subshop-content {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            height: 85%;
+            max-height: 650px;
+            pointer-events: auto;
+        }
+
+        .subshop-content h2 {
+            margin-top: 0;
+            font-size: 22px;
+            font-weight: 800;
+            color: #0f172a;
+            text-align: center;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+            padding-bottom: 14px;
+            margin-bottom: 14px;
+        }
+
+        .subshop-content .panel-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        /* Ultimate Cooldown HUD elements */
+        .ultimate-title {
+            font-size: 9.5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .ultimate-status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 800;
+            gap: 12px;
+        }
+
+        .ultimate-name {
+            color: #1e293b;
+        }
+
+        .ultimate-badge {
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 9.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .ultimate-badge.ready {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .ultimate-badge.active {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            animation: pulseText 1s infinite alternate;
+        }
+
+        .ultimate-badge.cooldown {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        @keyframes pulseText {
+            from { opacity: 0.7; }
+            to { opacity: 1; }
+        }
+
+        .ultimate-bar-container {
+            width: 100%;
+            height: 5px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .ultimate-bar {
+            height: 100%;
+            width: 100%;
+            border-radius: 3px;
+            transition: width 0.1s linear;
+        }
+
+        .ultimate-bar.active {
+            background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+        }
+
+        .ultimate-bar.cooldown {
+            background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
+        }
     </style>
 </head>
 
@@ -542,6 +751,16 @@
             <div style="display: flex; align-items: center; gap: 8px; color: #64748b;">
                 <span style="font-size: 16px;">⏱️</span>
                 <span id="time-text">00:00</span>
+            </div>
+            <div id="ultimate-hud" class="hidden" style="margin-top: 6px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 6px; display: flex; flex-direction: column; gap: 2px;">
+                <div class="ultimate-title">ULTIMATE</div>
+                <div class="ultimate-status-row">
+                    <span id="ult-hud-name" class="ultimate-name">-</span>
+                    <span id="ult-hud-badge" class="ultimate-badge ready">READY</span>
+                </div>
+                <div class="ultimate-bar-container">
+                    <div id="ult-hud-bar" class="ultimate-bar active" style="width: 100%;"></div>
+                </div>
             </div>
         </div>
         <div id="top-right" class="hud hidden">
@@ -583,18 +802,40 @@
         </div>
         <button class="btn" id="btn-close-shop">KEMBALI KE MENU UTAMA</button>
 
-        <div class="menu-container">
-            <div class="menu-panel">
-                <h2>Statistik Utama (Koin)</h2>
-                <div class="panel-scroll" id="stat-list"></div>
+        <!-- Modern minimalist 2x2 grid -->
+        <div id="shop-categories" class="shop-categories-grid">
+            <div class="shop-category-card" onclick="openSubShop('stat')">
+                <div class="category-icon">📊</div>
+                <h3>Statistik Utama</h3>
+                <p>Tingkatkan status dasar HP, Damage, Speed, dan Magnet Range.</p>
+                <span class="key-badge">Pencet [1]</span>
             </div>
-            <div class="menu-panel">
-                <h2>Permanen Senjata (Cosmic Koin)</h2>
-                <div class="panel-scroll" id="weapon-list"></div>
+            <div class="shop-category-card" onclick="openSubShop('weapon')">
+                <div class="category-icon">⚔️</div>
+                <h3>Permanen Senjata</h3>
+                <p>Buka dan upgrade level awal senjata aktif permanen Anda.</p>
+                <span class="key-badge">Pencet [2]</span>
             </div>
-            <div class="menu-panel">
-                <h2>Inventaris Artefak (Koin)</h2>
-                <div class="panel-scroll" id="artifact-list"></div>
+            <div class="shop-category-card" onclick="openSubShop('artifact')">
+                <div class="category-icon">👑</div>
+                <h3>Inventaris Artefak</h3>
+                <p>Kumpulkan dan upgrade artefak magis pemberi efek khusus pasif.</p>
+                <span class="key-badge">Pencet [3]</span>
+            </div>
+            <div class="shop-category-card" onclick="openSubShop('ultimate')">
+                <div class="category-icon">🌌</div>
+                <h3>Toko Ultimate</h3>
+                <p>Miliki 1 dari 9 senjata Ultimate terkuat di alam semesta.</p>
+                <span class="key-badge">Pencet [4]</span>
+            </div>
+        </div>
+
+        <!-- Sleek Glassmorphism Sub-Shop Overlay -->
+        <div id="subshop-overlay" class="subshop-overlay hidden">
+            <div class="subshop-content">
+                <h2 id="subshop-title">Nama Kategori</h2>
+                <div class="panel-scroll" id="subshop-list"></div>
+                <button class="btn" id="btn-close-subshop" style="margin-top: 15px;">KEMBALI KE PILIHAN TOKO</button>
             </div>
         </div>
     </div>
@@ -733,7 +974,9 @@
             weapons: {},
             artifacts: {},
             highscoreTime: 0,
-            highscoreLevel: 1
+            highscoreLevel: 1,
+            ownedUltimates: [],
+            equippedUltimate: null
         };
 
         for (let w in WEAPON_DEFS) {
@@ -756,6 +999,10 @@
         if (saveData.highscoreTime === undefined) saveData.highscoreTime = 0;
         if (saveData.highscoreLevel === undefined) saveData.highscoreLevel = 1;
 
+        // Failsafe migration for Ultimate properties
+        if (!saveData.ownedUltimates) saveData.ownedUltimates = [];
+        if (saveData.equippedUltimate === undefined) saveData.equippedUltimate = null;
+
         // Force all stats max levels to 25
         if (saveData.stats) {
             for (let k in saveData.stats) {
@@ -767,6 +1014,121 @@
             localStorage.setItem('thousandYearsBattleSave', JSON.stringify(saveData));
             updateMenuUI();
         }
+
+        // ==========================================
+        // ULTIMATE WEAPONS DEFINITIONS
+        // ==========================================
+        // ==========================================
+        // BALANCING CHART (tidak berurutan = by design)
+        // Infinite Void   : Dur 14s | CD 22s  — Utility stun
+        // Malevolent Shrine: Dur  8s | CD 28s  — Damage tinggi tapi singkat
+        // Kamehameha      : Dur  6s | CD 18s  — Burst laser terkuat
+        // Dragon Cry      : Dur 18s | CD 35s  — Debuff panjang, CD terlama
+        // Frenzy Time     : Dur  7s | CD 30s  — Stat 2x tapi cepat habis
+        // MaxedOut Weapon : Dur 12s | CD 24s  — Senjata max cukup lama
+        // MaxedOut Stat   : Dur  9s | CD 26s  — Stat max medium
+        // MaxedOut Artefact:Dur 11s | CD 20s  — Artefak max, CD pendek
+        // FireWork        : Dur 15s | CD 16s  — AoE lemah tapi CD tercepat
+        // ==========================================
+        const ULTIMATE_DEFS = {
+            infinite_void: {
+                id: "infinite_void",
+                name: "Infinite Void",
+                cost: 5000,       // Koin
+                costCosmic: 100,  // Cosmic Coin
+                key: "u",
+                duration: 840,   // 14 detik
+                cooldown: 1320,  // 22 detik
+                desc: "Aktifkan: Tekan [U]. Durasi 14s, Cooldown 22s. Efek: Stun semua musuh di layar selama durasi aktif dan memberikan damage kecil (2x ATK) setiap 0.1s. Berguna sebagai pelindung diri."
+            },
+            malevolent_shrine: {
+                id: "malevolent_shrine",
+                name: "Malevolent Shrine",
+                cost: 8000,       // Koin
+                costCosmic: 175,  // Cosmic Coin
+                key: "u",
+                duration: 480,   // 8 detik
+                cooldown: 1680,  // 28 detik
+                desc: "Aktifkan: Tekan [U]. Durasi 8s, Cooldown 28s. Efek: Tebasan bertubi-tubi (15x ATK) ke seluruh musuh di map setiap 0.2s. Durasi singkat tapi damage brutal."
+            },
+            kamehameha: {
+                id: "kamehameha",
+                name: "Kamehameha",
+                cost: 12000,      // Koin
+                costCosmic: 300,  // Cosmic Coin
+                key: "u",
+                duration: 360,   // 6 detik
+                cooldown: 1080,  // 18 detik
+                desc: "Aktifkan: Tekan [U]. Durasi 6s, Cooldown 18s. Efek: Laser raksasa ke arah gerak yang meluluhlantakkan semua musuh. Damage tertinggi dari semua ultimate."
+            },
+            dragon_cry: {
+                id: "dragon_cry",
+                name: "Dragon Cry",
+                cost: 7000,       // Koin
+                costCosmic: 140,  // Cosmic Coin
+                key: "u",
+                duration: 1080,  // 18 detik
+                cooldown: 2100,  // 35 detik
+                desc: "Aktifkan: Tekan [U]. Durasi 18s, Cooldown 35s. Efek: Semua musuh mendapat debuff permanen (slow, -dmg, +dmg yg diterima) + damage DoT. Musuh mati menyetrum sekitarnya."
+            },
+            frenzy_time: {
+                id: "frenzy_time",
+                name: "Frenzy Time",
+                cost: 9500,       // Koin
+                costCosmic: 220,  // Cosmic Coin
+                key: "u",
+                duration: 420,   // 7 detik
+                cooldown: 1800,  // 30 detik
+                desc: "Aktifkan: Tekan [U]. Durasi 7s, Cooldown 30s. Efek: Semua stat 2x lipat (HP, Speed, Dmg, Magnet), 2x Cosmic & EXP, Boss drop 2x. Durasi singkat, manfaatkan saat boss!"
+            },
+            maxed_out_weapon: {
+                id: "maxed_out_weapon",
+                name: "MaxedOut Weapon",
+                cost: 10000,      // Koin
+                costCosmic: 250,  // Cosmic Coin
+                key: "u",
+                duration: 720,   // 12 detik
+                cooldown: 1440,  // 24 detik
+                desc: "Aktifkan: Tekan [U]. Durasi 12s, Cooldown 24s. Efek: Semua senjata ke level max. Senjata yang sudah max mendapat +100% damage selama durasi aktif."
+            },
+            maxed_out_stat: {
+                id: "maxed_out_stat",
+                name: "MaxedOut Stat",
+                cost: 10500,      // Koin
+                costCosmic: 260,  // Cosmic Coin
+                key: "u",
+                duration: 540,   // 9 detik
+                cooldown: 1560,  // 26 detik
+                desc: "Aktifkan: Tekan [U]. Durasi 9s, Cooldown 26s. Efek: Semua stat dasar ke Lv 25. Stat yang sudah Lv 25 mendapat 2x lipat boost selama aktif."
+            },
+            maxed_out_artefact: {
+                id: "maxed_out_artefact",
+                name: "MaxedOut Artefact",
+                cost: 9000,       // Koin
+                costCosmic: 200,  // Cosmic Coin
+                key: "u",
+                duration: 660,   // 11 detik
+                cooldown: 1200,  // 20 detik
+                desc: "Aktifkan: Tekan [U]. Durasi 11s, Cooldown 20s. Efek: Semua artefak ke level max. Artefak yang sudah max mendapat efek 2x lipat. Cooldown tercepat kedua."
+            },
+            firework: {
+                id: "firework",
+                name: "FireWork",
+                cost: 6000,       // Koin
+                costCosmic: 120,  // Cosmic Coin
+                key: "u",
+                duration: 900,   // 15 detik
+                cooldown: 960,   // 16 detik
+                desc: "Aktifkan: Tekan [U]. Durasi 15s, Cooldown 16s (tercepat!). Efek: Ribuan ledakan kembang api ke musuh + efek slow. Damage rendah tapi bisa spam paling sering."
+            }
+        };
+
+        // State sistem Ultimate
+        let activeUltimate = null;       // ID ultimate yang sedang aktif
+        let ultimateActiveTimer = 0;     // sisa durasi aktif (frames)
+        let ultimateActiveDuration = 0;  // total durasi aktif (frames)
+        let ultimateCooldownTimer = 0;   // sisa cooldown (frames)
+        let ultimateCooldownDuration = 0; // diisi dari ULTIMATE_DEFS[id].cooldown saat activate
 
         // ==========================================
         // SYSTEM ENGINE CONSTANTS & STATE
@@ -787,6 +1149,15 @@
                     pauseGame();
                 } else if (gameState === 'paused') {
                     resumeGame();
+                } else if (gameState === 'menu') {
+                    const shopModal = document.getElementById('shop-modal');
+                    if (!shopModal.classList.contains('hidden')) {
+                        if (activeSubShop) {
+                            closeSubShop();
+                        } else {
+                            shopModal.classList.add('hidden');
+                        }
+                    }
                 }
             }
             if (gameState === 'playing' && player.dashCooldown <= 0) {
@@ -794,6 +1165,27 @@
                     player.triggerDash('left');
                 } else if (k === 'k') {
                     player.triggerDash('right');
+                }
+            }
+            // Pemicuan Ultimate di dalam pertempuran (tombol U)
+            if (gameState === 'playing' && k === 'u' && saveData.equippedUltimate && !activeUltimate && ultimateCooldownTimer <= 0) {
+                activateUltimate(saveData.equippedUltimate);
+            }
+            // Navigasi cepat kategori Shop (tombol 1-4)
+            if (gameState === 'menu' && !document.getElementById('shop-modal').classList.contains('hidden') && !activeSubShop) {
+                if (e.key === '1') openSubShop('stat');
+                else if (e.key === '2') openSubShop('weapon');
+                else if (e.key === '3') openSubShop('artifact');
+                else if (e.key === '4') openSubShop('ultimate');
+            }
+            // Cheat untuk testing: Tekan tombol 'c' di menu utama/shop untuk menambah 50.000 koin & 100 cosmic
+            if (gameState === 'menu' && k === 'c') {
+                saveData.coins += 50000;
+                saveData.cosmicCoins += 100;
+                saveGame();
+                updateMenuUI();
+                if (activeSubShop) {
+                    renderSubShop();
                 }
             }
         });
@@ -1350,6 +1742,12 @@
 
                 let dmgBase = 10 + (this.level * 5);
                 let finalDmg = dmgBase * player.baseDmgMulti;
+                
+                // MaxedOut Weapon: Buff 100% damage jika senjata sudah level maksimal
+                if (this._isMaxedOutBuffed) {
+                    finalDmg *= 2;
+                }
+                
                 let isCrit = Math.random() < player.artMods.crit;
                 if (isCrit) finalDmg *= CONFIG.CRIT_DAMAGE_MULTIPLIER;
 
@@ -1926,6 +2324,21 @@
             }
             update() {
                 if (this.dead) return;
+                
+                // Mekanik Slow / Stun dari Ultimate
+                if (activeUltimate === 'infinite_void') {
+                    // Stun ditangani langsung oleh tick infinite_void agar tetap 0 speed
+                } else {
+                    if (this._slowTimer && this._slowTimer > 0) {
+                        this._slowTimer--;
+                        if (this._slowTimer <= 0) {
+                            this.speed = this.dragonCryDebuff ? this.initialSpeed * 0.9 : this.initialSpeed;
+                        }
+                    } else {
+                        this.speed = this.dragonCryDebuff ? this.initialSpeed * 0.9 : this.initialSpeed;
+                    }
+                }
+
                 let dx = player.x - this.x;
                 let dy = player.y - this.y;
                 let dist = Math.sqrt(dx * dx + dy * dy);
@@ -1993,13 +2406,43 @@
                 }
             }
             takeDamage(amount) {
-                this.hp -= amount;
-                createDamageText(this.x, this.y, Math.floor(amount), '#495057');
+                // Modifikasi damage jika musuh terdebuff Dragon Cry (+10% damage diterima)
+                let finalAmount = amount;
+                if (this.dragonCryDebuff) {
+                    finalAmount *= 1.10;
+                }
+                
+                this.hp -= finalAmount;
+                createDamageText(this.x, this.y, Math.floor(finalAmount), '#495057');
 
                 if (this.hp <= 0 && !this.dead) {
                     this.dead = true;
                     createParticles(this.x, this.y, this.stroke, 12);
                     triggerGuaranteedDrop(this.x, this.y, this.isBoss);
+
+                    // Efek stun melingkar Dragon Cry saat musuh terdebuff mati
+                    if (this.dragonCryDebuff) {
+                        let stunRadius = 120;
+                        let stunRadSq = stunRadius * stunRadius;
+                        let tx = this.x, ty = this.y;
+                        entities.enemies.forEach(e => {
+                            if (!e.dead && getDistanceSq(tx, ty, e.x, e.y) < stunRadSq) {
+                                e.speed = 0;
+                                e._slowTimer = 120; // stun 2 detik
+                            }
+                        });
+                        entities.particles.push({
+                            x: tx, y: ty, radius: stunRadius, life: 20, max: 20,
+                            update() { this.life--; },
+                            draw(ctx) {
+                                let prog = 1 - this.life / this.max;
+                                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * prog, 0, Math.PI * 2);
+                                ctx.strokeStyle = `rgba(0, 180, 216, ${0.6 * (1 - prog)})`;
+                                ctx.lineWidth = 3; ctx.stroke();
+                            }
+                        });
+                        createDamageText(tx, ty - 20, "STUN BLAST! ❄️", '#00b4d8', 12);
+                    }
 
                     // Lifesteal + Vampire Flesh heal
                     let healAmount = CONFIG.LIFESTEAL_PER_KILL + (player.artMods.healPerKill || 0);
@@ -2070,9 +2513,13 @@
                 }
             }
             collect() {
+                // Gandakan nilai jika Frenzy Time aktif
+                let frenzyMult = (activeUltimate === 'frenzy_time') ? 2 : 1;
+
                 if (this.type === 'exp') {
-                    currentExp += this.value;
-                    createDamageText(this.x, this.y, `+${this.value} EXP`, '#3b82f6', 11);
+                    let val = this.value * frenzyMult;
+                    currentExp += val;
+                    createDamageText(this.x, this.y, `+${val} EXP`, '#3b82f6', 11);
                     if (currentExp >= expNeeded) {
                         currentExp -= expNeeded; currentLevel++;
                         expNeeded = Math.floor(CONFIG.EXP_NEEDED_BASE * Math.pow(currentLevel, CONFIG.EXP_NEEDED_EXPONENT));
@@ -2080,12 +2527,12 @@
                     }
                 } else if (this.type === 'coin') {
                     let mult = Math.random() < player.artMods.doubleCoinsChance ? 2 : 1;
-                    let finalVal = this.value * mult;
+                    let finalVal = this.value * mult * frenzyMult;
                     runCoins += finalVal;
                     createDamageText(this.x, this.y, `+${finalVal}${mult > 1 ? ' (x2!)' : ''}`, '#d97706', mult > 1 ? 14 : 11);
                 } else if (this.type === 'cosmic') {
                     let mult = Math.random() < player.artMods.doubleCoinsChance ? 2 : 1;
-                    let finalVal = 1 * mult;
+                    let finalVal = 1 * mult * frenzyMult;
                     runCosmic += finalVal;
                     createDamageText(this.x, this.y, `+${finalVal} COSMIC${mult > 1 ? ' (x2!)' : ''}`, '#0d9488', mult > 1 ? 15 : 13);
                 } else if (this.type === 'magnet') {
@@ -2104,6 +2551,12 @@
             if (isBoss) bossActive = false;
             let numDrops = Math.random() < 0.15 ? 2 : 1;
             if (isBoss) numDrops = 3;
+
+            // Frenzy Time: 50% peluang drop 2x item bagi Boss saat mati
+            if (isBoss && activeUltimate === 'frenzy_time' && Math.random() < 0.5) {
+                numDrops *= 2;
+                createDamageText(x, y - 30, "FRENZY DOUBLE DROP! 🎁🔥", '#fb5607', 16);
+            }
 
             let expValue = Math.floor(1 + Math.pow(gameTime / 25, 1.4));
 
@@ -2373,6 +2826,7 @@
 
             handleSpawning();
             player.update();
+            updateUltimate();
             camera.update(player);
 
             // COLLISION CHECK FOR HOLLOW NUKE (Optimized)
@@ -2473,6 +2927,36 @@
             document.getElementById('dash-text').style.color = player.dashCooldown <= 0 ? "#10b981" : "#ef4444";
             document.getElementById('exp-bar').style.width = `${(currentExp / expNeeded) * 100}%`;
             document.getElementById('level-text').innerText = `LVL ${currentLevel}`;
+
+            // Update Ultimate HUD
+            const ultHud = document.getElementById('ultimate-hud');
+            if (saveData.equippedUltimate) {
+                ultHud.classList.remove('hidden');
+                const ult = ULTIMATE_DEFS[saveData.equippedUltimate];
+                document.getElementById('ult-hud-name').innerText = ult.name;
+                
+                const badge = document.getElementById('ult-hud-badge');
+                const bar = document.getElementById('ult-hud-bar');
+                
+                if (activeUltimate) {
+                    badge.innerText = `ACTIVE (${(ultimateActiveTimer / 60).toFixed(1)}s)`;
+                    badge.className = "ultimate-badge active";
+                    bar.className = "ultimate-bar active";
+                    bar.style.width = `${(ultimateActiveTimer / ultimateActiveDuration) * 100}%`;
+                } else if (ultimateCooldownTimer > 0) {
+                    badge.innerText = `CD (${(ultimateCooldownTimer / 60).toFixed(1)}s)`;
+                    badge.className = "ultimate-badge cooldown";
+                    bar.className = "ultimate-bar cooldown";
+                    bar.style.width = `${(1 - ultimateCooldownTimer / ultimateCooldownDuration) * 100}%`;
+                } else {
+                    badge.innerText = `READY [U]`;
+                    badge.className = "ultimate-badge ready";
+                    bar.className = "ultimate-bar active";
+                    bar.style.width = "100%";
+                }
+            } else {
+                ultHud.classList.add('hidden');
+            }
         }
 
         function triggerGameOver() {
@@ -2524,60 +3008,157 @@
             let hsm = Math.floor(hsTime / 60).toString().padStart(2, '0');
             let hss = (hsTime % 60).toString().padStart(2, '0');
             document.getElementById('menu-highscore-time').innerText = `${hsm}:${hss}`;
+        }
 
-            // 1. GENERATE STATS
-            const sBox = document.getElementById('stat-list'); sBox.innerHTML = '';
-            for (let k in saveData.stats) {
-                let st = saveData.stats[k], cost = st.costBase * (st.level + 1), maxed = st.level >= st.max;
-                sBox.innerHTML += `
-            <div class="upgrade-item"><div class="upgrade-row">
-                <div class="upgrade-cell-left"><strong>${st.name}</strong><br><small>Lv ${st.level}/${st.max}</small></div>
-                <div class="upgrade-cell-right"><button ${maxed || saveData.coins < cost ? 'disabled' : ''} onclick="buyStat('${k}')">${maxed ? 'MAX' : cost + ' Koin'}</button></div>
-            </div></div>`;
-            }
+        // Sistem Navigasi Sub-Toko Kategori
+        let activeSubShop = null;
 
-            // 2. GENERATE WEAPONS
-            const wBox = document.getElementById('weapon-list'); wBox.innerHTML = '';
-            for (let k in saveData.weapons) {
-                let wp = saveData.weapons[k];
-                let info = WEAPON_DEFS[k];
-                if (!info) continue;
-                let cost = wp.costBase * (wp.level + 1), maxed = wp.level >= info.max;
-                let statusTag = wp.level > 0 ? `<span style="color:#10b981; font-weight:700;">[Aktif]</span>` : `<span style="color:#8b5cf6;">[Terkunci]</span>`;
+        window.openSubShop = function(cat) {
+            activeSubShop = cat;
+            document.getElementById('subshop-overlay').classList.remove('hidden');
+            renderSubShop();
+        };
 
-                wBox.innerHTML += `
-            <div class="upgrade-item"><div class="upgrade-row">
-                <div class="upgrade-cell-left">
-                    <strong>${info.name}</strong> ${statusTag}<br>
-                    <small style="color:#666; display:block; margin: 2px 0;">${info.desc}</small>
-                    <small>Level Mulai: Lv +${wp.level}/${info.max}</small>
-                </div>
-                <div class="upgrade-cell-right"><button class="cosmic-btn" ${maxed || saveData.cosmicCoins < cost ? 'disabled' : ''} onclick="buyWeapon('${k}')">${maxed ? 'MAX' : cost + ' Cosmic'}</button></div>
-            </div></div>`;
-            }
+        window.closeSubShop = function() {
+            activeSubShop = null;
+            document.getElementById('subshop-overlay').classList.add('hidden');
+            updateMenuUI();
+        };
 
-            // 3. GENERATE ARTEFAK
-            const aBox = document.getElementById('artifact-list'); aBox.innerHTML = '';
-            for (let k in ARTIFACT_DEFS) {
-                if (!saveData.artifacts[k]) saveData.artifacts[k] = { level: 0 };
-                let art = saveData.artifacts[k];
-                let info = ARTIFACT_DEFS[k];
-                let cost = info.costBase * (art.level + 1);
-                let maxed = art.level >= info.max;
+        document.getElementById('btn-close-subshop').onclick = () => {
+            closeSubShop();
+        };
 
-                aBox.innerHTML += `
-            <div class="upgrade-item"><div class="upgrade-row">
-                <div class="upgrade-cell-left">
-                    <strong>${info.name}</strong><br>
-                    <small style="color:#666; display:block; margin: 2px 0;">${info.desc}</small>
-                    <small>Tingkat: Lv ${art.level}/${info.max}</small>
-                </div>
-                <div class="upgrade-cell-right"><button class="art-btn" ${maxed || saveData.coins < cost ? 'disabled' : ''} onclick="buyArtifact('${k}')">${maxed ? 'MAX' : cost + ' Koin'}</button></div>
-            </div></div>`;
+        function renderSubShop() {
+            if (!activeSubShop) return;
+
+            const titleEl = document.getElementById('subshop-title');
+            const listEl = document.getElementById('subshop-list');
+            listEl.innerHTML = '';
+
+            // Sinkronkan koin pada header
+            document.getElementById('shop-coin').innerText = saveData.coins;
+            document.getElementById('shop-cosmic').innerText = saveData.cosmicCoins;
+
+            if (activeSubShop === 'stat') {
+                titleEl.innerText = "Statistik Utama (Koin)";
+                for (let k in saveData.stats) {
+                    let st = saveData.stats[k];
+                    let cost = st.costBase * (st.level + 1);
+                    let maxed = st.level >= st.max;
+                    listEl.innerHTML += `
+                        <div class="upgrade-item"><div class="upgrade-row">
+                            <div class="upgrade-cell-left"><strong>${st.name}</strong><br><small>Lv ${st.level}/${st.max}</small></div>
+                            <div class="upgrade-cell-right">
+                                <button ${maxed || saveData.coins < cost ? 'disabled' : ''} onclick="buyStat('${k}'); renderSubShop();">${maxed ? 'MAX' : cost + ' Koin'}</button>
+                            </div>
+                        </div></div>`;
+                }
+            } else if (activeSubShop === 'weapon') {
+                titleEl.innerText = "Permanen Senjata (Cosmic Koin)";
+                for (let k in saveData.weapons) {
+                    let wp = saveData.weapons[k];
+                    let info = WEAPON_DEFS[k];
+                    if (!info) continue;
+                    let cost = wp.costBase * (wp.level + 1);
+                    let maxed = wp.level >= info.max;
+                    let statusTag = wp.level > 0 ? `<span style="color:#10b981; font-weight:700;">[Aktif]</span>` : `<span style="color:#8b5cf6;">[Terkunci]</span>`;
+
+                    listEl.innerHTML += `
+                        <div class="upgrade-item"><div class="upgrade-row">
+                            <div class="upgrade-cell-left">
+                                <strong>${info.name}</strong> ${statusTag}<br>
+                                <small style="color:#666; display:block; margin: 2px 0;">${info.desc}</small>
+                                <small>Level Mulai: Lv +${wp.level}/${info.max}</small>
+                            </div>
+                            <div class="upgrade-cell-right">
+                                <button class="cosmic-btn" ${maxed || saveData.cosmicCoins < cost ? 'disabled' : ''} onclick="buyWeapon('${k}'); renderSubShop();">${maxed ? 'MAX' : cost + ' Cosmic'}</button>
+                            </div>
+                        </div></div>`;
+                }
+            } else if (activeSubShop === 'artifact') {
+                titleEl.innerText = "Inventaris Artefak (Koin)";
+                for (let k in ARTIFACT_DEFS) {
+                    if (!saveData.artifacts[k]) saveData.artifacts[k] = { level: 0 };
+                    let art = saveData.artifacts[k];
+                    let info = ARTIFACT_DEFS[k];
+                    let cost = info.costBase * (art.level + 1);
+                    let maxed = art.level >= info.max;
+
+                    listEl.innerHTML += `
+                        <div class="upgrade-item"><div class="upgrade-row">
+                            <div class="upgrade-cell-left">
+                                <strong>${info.name}</strong><br>
+                                <small style="color:#666; display:block; margin: 2px 0;">${info.desc}</small>
+                                <small>Tingkat: Lv ${art.level}/${info.max}</small>
+                            </div>
+                            <div class="upgrade-cell-right">
+                                <button class="art-btn" ${maxed || saveData.coins < cost ? 'disabled' : ''} onclick="buyArtifact('${k}'); renderSubShop();">${maxed ? 'MAX' : cost + ' Koin'}</button>
+                            </div>
+                        </div></div>`;
+                }
+            } else if (activeSubShop === 'ultimate') {
+                titleEl.innerText = "Toko Senjata Ultimate";
+                for (let k in ULTIMATE_DEFS) {
+                    let ult = ULTIMATE_DEFS[k];
+                    let owned = saveData.ownedUltimates.includes(k);
+                    let equipped = saveData.equippedUltimate === k;
+                    let cost = ult.cost;
+                    let costCosmic = ult.costCosmic;
+                    let canAfford = saveData.coins >= cost && saveData.cosmicCoins >= costCosmic;
+
+                    let actionBtn = '';
+                    if (equipped) {
+                        actionBtn = `<button class="cosmic-btn" style="background:#10b981;" disabled>EQUIPPED ✓</button>`;
+                    } else if (owned) {
+                        actionBtn = `<button class="art-btn" style="background:#4f46e5;" onclick="equipUltimate('${k}'); renderSubShop();">EQUIP</button>`;
+                    } else {
+                        let coinLabel = saveData.coins < cost ? `<span style="color:#ef4444;">${cost.toLocaleString()} 🪙</span>` : `<span style="color:#f59e0b;">${cost.toLocaleString()} 🪙</span>`;
+                        let cosmicLabel = saveData.cosmicCoins < costCosmic ? `<span style="color:#ef4444;">${costCosmic} ✨</span>` : `<span style="color:#a78bfa;">${costCosmic} ✨</span>`;
+                        actionBtn = `<button class="cosmic-btn" style="font-size:11px; padding:6px 10px; line-height:1.6;" ${canAfford ? '' : 'disabled'} onclick="buyUltimate('${k}'); renderSubShop();">${coinLabel}<br>${cosmicLabel}</button>`;
+                    }
+
+                    listEl.innerHTML += `
+                        <div class="upgrade-item"><div class="upgrade-row">
+                            <div class="upgrade-cell-left">
+                                <strong>${ult.name}</strong> ${equipped ? '<span style="color:#10b981; font-weight:700;">[Aktif]</span>' : (owned ? '<span style="color:#4f46e5;">[Dimiliki]</span>' : '')}<br>
+                                <small style="color:#666; display:block; margin: 2px 0;">${ult.desc}</small>
+                            </div>
+                            <div class="upgrade-cell-right">
+                                ${actionBtn}
+                            </div>
+                        </div></div>`;
+                }
             }
         }
 
-        document.getElementById('btn-open-shop').onclick = () => { updateMenuUI(); document.getElementById('shop-modal').classList.remove('hidden'); };
+        window.buyUltimate = function(k) {
+            let def = ULTIMATE_DEFS[k];
+            let cost = def.cost;
+            let costCosmic = def.costCosmic;
+            if (saveData.coins >= cost && saveData.cosmicCoins >= costCosmic && !saveData.ownedUltimates.includes(k)) {
+                saveData.coins -= cost;
+                saveData.cosmicCoins -= costCosmic;
+                saveData.ownedUltimates.push(k);
+                saveData.equippedUltimate = k; // Auto equip on buy
+                saveGame();
+                updateMenuUI();
+            }
+        };
+
+        window.equipUltimate = function(k) {
+            if (saveData.ownedUltimates.includes(k)) {
+                saveData.equippedUltimate = k;
+                saveGame();
+            }
+        };
+
+        document.getElementById('btn-open-shop').onclick = () => {
+            document.getElementById('shop-modal').classList.remove('hidden');
+            document.getElementById('subshop-overlay').classList.add('hidden');
+            activeSubShop = null;
+            updateMenuUI();
+        };
         document.getElementById('btn-close-shop').onclick = () => { document.getElementById('shop-modal').classList.add('hidden'); };
 
         // Bind Pause menu options
@@ -2621,6 +3202,9 @@
         document.getElementById('btn-start').onclick = () => {
             gameTime = 0; frameCount = 0; runCoins = 0; runCosmic = 0; currentLevel = 1; currentExp = 0; expNeeded = 10; rerollsLeft = 3;
             entities = { enemies: [], drops: [], projectiles: [], damageTexts: [], particles: [] }; bossActive = false;
+            activeUltimate = null;
+            ultimateActiveTimer = 0;
+            ultimateCooldownTimer = 0;
             // Reset difficulty scaling
             enemyHpScaleMulti = 1;
             currentBossInterval = CONFIG.BOSS_SPAWN_INTERVAL;
@@ -2637,6 +3221,390 @@
         };
 
         document.getElementById('btn-back-menu').onclick = () => { document.getElementById('game-over-screen').classList.add('hidden'); initMenu(); };
+
+        // ==========================================
+        // ULTIMATE WEAPONS LOGIC HANDLERS
+        // ==========================================
+        function activateUltimate(id) {
+            activeUltimate = id;
+            ultimateCooldownTimer = 0;
+            const def = ULTIMATE_DEFS[id];
+            ultimateActiveDuration = def ? def.duration : 600;
+            ultimateCooldownDuration = def ? def.cooldown : 600;
+            ultimateActiveTimer = ultimateActiveDuration;
+
+            createDamageText(player.x, player.y - 60, `ULTIMATE: ${ULTIMATE_DEFS[id].name.toUpperCase()}! 🔥`, '#e63946', 22);
+
+            switch (id) {
+                case 'infinite_void':
+                    createParticles(player.x, player.y, '#3a0ca3', 30);
+                    entities.particles.push({
+                        id: 'infinite_void_visual',
+                        x: player.x, y: player.y, radius: 0, maxRadius: canvas.width * 0.8, life: 600, maxLife: 600,
+                        update() {
+                            this.life--;
+                            this.x = player.x; this.y = player.y;
+                            if (this.radius < this.maxRadius) this.radius += 20;
+                        },
+                        draw(ctx) {
+                            ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                            ctx.fillStyle = 'rgba(10, 10, 25, 0.08)'; ctx.fill();
+                            ctx.strokeStyle = 'rgba(72, 12, 168, 0.4)'; ctx.lineWidth = 3; ctx.stroke();
+                        }
+                    });
+                    break;
+                case 'malevolent_shrine':
+                    createParticles(player.x, player.y, '#dc2626', 30);
+                    entities.particles.push({
+                        id: 'shrine_visual',
+                        x: player.x, y: player.y, life: 600,
+                        update() { this.life--; this.x = player.x; this.y = player.y; },
+                        draw(ctx) {
+                            ctx.save();
+                            ctx.translate(this.x, this.y - 50);
+                            ctx.fillStyle = 'rgba(220, 38, 38, 0.8)';
+                            ctx.beginPath();
+                            ctx.moveTo(-30, 10); ctx.lineTo(0, -15); ctx.lineTo(30, 10);
+                            ctx.closePath(); ctx.fill();
+                            ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+                            ctx.fillRect(-20, 10, 6, 40);
+                            ctx.fillRect(14, 10, 6, 40);
+                            ctx.fillStyle = '#dc2626';
+                            ctx.fillRect(-25, 45, 50, 8);
+                            ctx.restore();
+                        }
+                    });
+                    break;
+                case 'kamehameha':
+                    currentExp = 0;
+                    updateHUD();
+                    createParticles(player.x, player.y, '#00b4d8', 40);
+                    break;
+                case 'dragon_cry':
+                    createParticles(player.x, player.y, '#0077b6', 35);
+                    entities.particles.push({
+                        id: 'dragon_roar',
+                        x: player.x - 400, y: player.y + 200, vx: 8, vy: -4, life: 120,
+                        update() { this.life--; this.x += this.vx; this.y += this.vy; },
+                        draw(ctx) {
+                            ctx.fillStyle = 'rgba(0, 180, 216, 0.25)';
+                            ctx.beginPath();
+                            ctx.arc(this.x, this.y, 40 + Math.sin(frameCount*0.2)*10, 0, Math.PI*2);
+                            ctx.fill();
+                            ctx.fillStyle = 'rgba(0, 119, 182, 0.4)';
+                            ctx.font = 'bold 20px sans-serif';
+                            ctx.fillText("🐲 ROAARRR!", this.x - 50, this.y);
+                        }
+                    });
+                    break;
+                case 'frenzy_time':
+                    createParticles(player.x, player.y, '#fb5607', 35);
+                    player.maxHp *= 2;
+                    player.hp *= 2;
+                    player.speed *= 2;
+                    player.baseDmgMulti *= 2;
+                    player.magnetArea *= 2;
+                    break;
+                case 'maxed_out_weapon':
+                    createParticles(player.x, player.y, '#ff006e', 35);
+                    player.backupWeaponLevels = player.weapons.map(w => ({ id: w.id, level: w.level }));
+                    player.weapons.forEach(w => {
+                        let isAlreadyMax = w.level >= WEAPON_DEFS[w.id].max;
+                        w.level = WEAPON_DEFS[w.id].max;
+                        if (isAlreadyMax) {
+                            w._isMaxedOutBuffed = true;
+                        }
+                    });
+                    break;
+                case 'maxed_out_stat':
+                    createParticles(player.x, player.y, '#3a86c8', 35);
+                    player.backupStats = {
+                        maxHp: player.maxHp,
+                        speed: player.speed,
+                        baseDmgMulti: player.baseDmgMulti,
+                        magnetArea: player.magnetArea
+                    };
+                    
+                    let maxHpVal = CONFIG.BASE_PLAYER_HP + (25 * saveData.stats.hp.val);
+                    let spdVal = CONFIG.BASE_PLAYER_SPEED + (25 * saveData.stats.spd.val);
+                    let dmgVal = 1 + (25 * saveData.stats.atk.val);
+                    let magnetVal = CONFIG.MAGNET_BASE_RANGE + (25 * saveData.stats.magnet.val);
+
+                    if (saveData.stats.hp.level >= 25) maxHpVal *= 2;
+                    if (saveData.stats.spd.level >= 25) spdVal *= 2;
+                    if (saveData.stats.atk.level >= 25) dmgVal *= 2;
+                    if (saveData.stats.magnet.level >= 25) magnetVal *= 2;
+
+                    player.maxHp = maxHpVal;
+                    player.hp = Math.min(player.maxHp, player.hp + (maxHpVal - player.backupStats.maxHp));
+                    player.speed = spdVal;
+                    player.baseDmgMulti = dmgVal;
+                    player.magnetArea = magnetVal;
+                    break;
+                case 'maxed_out_artefact':
+                    createParticles(player.x, player.y, '#8338ec', 35);
+                    player.backupArtMods = JSON.parse(JSON.stringify(player.artMods));
+                    player.backupSpeed = player.speed;
+                    player.backupMagnetArea = player.magnetArea;
+
+                    let tempMods = {
+                        crit: 0, forceKnockback: 0, dashCdRed: 0, dashDistMod: 1, maxShield: 0,
+                        reviveCount: 0, reviveHpPercent: 0, doubleCoinsChance: 0, dmgReduction: 0, healPerKill: 0, cooldownReduction: 0
+                    };
+                    let tempSpeedBoost = 0;
+                    let tempMagnetArea = CONFIG.MAGNET_BASE_RANGE + (saveData.stats.magnet.level * saveData.stats.magnet.val);
+
+                    for (let key in saveData.artifacts) {
+                        let originalLv = saveData.artifacts[key].level;
+                        let maxLv = ARTIFACT_DEFS[key].max;
+                        let activeLv = maxLv;
+                        let doubleBuff = (originalLv >= maxLv);
+                        let factor = doubleBuff ? 2.0 : 1.0;
+
+                        if (key === 'art_eagle_eye') tempMods.crit += (0.10 + (activeLv - 1) * 0.05) * factor;
+                        if (key === 'art_the_force') {
+                            tempMagnetArea += tempMagnetArea * ((0.02 + (activeLv - 1) * 0.01) * factor);
+                            tempMods.forceKnockback += (10 + (activeLv - 1) * 5) * factor;
+                        }
+                        if (key === 'art_ultimate_dasher') {
+                            tempMods.dashDistMod += ((0.10 + (activeLv - 1) * 0.05) * factor);
+                            tempMods.dashCdRed += ((0.10 + (activeLv - 1) * 0.05) * factor);
+                        }
+                        if (key === 'art_los') {
+                            tempMods.maxShield += (activeLv * 100) * factor;
+                        }
+                        if (key === 'art_aegis_shoes') {
+                            tempSpeedBoost += CONFIG.BASE_PLAYER_SPEED * ((0.10 + (activeLv - 1) * 0.05) * factor);
+                        }
+                        if (key === 'art_phoenix_feather') {
+                            tempMods.reviveCount = 1;
+                            tempMods.reviveHpPercent = (0.20 + activeLv * 0.10) * factor;
+                        }
+                        if (key === 'art_philosopher_stone') {
+                            tempMods.doubleCoinsChance = (0.05 + activeLv * 0.05) * factor;
+                        }
+                        if (key === 'art_juggernaut_armor') {
+                            tempMods.dmgReduction = (0.02 + activeLv * 0.03) * factor;
+                        }
+                        if (key === 'art_vampire_flesh') {
+                            tempMods.healPerKill = (activeLv * 0.15) * factor;
+                        }
+                        if (key === 'art_chronos_watch') {
+                            tempMods.cooldownReduction = (activeLv * 0.03) * factor;
+                        }
+                    }
+
+                    player.artMods = tempMods;
+                    player.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) + tempSpeedBoost;
+                    player.magnetArea = tempMagnetArea;
+                    break;
+                case 'firework':
+                    createParticles(player.x, player.y, '#ffbe0b', 35);
+                    break;
+            }
+            updateHUD();
+        }
+
+        function updateUltimate() {
+            if (!activeUltimate) {
+                if (ultimateCooldownTimer > 0) {
+                    ultimateCooldownTimer--;
+                    updateHUD();
+                }
+                return;
+            }
+
+            if (ultimateActiveTimer > 0) {
+                ultimateActiveTimer--;
+                updateHUD();
+            }
+
+            let baseDmg = player.baseDmgMulti;
+
+            switch (activeUltimate) {
+                case 'infinite_void': {
+                    let px = player.x, py = player.y;
+                    entities.enemies.forEach(e => {
+                        let dx = Math.abs(e.x - px);
+                        let dy = Math.abs(e.y - py);
+                        if (dx < canvas.width * 0.6 && dy < canvas.height * 0.6) {
+                            e.speed = 0;
+                            if (frameCount % 6 === 0) {
+                                e.takeDamage(2 * baseDmg);
+                            }
+                        } else {
+                            e.speed = e.initialSpeed;
+                        }
+                    });
+                    break;
+                }
+
+                case 'malevolent_shrine': {
+                    if (frameCount % 12 === 0) {
+                        for (let i = 0; i < 5; i++) {
+                            let rx = player.x + (Math.random() * canvas.width - canvas.width/2);
+                            let ry = player.y + (Math.random() * canvas.height - canvas.height/2);
+                            entities.particles.push({
+                                life: 6,
+                                draw(ctx) {
+                                    ctx.beginPath();
+                                    ctx.moveTo(rx - 20, ry - 20); ctx.lineTo(rx + 20, ry + 20);
+                                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.6)'; ctx.lineWidth = 2; ctx.stroke();
+                                },
+                                update() { this.life--; }
+                            });
+                        }
+                        entities.enemies.forEach(e => {
+                            e.takeDamage(15 * baseDmg);
+                        });
+                    }
+                    break;
+                }
+
+                case 'kamehameha': {
+                    let angle = player.lastMoveAngle;
+                    let beamLen = 1200;
+                    let beamWidth = 60;
+                    let endX = player.x + Math.cos(angle) * beamLen;
+                    let endY = player.y + Math.sin(angle) * beamLen;
+
+                    if (frameCount % 4 === 0) {
+                        let radSq = beamWidth * beamWidth;
+                        entities.enemies.forEach(e => {
+                            let v1x = e.x - player.x;
+                            let v1y = e.y - player.y;
+                            let proj = (v1x * Math.cos(angle) + v1y * Math.sin(angle));
+                            if (proj > 0 && proj < beamLen) {
+                                let distSq = getDistanceSq(player.x + Math.cos(angle)*proj, player.y + Math.sin(angle)*proj, e.x, e.y);
+                                if (distSq < radSq) {
+                                    e.takeDamage(45 * baseDmg);
+                                    let kbForce = 15 * (e.knockbackResist ? 0.1 : 1);
+                                    e.x += Math.cos(angle) * kbForce;
+                                    e.y += Math.sin(angle) * kbForce;
+                                }
+                            }
+                        });
+                    }
+
+                    entities.particles.push({
+                        life: 2,
+                        draw(ctx) {
+                            ctx.beginPath(); ctx.moveTo(player.x, player.y); ctx.lineTo(endX, endY);
+                            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = beamWidth * 0.5; ctx.stroke();
+                            ctx.beginPath(); ctx.moveTo(player.x, player.y); ctx.lineTo(endX, endY);
+                            ctx.strokeStyle = 'rgba(0, 180, 216, 0.5)'; ctx.lineWidth = beamWidth; ctx.stroke();
+                            for (let i = 0; i < 3; i++) {
+                                let px = player.x + Math.cos(angle) * (Math.random() * beamLen);
+                                let py = player.y + Math.sin(angle) * (Math.random() * beamLen);
+                                ctx.fillStyle = '#00b4d8';
+                                ctx.fillRect(px - 4, py - 4, 8, 8);
+                            }
+                        },
+                        update() { this.life--; }
+                    });
+                    break;
+                }
+
+                case 'dragon_cry': {
+                    entities.enemies.forEach(e => {
+                        if (!e.dragonCryDebuff) {
+                            e.dragonCryDebuff = true;
+                            e.speed = e.initialSpeed * 0.9;
+                            e.damage = e.damage * 0.9;
+                        }
+                        if (frameCount % 18 === 0) {
+                            e.takeDamage(5 * baseDmg);
+                            entities.particles.push({
+                                life: 12, x: e.x, y: e.y,
+                                draw(ctx) {
+                                    ctx.fillStyle = 'rgba(0, 150, 199, 0.4)';
+                                    ctx.beginPath(); ctx.arc(this.x, this.y - 10, 8, 0, Math.PI*2); ctx.fill();
+                                },
+                                update() { this.life--; this.y -= 0.5; }
+                            });
+                        }
+                    });
+                    break;
+                }
+
+                case 'firework': {
+                    if (frameCount % 2 === 0 && entities.enemies.length > 0) {
+                        let target = entities.enemies[Math.floor(Math.random() * entities.enemies.length)];
+                        if (target) {
+                            let fx = target.x + (Math.random()*40 - 20);
+                            let fy = target.y + (Math.random()*40 - 20);
+                            let fRadius = 60;
+                            let fDmg = 20 * baseDmg;
+                            
+                            createStrikeEffect(fx, fy, fRadius, fDmg, 'rgba(255, 190, 11, 0.3)');
+                            
+                            let radSq = fRadius * fRadius;
+                            entities.enemies.forEach(e => {
+                                if (getDistanceSq(fx, fy, e.x, e.y) < radSq) {
+                                    e.speed = e.initialSpeed * 0.5;
+                                    e._slowTimer = 180;
+                                }
+                            });
+
+                            let colors = ['#ff006e', '#8338ec', '#3a86c8', '#ffbe0b', '#fb5607'];
+                            let rCol = colors[Math.floor(Math.random()*colors.length)];
+                            createParticles(fx, fy, rCol, 8);
+                        }
+                    }
+                    break;
+                }
+            }
+
+            if (ultimateActiveTimer <= 0) {
+                deactivateUltimate();
+            }
+        }
+
+        function deactivateUltimate() {
+            let id = activeUltimate;
+            activeUltimate = null;
+            const defEnd = ULTIMATE_DEFS[id];
+            ultimateCooldownDuration = defEnd ? defEnd.cooldown : 600;
+            ultimateCooldownTimer = ultimateCooldownDuration;
+            
+            createDamageText(player.x, player.y - 50, `Ultimate Selesai! Cooldown dimulai`, '#64748b', 12);
+
+            switch (id) {
+                case 'frenzy_time':
+                    player.maxHp /= 2;
+                    player.hp = Math.min(player.maxHp, player.hp / 2);
+                    player.speed /= 2;
+                    player.baseDmgMulti /= 2;
+                    player.magnetArea /= 2;
+                    break;
+                case 'maxed_out_weapon':
+                    if (player.backupWeaponLevels) {
+                        player.weapons.forEach(w => {
+                            let bk = player.backupWeaponLevels.find(b => b.id === w.id);
+                            if (bk) w.level = bk.level;
+                            delete w._isMaxedOutBuffed;
+                        });
+                    }
+                    break;
+                case 'maxed_out_stat':
+                    if (player.backupStats) {
+                        player.maxHp = player.backupStats.maxHp;
+                        player.hp = Math.min(player.maxHp, player.hp);
+                        player.speed = player.backupStats.speed;
+                        player.baseDmgMulti = player.backupStats.baseDmgMulti;
+                        player.magnetArea = player.backupStats.magnetArea;
+                    }
+                    break;
+                case 'maxed_out_artefact':
+                    if (player.backupArtMods) {
+                        player.artMods = player.backupArtMods;
+                        player.speed = player.backupSpeed;
+                        player.magnetArea = player.backupMagnetArea;
+                    }
+                    break;
+            }
+            updateHUD();
+        }
 
         initMenu();
     </script>
