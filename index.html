@@ -677,12 +677,12 @@
         // 2. DICTIONARIES DEFINITIONS (NEW LIST)
         // ==========================================
         const WEAPON_DEFS = {
-            pistol: { name: "Pistol", max: 10, costBase: 1, desc: "Menembakan peluru, tiap upgrade menambah 1 peluru." },
+            pistol: { name: "Pistol", max: 100, costBase: 1, desc: "Menembakan peluru, tiap upgrade menambah 1 peluru." },
             boomerang: { name: "Boomerang", max: 8, costBase: 2, desc: "Menembakan boomerang pierce max 3. Tiap upgrade +1 boomerang +1 pierce. Max level menembak ke 8 arah mata angin." },
             missile: { name: "Missile", max: 10, costBase: 4, desc: "Menembakan missile lambat namun kuat dan AOE tinggi. Level 1-3 menambah jumlah missile, 4-10 menambah AOE." },
             poison: { name: "Poison bottle", max: 15, costBase: 2, desc: "Melempar botol berisi kabut beracun. Level 1-5 tambah botol, 6-10 tambah DoT, 11-15 tambah AOE." },
-            thunder: { name: "Thunder", max: 10, costBase: 5, desc: "Mensummon petir kemusuh acak. Upgrade menambah jumlah petir." },
-            chain: { name: "Chain lightning", max: 10, costBase: 3, desc: "Menembakan listrik menyebar ke max 5 orang. Level 1-5 menambah damage, 6-10 menambah rantai pantulan." },
+            thunder: { name: "Thunder", max: 30, costBase: 5, desc: "Mensummon petir kemusuh acak. Upgrade menambah jumlah petir." },
+            chain: { name: "Chain lightning", max: 15, costBase: 3, desc: "Menembakan listrik menyebar ke max 5 orang. Level 1-5 menambah damage, 6-10 menambah rantai pantulan." },
             pulse: { name: "Heavy pulse", max: 5, costBase: 6, desc: "Menciptakan dorongan energi kuat berkala dengan damage dan knockback ke sekitar." },
             minion: { name: "Minion", max: 8, costBase: 8, desc: "Summon minion mengelilingi player yang menyerang acak 1 level di bawah senjata Anda." },
             blue_lapse: { name: "Blue Lapse", max: 1, costBase: 12, desc: "Setiap 10 detik memicu Blue Flame. Saat dash klik kanan, memicu Blue Lapse yang bergerak lurus secara lambat selama 5 detik." },
@@ -693,7 +693,7 @@
             frost_nova: { name: "Frost Nova", max: 8, costBase: 4, desc: "Melepaskan gelombang es yang melambatkan musuh dan memberikan damage di sekitar." },
             lava_trail: { name: "Lava Trail", max: 8, costBase: 3, desc: "Meninggalkan genangan lava panas di belakang player yang membakar musuh." },
             blade_ring: { name: "Blade Ring", max: 8, costBase: 5, desc: "Pisau berputar yang mengelilingi player untuk melukai musuh terdekat." },
-            tesla_coil: { name: "Tesla Coil", max: 10, costBase: 6, desc: "Meletakkan menara listrik yang menyetrum musuh secara otomatis." },
+            tesla_coil: { name: "Tesla Coil", max: 15, costBase: 6, desc: "Meletakkan menara listrik yang menyetrum musuh secara otomatis." },
             black_hole: { name: "Singularity", max: 5, costBase: 9, desc: "Menembakkan lubang hitam mini yang menghisap musuh ke pusatnya." },
             earthquake: { name: "Earthquake", max: 5, costBase: 8, desc: "Membuat gempa bumi periodik yang memberikan damage dan knockback ke seluruh layar." },
             poison_dart: { name: "Poison Dart", max: 10, costBase: 3, desc: "Menembakan jarum beracun dengan kecepatan tinggi yang memberikan efek DoT." },
@@ -706,16 +706,16 @@
         };
 
         const ARTIFACT_DEFS = {
-            art_eagle_eye: { name: "Eagle eye", max: 8, costBase: 120, desc: "Mata melihat kelemahan. +10% Crit Chance di lv 1, upgrade +5%." },
-            art_the_force: { name: "The Force", max: 8, costBase: 140, desc: "Kekuatan supranatural. +2% Magnet Range & +10% knockback/detik di area magnet. Tiap upgrade +1% range, +5% knockback." },
+            art_eagle_eye: { name: "Eagle eye", max: 18, costBase: 110, desc: "Mata melihat kelemahan. +10% Crit Chance di lv 1, upgrade +5%." },
+            art_the_force: { name: "The Force", max: 10, costBase: 130, desc: "Kekuatan supranatural. +2% Magnet Range & +10% knockback/detik di area magnet. Tiap upgrade +1% range, +5% knockback." },
             art_ultimate_dasher: { name: "Ultimate Dasher", max: 8, costBase: 200, desc: "+10% jarak dash, -10% cooldown, & kebal permanen saat dash (bisa menembus musuh)." },
             art_los: { name: "Layer Of Safety (L.O.S)", max: 10, costBase: 180, desc: "Memberikan +1 layer shield setara 100 HP. Tiap upgrade +1 layer." },
             art_aegis_shoes: { name: "Aegis Shoes", max: 8, costBase: 100, desc: "Sepatu dewa lari. +10% Movement Speed awal, tiap upgrade selanjutnya +5%." },
             // 5 NEW UNIQUE ARTIFACTS
-            art_phoenix_feather: { name: "Phoenix Feather", max: 5, costBase: 350, desc: "Menghidupkan kembali player dengan 30% (+10% per lv) HP saat mati (sekali per permainan)." },
+            art_phoenix_feather: { name: "Phoenix Feather", max: 13, costBase: 350, desc: "Menghidupkan kembali player dengan 30% (+10% per lv) HP saat mati (sekali per permainan)." },
             art_philosopher_stone: { name: "Philosopher Stone", max: 20, costBase: 200, desc: "Peluang 10% (+5% per lv) untuk menggandakan koin/cosmic koin yang dikumpulkan." },
-            art_juggernaut_armor: { name: "Juggernaut Armor", max: 5, costBase: 220, desc: "Mengurangi seluruh damage yang diterima sebesar 5% (+3% per lv)." },
-            art_vampire_flesh: { name: "Vampire Flesh", max: 5, costBase: 160, desc: "Memulihkan 0.2 (+0.1 per lv) HP setiap berhasil membunuh musuh." },
+            art_juggernaut_armor: { name: "Juggernaut Armor", max: 15, costBase: 220, desc: "Mengurangi seluruh damage yang diterima sebesar 5% (+3% per lv)." },
+            art_vampire_flesh: { name: "Vampire Flesh", max: 7, costBase: 160, desc: "Memulihkan 0.2 (+0.1 per lv) HP setiap berhasil membunuh musuh." },
             art_chronos_watch: { name: "Chronos Watch", max: 5, costBase: 300, desc: "Mengurangi cooldown semua senjata aktif sebesar 4% (+3% per lv)." }
         };
 
