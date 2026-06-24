@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <style>
-        ddddddddddddddddd * {
+        * {
             box-sizing: border-box;
             user-select: none;
         }
@@ -1019,37 +1019,38 @@
         // ULTIMATE WEAPONS DEFINITIONS
         // ==========================================
         // ==========================================
-        // BALANCING CHART (tidak berurutan = by design)
-        // Infinite Void   : Dur 14s | CD 22s  — Utility stun
-        // Malevolent Shrine: Dur  8s | CD 28s  — Damage tinggi tapi singkat
+        // BALANCING CHART — urutan dari paling lemah/murah ke paling kuat/mahal
+        // Rampage         : GRATIS — 3x firing rate semua senjata + cooldown blue/red 3x lebih cepat
+        // FireWork        : Dur 15s | CD 16s  — AoE lemah tapi CD tercepat
         // Kamehameha      : Dur  6s | CD 18s  — Burst laser terkuat
         // Dragon Cry      : Dur 18s | CD 35s  — Debuff panjang, CD terlama
-        // Frenzy Time     : Dur  7s | CD 30s  — Stat 2x tapi cepat habis
-        // MaxedOut Weapon : Dur 12s | CD 24s  — Senjata max cukup lama
-        // MaxedOut Stat   : Dur  9s | CD 26s  — Stat max medium
         // MaxedOut Artefact:Dur 11s | CD 20s  — Artefak max, CD pendek
-        // FireWork        : Dur 15s | CD 16s  — AoE lemah tapi CD tercepat
+        // MaxedOut Stat   : Dur  9s | CD 26s  — Stat max medium
+        // Frenzy Time     : Dur  7s | CD 30s  — Stat 2x tapi cepat habis
+        // Malevolent Shrine: Dur  8s | CD 28s  — Damage tinggi tapi singkat
+        // MaxedOut Weapon : Dur 12s | CD 24s  — Senjata max cukup lama
+        // Infinite Void   : Dur 14s | CD 22s  — Utility stun
         // ==========================================
         const ULTIMATE_DEFS = {
-            infinite_void: {
-                id: "infinite_void",
-                name: "Infinite Void",
-                cost: 15000,       // Koin
-                costCosmic: 500,  // Cosmic Coin
+            rampage: {
+                id: "rampage",
+                name: "RAMPAGE",
+                cost: 0,          // Gratis! Tidak perlu koin
+                costCosmic: 0,    // Gratis! Tidak perlu cosmic coin
                 key: "u",
-                duration: 840,   // 14 detik
-                cooldown: 1320,  // 22 detik
-                desc: "Aktifkan: Tekan [U]. Durasi 14s, Cooldown 22s. Efek: Stun semua musuh di layar selama durasi aktif dan memberikan damage kecil (2x ATK) setiap 0.1s. Berguna sebagai pelindung diri."
+                duration: 300,   // 5 detik
+                cooldown: 900,   // 15 detik
+                desc: "GRATIS! Aktifkan: Tekan [U]. Durasi 5s, Cooldown 15s. Efek: SEMUA senjata menembak 3x lebih cepat (firing rate 3x lipat)! Cooldown Blue Lapse & Reversal Red juga 3x lebih cepat terisi. Rasakan kekacauan sejati!"
             },
-            malevolent_shrine: {
-                id: "malevolent_shrine",
-                name: "Malevolent Shrine",
-                cost: 10000,       // Koin
-                costCosmic: 300,  // Cosmic Coin
+            firework: {
+                id: "firework",
+                name: "FireWork",
+                cost: 5000,       // Koin
+                costCosmic: 100,  // Cosmic Coin
                 key: "u",
-                duration: 480,   // 8 detik
-                cooldown: 1680,  // 28 detik
-                desc: "Aktifkan: Tekan [U]. Durasi 8s, Cooldown 28s. Efek: Tebasan bertubi-tubi (15x ATK) ke seluruh musuh di map setiap 0.2s. Durasi singkat tapi damage brutal."
+                duration: 1000,   // 15 detik
+                cooldown: 960,   // 16 detik
+                desc: "Aktifkan: Tekan [U]. Durasi 15s, Cooldown 16s (tercepat!). Efek: Ribuan ledakan kembang api ke musuh + efek slow. Damage rendah tapi bisa spam paling sering."
             },
             kamehameha: {
                 id: "kamehameha",
@@ -1071,25 +1072,15 @@
                 cooldown: 2100,  // 35 detik
                 desc: "Aktifkan: Tekan [U]. Durasi 18s, Cooldown 35s. Efek: Semua musuh mendapat debuff permanen (slow, -dmg, +dmg yg diterima) + damage DoT. Musuh mati menyetrum sekitarnya."
             },
-            frenzy_time: {
-                id: "frenzy_time",
-                name: "Frenzy Time",
-                cost: 9500,       // Koin
-                costCosmic: 220,  // Cosmic Coin
+            maxed_out_artefact: {
+                id: "maxed_out_artefact",
+                name: "MaxedOut Artefact",
+                cost: 8500,       // Koin
+                costCosmic: 175,  // Cosmic Coin
                 key: "u",
-                duration: 420,   // 7 detik
-                cooldown: 1800,  // 30 detik
-                desc: "Aktifkan: Tekan [U]. Durasi 7s, Cooldown 30s. Efek: Semua stat 2x lipat (HP, Speed, Dmg, Magnet), 2x Cosmic & EXP, Boss drop 2x. Durasi singkat, manfaatkan saat boss!"
-            },
-            maxed_out_weapon: {
-                id: "maxed_out_weapon",
-                name: "MaxedOut Weapon",
-                cost: 13000,      // Koin
-                costCosmic: 400,  // Cosmic Coin
-                key: "u",
-                duration: 720,   // 12 detik
-                cooldown: 1440,  // 24 detik
-                desc: "Aktifkan: Tekan [U]. Durasi 12s, Cooldown 24s. Efek: Semua senjata ke level max. Senjata yang sudah max mendapat +100% damage selama durasi aktif."
+                duration: 660,   // 11 detik
+                cooldown: 1200,  // 20 detik
+                desc: "Aktifkan: Tekan [U]. Durasi 11s, Cooldown 20s. Efek: Semua artefak ke level max. Artefak yang sudah max mendapat efek 2x lipat. Cooldown tercepat kedua."
             },
             maxed_out_stat: {
                 id: "maxed_out_stat",
@@ -1101,25 +1092,45 @@
                 cooldown: 1560,  // 26 detik
                 desc: "Aktifkan: Tekan [U]. Durasi 9s, Cooldown 26s. Efek: Semua stat dasar ke Lv 25. Stat yang sudah Lv 25 mendapat 2x lipat boost selama aktif."
             },
-            maxed_out_artefact: {
-                id: "maxed_out_artefact",
-                name: "MaxedOut Artefact",
-                cost: 8500,       // Koin
-                costCosmic: 175,  // Cosmic Coin
+            frenzy_time: {
+                id: "frenzy_time",
+                name: "Frenzy Time",
+                cost: 9500,       // Koin
+                costCosmic: 220,  // Cosmic Coin
                 key: "u",
-                duration: 660,   // 11 detik
-                cooldown: 1200,  // 20 detik
-                desc: "Aktifkan: Tekan [U]. Durasi 11s, Cooldown 20s. Efek: Semua artefak ke level max. Artefak yang sudah max mendapat efek 2x lipat. Cooldown tercepat kedua."
+                duration: 420,   // 7 detik
+                cooldown: 1800,  // 30 detik
+                desc: "Aktifkan: Tekan [U]. Durasi 7s, Cooldown 30s. Efek: Semua stat 2x lipat (HP, Speed, Dmg, Magnet), 2x Cosmic & EXP, Boss drop 2x. Durasi singkat, manfaatkan saat boss!"
             },
-            firework: {
-                id: "firework",
-                name: "FireWork",
-                cost: 5000,       // Koin
-                costCosmic: 100,  // Cosmic Coin
+            malevolent_shrine: {
+                id: "malevolent_shrine",
+                name: "Malevolent Shrine",
+                cost: 10000,       // Koin
+                costCosmic: 300,  // Cosmic Coin
                 key: "u",
-                duration: 1000,   // 15 detik
-                cooldown: 960,   // 16 detik
-                desc: "Aktifkan: Tekan [U]. Durasi 15s, Cooldown 16s (tercepat!). Efek: Ribuan ledakan kembang api ke musuh + efek slow. Damage rendah tapi bisa spam paling sering."
+                duration: 480,   // 8 detik
+                cooldown: 1680,  // 28 detik
+                desc: "Aktifkan: Tekan [U]. Durasi 8s, Cooldown 28s. Efek: Tebasan bertubi-tubi (15x ATK) ke seluruh musuh di map setiap 0.2s. Durasi singkat tapi damage brutal."
+            },
+            maxed_out_weapon: {
+                id: "maxed_out_weapon",
+                name: "MaxedOut Weapon",
+                cost: 13000,      // Koin
+                costCosmic: 400,  // Cosmic Coin
+                key: "u",
+                duration: 720,   // 12 detik
+                cooldown: 1440,  // 24 detik
+                desc: "Aktifkan: Tekan [U]. Durasi 12s, Cooldown 24s. Efek: Semua senjata ke level max. Senjata yang sudah max mendapat +100% damage selama durasi aktif."
+            },
+            infinite_void: {
+                id: "infinite_void",
+                name: "Infinite Void",
+                cost: 15000,       // Koin
+                costCosmic: 500,  // Cosmic Coin
+                key: "u",
+                duration: 840,   // 14 detik
+                cooldown: 1320,  // 22 detik
+                desc: "Aktifkan: Tekan [U]. Durasi 14s, Cooldown 22s. Efek: Stun semua musuh di layar selama durasi aktif dan memberikan damage kecil (2x ATK) setiap 0.1s. Berguna sebagai pelindung diri."
             }
         };
 
@@ -1129,6 +1140,18 @@
         let ultimateActiveDuration = 0;  // total durasi aktif (frames)
         let ultimateCooldownTimer = 0;   // sisa cooldown (frames)
         let ultimateCooldownDuration = 0; // diisi dari ULTIMATE_DEFS[id].cooldown saat activate
+
+        // ==========================================
+        // OPTIMASI LOW-END LAPTOP
+        // ==========================================
+        // Batasi jumlah maksimum partikel aktif sekaligus agar GPU tidak kewalahan
+        const MAX_PARTICLES = 150;
+        const MAX_PROJECTILES = 200;
+        const MAX_DAMAGE_TEXTS = 30;
+
+        // Counter untuk throttle updateHUD — tidak perlu update DOM setiap frame
+        let _hudUpdateCounter = 0;
+        const HUD_UPDATE_INTERVAL = 3; // update HUD setiap 3 frame sekali
 
         // ==========================================
         // SYSTEM ENGINE CONSTANTS & STATE
@@ -2282,6 +2305,8 @@
         }
 
         function fireBullet(x, y, angle, dmg, spd, col, sz, cr = false, pr = 1, bm = false, sl = false, mAs = 0) {
+            // Batasi jumlah proyektil aktif agar tidak membebani low-end
+            if (entities.projectiles.length >= MAX_PROJECTILES) return;
             entities.projectiles.push(new Bullet(x, y, angle, dmg, spd, col, sz, cr, pr, bm, mAs));
         }
 
@@ -2578,9 +2603,13 @@
         function createParticles(x, y, color, qty) {
             let dx = x - player.x;
             let dy = y - player.y;
-            if (dx * dx + dy * dy > canvas.width * canvas.width) return;
-            if (entities.particles.length > 150) return; // Cap particles tightly for extreme performance
-            for (let i = 0; i < qty; i++) {
+            // Jangan buat partikel di luar viewport untuk menghemat CPU
+            if (Math.abs(dx) > canvas.width || Math.abs(dy) > canvas.height) return;
+            // Batasi jumlah partikel aktif agar laptop low-end tidak kewalahan
+            if (entities.particles.length >= MAX_PARTICLES) return;
+            // Batasi qty jika partikel sudah banyak
+            let safeQty = (entities.particles.length > MAX_PARTICLES * 0.7) ? Math.ceil(qty * 0.4) : qty;
+            for (let i = 0; i < safeQty; i++) {
                 let ang = Math.random() * Math.PI * 2, sp = Math.random() * 2 + 1;
                 entities.particles.push({
                     x: x, y: y, vX: Math.cos(ang) * sp, vY: Math.sin(ang) * sp, life: 25, color: color,
@@ -2639,7 +2668,8 @@
             draw(ctx) { ctx.globalAlpha = this.life / 35; ctx.fillStyle = this.c; ctx.font = `bold ${this.sz}px sans-serif`; ctx.fillText(this.t, this.x, this.y); ctx.globalAlpha = 1; }
         }
         function createDamageText(x, y, t, c, sz) {
-            if (entities.damageTexts.length > 25) return; // Cap damage texts heavily for 0 lag
+            // Batasi damage text agar tidak membebani render loop di laptop low-end
+            if (entities.damageTexts.length >= MAX_DAMAGE_TEXTS) return;
             entities.damageTexts.push(new DamageText(x, y, t, c, sz));
         }
 
@@ -2912,7 +2942,12 @@
             }
             camera.reset(ctx);
 
-            updateHUD();
+            // Throttle DOM update HUD agar tidak dipanggil setiap frame (hemat CPU di laptop low-end)
+            _hudUpdateCounter++;
+            if (_hudUpdateCounter >= HUD_UPDATE_INTERVAL) {
+                _hudUpdateCounter = 0;
+                updateHUD();
+            }
             requestAnimationFrame(gameLoop);
         }
 
@@ -3105,17 +3140,24 @@
                     let equipped = saveData.equippedUltimate === k;
                     let cost = ult.cost;
                     let costCosmic = ult.costCosmic;
-                    let canAfford = saveData.coins >= cost && saveData.cosmicCoins >= costCosmic;
+
+                    // Cek affordability dengan benar untuk ultimate gratis (cost 0)
+                    let canAffordCoins = (cost === 0) ? true : (saveData.coins >= cost);
+                    let canAffordCosmic = (costCosmic === 0) ? true : (saveData.cosmicCoins >= costCosmic);
+                    let canAffordFinal = canAffordCoins && canAffordCosmic;
 
                     let actionBtn = '';
                     if (equipped) {
                         actionBtn = `<button class="cosmic-btn" style="background:#10b981;" disabled>EQUIPPED ✓</button>`;
                     } else if (owned) {
                         actionBtn = `<button class="art-btn" style="background:#4f46e5;" onclick="equipUltimate('${k}'); renderSubShop();">EQUIP</button>`;
+                    } else if (cost === 0 && costCosmic === 0) {
+                        // Ultimate gratis seperti Rampage — tampilkan tombol GRATIS yang mencolok
+                        actionBtn = `<button class="cosmic-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-size:12px; padding:8px 14px; font-weight:800;" onclick="buyUltimate('${k}'); renderSubShop();">🆓 GRATIS!</button>`;
                     } else {
                         let coinLabel = saveData.coins < cost ? `<span style="color:#ef4444;">${cost.toLocaleString()} 🪙</span>` : `<span style="color:#f59e0b;">${cost.toLocaleString()} 🪙</span>`;
                         let cosmicLabel = saveData.cosmicCoins < costCosmic ? `<span style="color:#ef4444;">${costCosmic} ✨</span>` : `<span style="color:#a78bfa;">${costCosmic} ✨</span>`;
-                        actionBtn = `<button class="cosmic-btn" style="font-size:11px; padding:6px 10px; line-height:1.6;" ${canAfford ? '' : 'disabled'} onclick="buyUltimate('${k}'); renderSubShop();">${coinLabel}<br>${cosmicLabel}</button>`;
+                        actionBtn = `<button class="cosmic-btn" style="font-size:11px; padding:6px 10px; line-height:1.6;" ${canAffordFinal ? '' : 'disabled'} onclick="buyUltimate('${k}'); renderSubShop();">${coinLabel}<br>${cosmicLabel}</button>`;
                     }
 
                     listEl.innerHTML += `
@@ -3136,7 +3178,10 @@
             let def = ULTIMATE_DEFS[k];
             let cost = def.cost;
             let costCosmic = def.costCosmic;
-            if (saveData.coins >= cost && saveData.cosmicCoins >= costCosmic && !saveData.ownedUltimates.includes(k)) {
+            // Mendukung ultimate gratis (cost 0 dan costCosmic 0), seperti Rampage
+            let canAffordCoins = (cost === 0) ? true : (saveData.coins >= cost);
+            let canAffordCosmic = (costCosmic === 0) ? true : (saveData.cosmicCoins >= costCosmic);
+            if (canAffordCoins && canAffordCosmic && !saveData.ownedUltimates.includes(k)) {
                 saveData.coins -= cost;
                 saveData.cosmicCoins -= costCosmic;
                 saveData.ownedUltimates.push(k);
@@ -3236,6 +3281,34 @@
             createDamageText(player.x, player.y - 60, `ULTIMATE: ${ULTIMATE_DEFS[id].name.toUpperCase()}! 🔥`, '#e63946', 22);
 
             switch (id) {
+                case 'rampage':
+                    // Rampage: semua weapon cooldown dikurangi 3x lebih cepat (firing rate 3x)
+                    // Tandai semua weapon instance dengan flag rampage aktif
+                    createParticles(player.x, player.y, '#ff0000', 25);
+                    createParticles(player.x, player.y, '#ff6600', 20);
+                    entities.particles.push({
+                        id: 'rampage_visual',
+                        life: 300, maxLife: 300,
+                        update() { this.life--; },
+                        draw(ctx) {
+                            // Aura merah berputar di sekitar player
+                            let t = frameCount * 0.08;
+                            let alpha = 0.25 + 0.1 * Math.sin(frameCount * 0.3);
+                            ctx.save();
+                            ctx.strokeStyle = `rgba(255, 60, 0, ${alpha})`;
+                            ctx.lineWidth = 4;
+                            ctx.beginPath();
+                            ctx.arc(player.x, player.y, player.size + 22 + 5 * Math.sin(t), 0, Math.PI * 2);
+                            ctx.stroke();
+                            ctx.strokeStyle = `rgba(255, 150, 0, ${alpha * 0.7})`;
+                            ctx.lineWidth = 2;
+                            ctx.beginPath();
+                            ctx.arc(player.x, player.y, player.size + 35 + 5 * Math.cos(t), 0, Math.PI * 2);
+                            ctx.stroke();
+                            ctx.restore();
+                        }
+                    });
+                    break;
                 case 'infinite_void':
                     createParticles(player.x, player.y, '#3a0ca3', 30);
                     entities.particles.push({
@@ -3422,6 +3495,28 @@
             let baseDmg = player.baseDmgMulti;
 
             switch (activeUltimate) {
+                case 'rampage': {
+                    // Rampage: setiap frame, kurangi cooldown SEMUA senjata 2 kali ekstra
+                    // (karena sudah dikurangi 1 dalam WeaponInstance.update(), jadi total = 3x lebih cepat)
+                    // Ini membuat firing rate semua weapon 3x lebih cepat!
+                    for (let i = 0; i < player.weapons.length; i++) {
+                        let w = player.weapons[i];
+                        if (w.cooldown > 0) {
+                            w.cooldown -= 2; // ekstra -2 per frame (total -3 per frame = 3x speed)
+                            if (w.cooldown < 0) w.cooldown = 0;
+                        }
+                    }
+                    // Juga percepat timer Blue Lapse (purpleTimer) dan Reversal Red (_redTimer) 2x ekstra
+                    // Total 3x lebih cepat terisi
+                    if (player.weapons.find(w => w.id === 'blue_lapse')) {
+                        player.purpleTimer += 2; // ekstra +2 per frame (total +3 per frame = 3x cepat)
+                    }
+                    if (player.weapons.find(w => w.id === 'reversal_red')) {
+                        player._redTimer += 2; // ekstra +2 per frame (total +3 per frame = 3x cepat)
+                    }
+                    break;
+                }
+
                 case 'infinite_void': {
                     let px = player.x, py = player.y;
                     entities.enemies.forEach(e => {
@@ -3570,6 +3665,10 @@
             createDamageText(player.x, player.y - 50, `Ultimate Selesai! Cooldown dimulai`, '#64748b', 12);
 
             switch (id) {
+                case 'rampage':
+                    // Rampage tidak memiliki stat yang perlu dikembalikan — efeknya hanya mempercepat cooldown per-frame
+                    // Otomatis berhenti saat activeUltimate di-null-kan
+                    break;
                 case 'frenzy_time':
                     player.maxHp /= 2;
                     player.hp = Math.min(player.maxHp, player.hp / 2);
