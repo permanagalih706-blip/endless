@@ -67,9 +67,3 @@ Hancurkan musuh dan Bos untuk mendapatkan barang-barang berikut di arena:
 - **CSS Glassmorphism UI:** Antarmuka modern minimalis dengan efek blur latar belakang (`backdrop-filter`) menggunakan tema warna elegan dari palet *Tailwind CSS Slate/Zinc*.
 - **Google Fonts:** Menggunakan *font family* `Plus Jakarta Sans` untuk teks HUD yang bersih dan tajam.
 - **Web LocalStorage API:** Seluruh progres permainan, skor tertinggi (*highscore*), koin, kristal, serta item yang sudah dibeli tersimpan otomatis di browser pemain.
-
----
-
-## 📜 Lisensi & Kontribusi
-
-Proyek ini dibuat sebagai proyek pengembangan game web berbasis JavaScript murni. Jangan ragu untuk melakukan *fork*, memodifikasi konfigurasi balancing pada objek `CONFIG` di dalam kode script, atau menambahkan variasi tipe musuh baru!
