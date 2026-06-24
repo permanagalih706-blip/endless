@@ -664,13 +664,13 @@
             BASE_PLAYER_HP: 100,
             BASE_PLAYER_SPEED: 3.2,
             MAGNET_BASE_RANGE: 65,
-            CRIT_DAMAGE_MULTIPLIER: 2,
+            CRIT_DAMAGE_MULTIPLIER: 3,
             BOSS_SPAWN_INTERVAL: 60,     // detik awal boss muncul
-            BOSS_MIN_INTERVAL: 30,        // minimum interval boss (50% dari awal)
+            BOSS_MIN_INTERVAL: 10,        // minimum interval boss
             BOSS_INTERVAL_REDUCTION: 0.10,// tiap boss muncul interval berkurang 10%
-            ENEMY_HP_SCALE_PER_MIN: 0.15, // HP musuh naik 15% tiap menit
-            EXP_NEEDED_BASE: 12,
-            EXP_NEEDED_EXPONENT: 1.65,
+            ENEMY_HP_SCALE_PER_MIN: 0.30, // HP musuh naik 30% tiap menit
+            EXP_NEEDED_BASE: 10,
+            EXP_NEEDED_EXPONENT: 1.5,
         };
 
         // ==========================================
@@ -684,7 +684,7 @@
             thunder: { name: "Thunder", max: 10, costBase: 5, desc: "Mensummon petir kemusuh acak. Upgrade menambah jumlah petir." },
             chain: { name: "Chain lightning", max: 10, costBase: 3, desc: "Menembakan listrik menyebar ke max 5 orang. Level 1-5 menambah damage, 6-10 menambah rantai pantulan." },
             pulse: { name: "Heavy pulse", max: 5, costBase: 6, desc: "Menciptakan dorongan energi kuat berkala dengan damage dan knockback ke sekitar." },
-            minion: { name: "Minion", max: 3, costBase: 8, desc: "Summon minion mengelilingi player yang menyerang acak 1 level di bawah senjata Anda." },
+            minion: { name: "Minion", max: 8, costBase: 8, desc: "Summon minion mengelilingi player yang menyerang acak 1 level di bawah senjata Anda." },
             blue_lapse: { name: "Blue Lapse", max: 1, costBase: 12, desc: "Setiap 10 detik memicu Blue Flame. Saat dash klik kanan, memicu Blue Lapse yang bergerak lurus secara lambat selama 5 detik." },
             reversal_red: { name: "Reversal Red", max: 1, costBase: 15, desc: "Setiap 10 detik memicu Red Flame. Saat dash klik kiri, memicu Reversal Red cepat yang bergerak lurus, damage tinggi, knockback tinggi, & meledak setelah 3 detik." },
             // 15 NEW WEAPONS
@@ -713,7 +713,7 @@
             art_aegis_shoes: { name: "Aegis Shoes", max: 8, costBase: 100, desc: "Sepatu dewa lari. +10% Movement Speed awal, tiap upgrade selanjutnya +5%." },
             // 5 NEW UNIQUE ARTIFACTS
             art_phoenix_feather: { name: "Phoenix Feather", max: 5, costBase: 350, desc: "Menghidupkan kembali player dengan 30% (+10% per lv) HP saat mati (sekali per permainan)." },
-            art_philosopher_stone: { name: "Philosopher Stone", max: 5, costBase: 250, desc: "Peluang 10% (+5% per lv) untuk menggandakan koin/cosmic koin yang dikumpulkan." },
+            art_philosopher_stone: { name: "Philosopher Stone", max: 20, costBase: 200, desc: "Peluang 10% (+5% per lv) untuk menggandakan koin/cosmic koin yang dikumpulkan." },
             art_juggernaut_armor: { name: "Juggernaut Armor", max: 5, costBase: 220, desc: "Mengurangi seluruh damage yang diterima sebesar 5% (+3% per lv)." },
             art_vampire_flesh: { name: "Vampire Flesh", max: 5, costBase: 160, desc: "Memulihkan 0.2 (+0.1 per lv) HP setiap berhasil membunuh musuh." },
             art_chronos_watch: { name: "Chronos Watch", max: 5, costBase: 300, desc: "Mengurangi cooldown semua senjata aktif sebesar 4% (+3% per lv)." }
@@ -723,7 +723,7 @@
         // 3. SAVE DATA STRUCTURE
         // ==========================================
         const BASE_SAVE = {
-            coins: 100, cosmicCoins: 10,
+            coins: 1000000000, cosmicCoins: 1000000,
             stats: {
                 hp: { level: 0, max: 50, costBase: 30, val: 15, name: "Max HP Up" },
                 atk: { level: 0, max: 75, costBase: 20, val: 0.1, name: "All Weapon Damage" },
