@@ -25,10 +25,9 @@ Jalankan game langsung dengan membuka file `endless.html` di browser modern pili
 | Tombol | Aksi |
 | :--- | :--- |
 | <kbd>W</kbd> / <kbd>A</kbd> / <kbd>S</kbd> / <kbd>D</kbd> atau Panah | Menggerakkan Karakter |
-| <kbd>Spasi</kbd> | Melakukan *Dash* (Menghindar Cepat) |
-| <kbd>Klik Kiri</kbd> (Saat Dash) | Memicu Skill **Reversal Red** (Jika terbuka) |
-| <kbd>Klik Kanan</kbd> (Saat Dash) | Memicu Skill **Blue Lapse** (Jika terbuka) |
-| <kbd>E</kbd> | Memicu Kemampuan **Ultimate** (Saat indikator penuh) |
+| <kbd>Klik kiri</kbd> | Melakukan *Dash* (kiri)(Menghindar Cepat) |
+| <kbd>Klik kanan</kbd> | Melakukan *Dash* (kanan)(Menghindar Cepat) |
+| <kbd>U</kbd> | Memicu Kemampuan **Ultimate** (Saat indikator penuh) |
 | <kbd>ESC</kbd> | Jeda / *Pause* Game |
 
 ### Navigasi Pintasan Toko (Menu)
