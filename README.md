@@ -25,8 +25,8 @@ Jalankan game langsung dengan membuka file `endless.html` di browser modern pili
 | Tombol | Aksi |
 | :--- | :--- |
 | <kbd>W</kbd> / <kbd>A</kbd> / <kbd>S</kbd> / <kbd>D</kbd> atau Panah | Menggerakkan Karakter |
-| <kbd>Klik kiri</kbd> | Melakukan *Dash* (kiri)(Menghindar Cepat) |
-| <kbd>Klik kanan</kbd> | Melakukan *Dash* (kanan)(Menghindar Cepat) |
+| <kbd>Klik kiri/J</kbd> | Melakukan *Dash* (kiri)(Menghindar Cepat) |
+| <kbd>Klik kanan/K</kbd> | Melakukan *Dash* (kanan)(Menghindar Cepat) |
 | <kbd>U</kbd> | Memicu Kemampuan **Ultimate** (Saat indikator penuh) |
 | <kbd>ESC</kbd> | Jeda / *Pause* Game |
 
