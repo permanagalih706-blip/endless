@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 
 <head>
@@ -909,6 +909,10 @@
             BOSS_SPAWN_INTERVAL: 60,     // detik awal boss muncul
             BOSS_MIN_INTERVAL: 1,        // minimum interval boss
             BOSS_INTERVAL_REDUCTION: 0.15,// tiap boss muncul interval berkurang 15%
+            ULTIMATE_BOSS_SPAWN_INTERVAL: 300,   // 5 menit — Ultimate Boss pertama
+            ULTIMATE_BOSS_MIN_INTERVAL: 60,      // minimum 1 menit
+            ULTIMATE_BOSS_INTERVAL_REDUCTION: 0.10, // tiap spawn interval -10%
+            ULTIMATE_BOSS_HP_CONSECUTIVE_BONUS: 0.10, // +10% HP jika boss sama spawn berturut-turut
             ENEMY_HP_SCALE_PER_MIN: 0.30, // HP musuh naik 30% tiap menit
             EXP_NEEDED_BASE: 10,
             EXP_NEEDED_EXPONENT: 1.5,
@@ -1038,7 +1042,7 @@
                 cost: 0,          // Gratis! Tidak perlu koin
                 costCosmic: 0,    // Gratis! Tidak perlu cosmic coin
                 key: "u",
-                duration: 600,   // 10 detik
+                duration: 300,   // 5 detik
                 cooldown: 900,   // 15 detik
                 desc: "GRATIS! Aktifkan: Tekan [U]. Durasi 5s, Cooldown 15s. Efek: SEMUA senjata menembak 3x lebih cepat (firing rate 3x lipat)! Cooldown Blue Lapse & Reversal Red juga 3x lebih cepat terisi. Rasakan kekacauan sejati!"
             },
@@ -1048,8 +1052,8 @@
                 cost: 5000,       // Koin
                 costCosmic: 100,  // Cosmic Coin
                 key: "u",
-                duration: 1500,   // 25 detik
-                cooldown: 900,   // 15 detik
+                duration: 1000,   // 15 detik
+                cooldown: 960,   // 16 detik
                 desc: "Aktifkan: Tekan [U]. Durasi 15s, Cooldown 16s (tercepat!). Efek: Ribuan ledakan kembang api ke musuh + efek slow. Damage rendah tapi bisa spam paling sering."
             },
             kamehameha: {
@@ -1231,11 +1235,16 @@
         let gameState = 'menu', gameTime = 0, frameCount = 0, runCoins = 0, runCosmic = 0;
         let player, camera;
         let entities = { enemies: [], drops: [], projectiles: [], damageTexts: [], particles: [] };
-        let bossActive = false, currentLevel = 1, currentExp = 0, expNeeded = 10, rerollsLeft = 3, currentChoices = [];
+        let bossActive = false, ultimateBossActive = false;
+        let currentLevel = 1, currentExp = 0, expNeeded = 10, rerollsLeft = 3, currentChoices = [];
         // Scaling difficulty state
         let enemyHpScaleMulti = 1;      // mulai di 1, naik tiap menit
         let currentBossInterval = CONFIG.BOSS_SPAWN_INTERVAL; // interval boss saat ini (detik)
         let nextBossAt = CONFIG.BOSS_SPAWN_INTERVAL;          // gameTime saat boss berikutnya muncul
+        let currentUltimateBossInterval = CONFIG.ULTIMATE_BOSS_SPAWN_INTERVAL;
+        let nextUltimateBossAt = CONFIG.ULTIMATE_BOSS_SPAWN_INTERVAL;
+        let lastUltimateBossId = null;
+        let lastUltimateBossConsecutive = 0;
         let lastMinuteScaled = 0;       // menit terakhir HP musuh dinaikkan
 
         window.addEventListener('contextmenu', e => {
@@ -1310,6 +1319,19 @@
                 this.dashCooldownMax = 180; this.dashCooldown = 0; this.dashDuration = 0; this.dashSpeed = 11;
                 this.superMagnetTimer = 0;
                 this.reviveInvulnerableTimer = 0;
+
+                // Status effects (Ultimate Boss mechanics)
+                this.stunTimer = 0;
+                this.burnTimer = 0;
+                this.burnDmg = 0;
+                this.debuffTimer = 0;
+                this.debuffSpeedMult = 1;
+                this.auraDotTimer = 0;
+                this.auraDotDmg = 0;
+                this.deathThroesTimer = 0;
+                this.deathThroesDmg = 0;
+                this.dismantleTimer = 0;
+                this.dismantleSource = null;
 
                 // Hollow Purple Systems
                 this.purpleFlames = 0;
@@ -1519,19 +1541,63 @@
                     createParticles(redStartX, redStartY, '#dc2626', 8);
                 }
             }
+            applyBurn(dmg, duration) {
+                this.burnDmg = Math.max(this.burnDmg, dmg);
+                this.burnTimer = Math.max(this.burnTimer, duration);
+            }
+            applyDebuff(speedMult, duration) {
+                this.debuffSpeedMult = Math.min(this.debuffSpeedMult, speedMult);
+                this.debuffTimer = Math.max(this.debuffTimer, duration);
+            }
+            applyAuraDot(dmg) {
+                this.auraDotDmg = dmg;
+                this.auraDotTimer = Math.max(this.auraDotTimer, 30);
+            }
             update() {
+                // Process status effect timers
+                if (this.stunTimer > 0) this.stunTimer--;
+                if (this.dismantleTimer > 0) {
+                    this.dismantleTimer--;
+                    if (this.dismantleTimer === 0 && this.dismantleSource && !this.dismantleSource.dead) {
+                        let d = getDistance(this.x, this.y, this.dismantleSource.x, this.dismantleSource.y);
+                        if (d < this.dismantleSource.size + this.size + 50) {
+                            this.takeDamage(80);
+                            createDamageText(this.x, this.y - 35, 'BURST! 💥', '#dc2626', 20);
+                        }
+                        this.dismantleSource = null;
+                    }
+                }
+                if (this.burnTimer > 0) {
+                    this.burnTimer--;
+                    if (this.burnTimer % 20 === 0) this.takeDamage(this.burnDmg);
+                }
+                if (this.debuffTimer > 0) {
+                    this.debuffTimer--;
+                    if (this.debuffTimer <= 0) this.debuffSpeedMult = 1;
+                }
+                if (this.auraDotTimer > 0) {
+                    this.auraDotTimer--;
+                    if (this.auraDotTimer % 15 === 0) this.takeDamage(this.auraDotDmg);
+                }
+                if (this.deathThroesTimer > 0) {
+                    this.deathThroesTimer--;
+                    if (this.deathThroesTimer % 20 === 0) this.takeDamage(this.deathThroesDmg);
+                }
+
                 let dx = 0, dy = 0;
-                if (keys['w'] || keys['arrowup']) dy -= 1;
-                if (keys['s'] || keys['arrowdown']) dy += 1;
-                if (keys['a'] || keys['arrowleft']) dx -= 1;
-                if (keys['d'] || keys['arrowright']) dx += 1;
+                if (this.stunTimer <= 0) {
+                    if (keys['w'] || keys['arrowup']) dy -= 1;
+                    if (keys['s'] || keys['arrowdown']) dy += 1;
+                    if (keys['a'] || keys['arrowleft']) dx -= 1;
+                    if (keys['d'] || keys['arrowright']) dx += 1;
+                }
 
                 if (dx !== 0 && dy !== 0) { let len = Math.hypot(dx, dy); dx /= len; dy /= len; }
                 if (dx !== 0 || dy !== 0) {
                     this.lastMoveAngle = Math.atan2(dy, dx);
                 }
 
-                let activeSpeed = this.dashDuration > 0 ? this.dashSpeed : this.speed;
+                let activeSpeed = this.dashDuration > 0 ? this.dashSpeed : this.speed * this.debuffSpeedMult;
                 if (this.dashDuration > 0) { this.dashDuration--; createParticles(this.x, this.y, '#f1f3f5', 1); }
 
                 this.x += dx * activeSpeed; this.y += dy * activeSpeed;
@@ -1675,6 +1741,14 @@
                 if (flameTexts.length > 0) {
                     ctx.fillStyle = '#1e293b'; ctx.font = 'bold 11px sans-serif';
                     ctx.fillText(flameTexts.join(' '), this.x - 18, this.y - 24);
+                }
+                if (this.burnTimer > 0) {
+                    ctx.fillStyle = '#ea580c'; ctx.font = 'bold 10px sans-serif';
+                    ctx.fillText('🔥 BURN', this.x - 18, this.y + 28);
+                }
+                if (this.stunTimer > 0) {
+                    ctx.fillStyle = '#6366f1'; ctx.font = 'bold 10px sans-serif';
+                    ctx.fillText('⚡ STUN', this.x - 18, this.y + (this.burnTimer > 0 ? 40 : 28));
                 }
 
                 this.weapons.forEach(w => w.draw(ctx));
@@ -2263,7 +2337,16 @@
                         if (dy <= minDist) {
                             let distSq = dx * dx + dy * dy;
                             if (distSq < minDist * minDist) {
-                                player.takeDamage(this.damage);
+                                if (this.dashOnlyDodge && player.dashDuration > 0) {
+                                    this.life = 0;
+                                    return;
+                                }
+                                if (this.hpToOnePercent) {
+                                    setPlayerHpToPercent(0.01);
+                                } else {
+                                    player.takeDamage(this.damage);
+                                }
+                                if (this.appliesBurn) player.applyBurn(this.burnDmg, 120);
                                 createParticles(bx, by, this.color, 3);
                                 this.life = 0;
                             }
@@ -2311,10 +2394,308 @@
         }
 
         // ==========================================
+        // ULTIMATE BOSS SYSTEM
+        // ==========================================
+        const ULTIMATE_BOSS_DEFS = {
+            enraged_beast: { id: 'enraged_beast', name: 'Enraged Beast', subType: 'enraged_beast', baseHp: 15000, speed: 4.2, size: 52, damage: 85, stroke: '#b91c1c' },
+            fire_shower: { id: 'fire_shower', name: 'Fire Shower', subType: 'fire_shower', baseHp: 10000, speed: 2.0, size: 44, damage: 70, stroke: '#ea580c' },
+            berserker: { id: 'berserker', name: 'Berserker', subType: 'berserker', baseHp: 12000, speed: 3.0, size: 48, damage: 95, stroke: '#7c2d12' },
+            strongest_history: { id: 'strongest_history', name: 'Strongest of History', subType: 'strongest_history', baseHp: 10000, speed: 2.2, size: 46, damage: 80, stroke: '#6366f1', rare: true },
+            strongest_today: { id: 'strongest_today', name: 'Strongest of Today', subType: 'strongest_today', baseHp: 10000, speed: 2.4, size: 46, damage: 80, stroke: '#8b5cf6', rare: true }
+        };
+
+        function pickUltimateBossVariant() {
+            let roll = Math.random();
+            if (roll < 0.05) return ULTIMATE_BOSS_DEFS.strongest_history;
+            if (roll < 0.10) return ULTIMATE_BOSS_DEFS.strongest_today;
+            const common = [ULTIMATE_BOSS_DEFS.enraged_beast, ULTIMATE_BOSS_DEFS.fire_shower, ULTIMATE_BOSS_DEFS.berserker];
+            return common[Math.floor(Math.random() * common.length)];
+        }
+
+        function getUltimateBossHpMultiplier(bossId) {
+            if (bossId === lastUltimateBossId) {
+                return 1 + lastUltimateBossConsecutive * CONFIG.ULTIMATE_BOSS_HP_CONSECUTIVE_BONUS;
+            }
+            return 1;
+        }
+
+        function fireEnemyBullet(x, y, angle, damage, speed, color, size, opts = {}) {
+            if (entities.projectiles.length >= MAX_PROJECTILES) return;
+            let b = new Bullet(x, y, angle, damage, speed, color, size, false, opts.pierce || 1, false, false);
+            b.isEnemy = true;
+            if (opts.burn) { b.appliesBurn = true; b.burnDmg = opts.burnDmg || 3; }
+            if (opts.dashOnlyDodge) b.dashOnlyDodge = true;
+            if (opts.hpToOnePercent) b.hpToOnePercent = true;
+            entities.projectiles.push(b);
+        }
+
+        function createPlayerStrikeEffect(x, y, radius, damage, color, opts = {}) {
+            entities.particles.push({
+                x, y, radius, life: 14, max: 14, damage, opts,
+                update() {
+                    this.life--;
+                    if (this.life === 8 && damage > 0) {
+                        let radSq = this.radius * this.radius;
+                        if (getDistanceSq(this.x, this.y, player.x, player.y) < radSq) {
+                            if (this.opts.hpToOnePercent) {
+                                setPlayerHpToPercent(0.01);
+                            } else if (this.opts.dashOnlyDodge) {
+                                if (player.dashDuration <= 0) player.takeDamage(this.damage);
+                            } else {
+                                player.takeDamage(this.damage);
+                            }
+                            if (this.opts.burn) player.applyBurn(this.opts.burnDmg || 4, 180);
+                            if (this.opts.knockback) {
+                                let da = getAngle(this.x, this.y, player.x, player.y);
+                                player.x += Math.cos(da) * this.opts.knockback;
+                                player.y += Math.sin(da) * this.opts.knockback;
+                            }
+                        }
+                    }
+                },
+                draw(ctx) {
+                    ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * (1 - this.life / this.max), 0, Math.PI * 2);
+                    ctx.fillStyle = color; ctx.fill();
+                }
+            });
+        }
+
+        function setPlayerHpToPercent(percent) {
+            if (player.dashDuration > 0 || player.reviveInvulnerableTimer > 0) return;
+            player.hp = Math.max(1, Math.floor(player.maxHp * percent));
+            createDamageText(player.x, player.y - 20, 'NEAR DEATH! 💀', '#a855f7', 18);
+        }
+
+        function spawnUltimateBoss() {
+            let variant = pickUltimateBossVariant();
+            if (variant.id === lastUltimateBossId) {
+                lastUltimateBossConsecutive++;
+            } else {
+                lastUltimateBossId = variant.id;
+                lastUltimateBossConsecutive = 0;
+            }
+            let hpMult = getUltimateBossHpMultiplier(variant.id);
+            let spawnAngle = Math.random() * Math.PI * 2;
+            let sx = player.x + Math.cos(spawnAngle) * 450;
+            let sy = player.y + Math.sin(spawnAngle) * 450;
+            let boss = new Enemy(sx, sy, 'ultimate_boss', gameTime, variant, hpMult);
+            entities.enemies.push(boss);
+            ultimateBossActive = true;
+            currentUltimateBossInterval = Math.max(
+                CONFIG.ULTIMATE_BOSS_MIN_INTERVAL,
+                Math.floor(currentUltimateBossInterval * (1 - CONFIG.ULTIMATE_BOSS_INTERVAL_REDUCTION))
+            );
+            nextUltimateBossAt = gameTime + currentUltimateBossInterval;
+            let rareTag = variant.rare ? ' ⭐ RARE' : '';
+            let hpNote = lastUltimateBossConsecutive > 0 ? ` (+${Math.round(lastUltimateBossConsecutive * CONFIG.ULTIMATE_BOSS_HP_CONSECUTIVE_BONUS * 100)}% HP)` : '';
+            createDamageText(player.x, player.y - 55, `☠️ ULTIMATE BOSS: ${variant.name.toUpperCase()}!${rareTag}${hpNote}`, variant.stroke, 24);
+            createDamageText(player.x, player.y - 30, `Berikutnya: ${currentUltimateBossInterval}s`, '#64748b', 13);
+        }
+
+        function updateUltimateBossBehavior(e, dist, dx, dy) {
+            if (!e.ultTimers) e.ultTimers = {};
+            let t = e.ultTimers;
+            let ang = dist > 0 ? Math.atan2(dy, dx) : 0;
+            let statMult = e.berserkActive ? 2 : 1;
+
+            // HP regen for rare bosses
+            if ((e.bossSubType === 'strongest_history' || e.bossSubType === 'strongest_today') && frameCount % 60 === 0) {
+                e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.003);
+            }
+
+            // Desperation aura (Strongest of History < 10% HP)
+            if (e.bossSubType === 'strongest_history' && e.hp / e.maxHp < 0.10 && !e.desperationActive) {
+                e.desperationActive = true;
+                createDamageText(e.x, e.y - 30, 'DESPERATION! 🔥', e.stroke, 16);
+            }
+            if (e.desperationActive && frameCount % 30 === 0) {
+                player.applyAuraDot(2);
+            }
+
+            switch (e.bossSubType) {
+                case 'enraged_beast': {
+                    e.speed = e.initialSpeed * statMult;
+                    t.roar = (t.roar || 0) + 1;
+                    if (t.roar >= 180) {
+                        t.roar = 0;
+                        createPlayerStrikeEffect(e.x, e.y, 160, 35 * statMult, 'rgba(185, 28, 28, 0.35)');
+                        createDamageText(e.x, e.y - 25, 'ROAR! 🦁', e.stroke, 14);
+                        createParticles(e.x, e.y, e.stroke, 12);
+                    }
+                    t.barrage = (t.barrage || 0) + 1;
+                    if (t.barrage >= 8) {
+                        t.barrage = 0;
+                        for (let i = 0; i < 6; i++) {
+                            let spread = (i - 2.5) * 0.18;
+                            fireEnemyBullet(e.x, e.y, ang + spread, 12 * statMult, 5.5 * statMult, e.stroke, 5);
+                        }
+                    }
+                    break;
+                }
+                case 'fire_shower': {
+                    t.dash = (t.dash || 0) + 1;
+                    if (t.dash >= 120) {
+                        t.dash = 0;
+                        e.speed = e.initialSpeed * 5 * statMult;
+                        createParticles(e.x, e.y, '#ea580c', 6);
+                        setTimeout(() => { if (gameState === 'playing' && !e.dead) e.speed = e.initialSpeed * statMult; }, 400);
+                    } else {
+                        e.speed = e.initialSpeed * statMult;
+                    }
+                    t.laser = (t.laser || 0) + 1;
+                    if (t.laser >= 150) {
+                        t.laser = 0;
+                        entities.particles.push({
+                            id: 'thermal_laser', x: e.x, y: e.y, angle: ang, life: 90, length: 280, width: 28,
+                            update() {
+                                this.life--;
+                                let ex = this.x + Math.cos(this.angle) * this.length;
+                                let ey = this.y + Math.sin(this.angle) * this.length;
+                                let d = pointToSegmentDistance(player.x, player.y, this.x, this.y, ex, ey);
+                                if (d < this.width + player.size && player.dashDuration <= 0 && this.life % 12 === 0) {
+                                    player.takeDamage(8);
+                                    player.applyBurn(5, 120);
+                                }
+                            },
+                            draw(ctx) {
+                                ctx.save();
+                                ctx.translate(this.x, this.y);
+                                ctx.rotate(this.angle);
+                                ctx.fillStyle = `rgba(234, 88, 12, ${0.15 + 0.1 * Math.sin(frameCount * 0.3)})`;
+                                ctx.fillRect(0, -this.width / 2, this.length, this.width);
+                                ctx.fillStyle = '#fbbf24';
+                                ctx.fillRect(0, -3, this.length, 6);
+                                ctx.restore();
+                            }
+                        });
+                        createDamageText(e.x, e.y - 20, 'THERMAL LASER! 🔥', '#ea580c', 13);
+                    }
+                    t.explode = (t.explode || 0) + 1;
+                    if (t.explode >= 200) {
+                        t.explode = 0;
+                        for (let i = 0; i < 4; i++) {
+                            let a = Math.random() * Math.PI * 2;
+                            let rx = player.x + Math.cos(a) * (80 + Math.random() * 120);
+                            let ry = player.y + Math.sin(a) * (80 + Math.random() * 120);
+                            createPlayerStrikeEffect(rx, ry, 55, 28, 'rgba(234, 88, 12, 0.4)', { burn: true, burnDmg: 4 });
+                        }
+                    }
+                    break;
+                }
+                case 'berserker': {
+                    if (!e.berserkActive && e.hp / e.maxHp < 0.5) {
+                        e.berserkActive = true;
+                        e.damage = e._baseDamage * 2;
+                        createDamageText(e.x, e.y - 30, 'BERSERK! ⚔️', e.stroke, 18);
+                        createParticles(e.x, e.y, e.stroke, 15);
+                    }
+                    let berserkMult = e.berserkActive ? 2 : 1;
+                    e.speed = e.initialSpeed * berserkMult;
+                    t.attack = (t.attack || 0) + 1;
+                    if (t.attack >= 120) {
+                        t.attack = 0;
+                        if (Math.random() < 0.5) {
+                            player.applyDebuff(0.55, 120);
+                            createDamageText(player.x, player.y - 25, 'WEAKENED! ⬇️', '#7c2d12', 12);
+                        } else {
+                            fireEnemyBullet(e.x, e.y, ang + (Math.random() - 0.5) * 0.6, 40 * berserkMult, 7, '#7c2d12', 7);
+                            createDamageText(e.x, e.y - 20, 'WILD SPEAR! 🗡️', e.stroke, 12);
+                        }
+                    }
+                    break;
+                }
+                case 'strongest_history': {
+                    e.speed = e.initialSpeed;
+                    t.slash = (t.slash || 0) + 1;
+                    if (t.slash >= 160) {
+                        t.slash = 0;
+                        createPlayerStrikeEffect(e.x, e.y, 200, 45, 'rgba(99, 102, 241, 0.3)', { dashOnlyDodge: true });
+                        createDamageText(e.x, e.y - 20, 'SLASH! ⚔️ (Dash!)', e.stroke, 13);
+                    }
+                    if (dist < e.size + player.size + 30 && !player.dismantleTimer) {
+                        player.dismantleTimer = 180;
+                        player.dismantleSource = e;
+                        player.stunTimer = Math.max(player.stunTimer, 180);
+                        createDamageText(player.x, player.y - 30, 'DISMANTLE! 🔒', e.stroke, 16);
+                    }
+                    if (player.dismantleTimer > 0 && player.dismantleSource === e) {
+                        if (player.dismantleTimer % 15 === 0) player.takeDamage(6);
+                    }
+                    t.heavenly = (t.heavenly || 0) + 1;
+                    if (t.heavenly >= 220) {
+                        t.heavenly = 0;
+                        fireEnemyBullet(e.x, e.y, ang, 50, 6.5, '#f59e0b', 10);
+                        setTimeout(() => {
+                            if (gameState !== 'playing') return;
+                            let tx = player.x, ty = player.y;
+                            createPlayerStrikeEffect(tx, ty, 100, 55, 'rgba(245, 158, 11, 0.45)');
+                            createParticles(tx, ty, '#f59e0b', 10);
+                        }, 450);
+                        createDamageText(e.x, e.y - 20, 'HEAVENLY FLAME! 🏹', '#f59e0b', 14);
+                    }
+                    break;
+                }
+                case 'strongest_today': {
+                    e.speed = e.initialSpeed;
+                    t.blueLapse = (t.blueLapse || 0) + 1;
+                    if (t.blueLapse >= 200) {
+                        t.blueLapse = 0;
+                        entities.particles.push({
+                            id: 'ub_vortex', x: e.x, y: e.y, radius: 180, life: 150, pull: 3.5,
+                            update() {
+                                this.life--;
+                                let d = getDistance(this.x, this.y, player.x, player.y);
+                                if (d < this.radius && d > 5) {
+                                    let da = getAngle(player.x, player.y, this.x, this.y);
+                                    player.x += Math.cos(da) * this.pull;
+                                    player.y += Math.sin(da) * this.pull;
+                                }
+                            },
+                            draw(ctx) {
+                                let pulse = 0.85 + 0.15 * Math.sin(frameCount * 0.12);
+                                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * pulse, 0, Math.PI * 2);
+                                ctx.fillStyle = 'rgba(15, 23, 42, 0.25)'; ctx.fill();
+                                ctx.strokeStyle = 'rgba(139, 92, 246, 0.5)'; ctx.lineWidth = 3; ctx.stroke();
+                            }
+                        });
+                        createDamageText(e.x, e.y - 20, 'BLUE LAPSE! 🌀', '#8b5cf6', 14);
+                    }
+                    t.reversal = (t.reversal || 0) + 1;
+                    if (t.reversal >= 170) {
+                        t.reversal = 0;
+                        createPlayerStrikeEffect(e.x, e.y, 140, 50, 'rgba(220, 38, 38, 0.35)', { knockback: 90 });
+                        createDamageText(e.x, e.y - 20, 'REVERSAL RED! 🔴', '#dc2626', 14);
+                    }
+                    t.special = (t.special || 0) + 1;
+                    if (t.special >= 240) {
+                        t.special = 0;
+                        let roll = Math.random();
+                        if (roll < 0.05) {
+                            createPlayerStrikeEffect(player.x, player.y, 120, 0, 'rgba(168, 85, 247, 0.5)', { hpToOnePercent: true });
+                            createDamageText(player.x, player.y - 40, 'HOLLOW PURPLE! 🟣', '#a855f7', 22);
+                        } else if (roll < 0.10) {
+                            createPlayerStrikeEffect(e.x, e.y, 220, 0, 'rgba(168, 85, 247, 0.4)', { hpToOnePercent: true });
+                            createDamageText(e.x, e.y - 30, 'HOLLOW NUKE! 💥🟣', '#a855f7', 22);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        function pointToSegmentDistance(px, py, x1, y1, x2, y2) {
+            let dx = x2 - x1, dy = y2 - y1;
+            if (dx === 0 && dy === 0) return getDistance(px, py, x1, y1);
+            let t = ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy);
+            t = Math.max(0, Math.min(1, t));
+            return getDistance(px, py, x1 + t * dx, y1 + t * dy);
+        }
+
+        // ==========================================
         // ENEMIES SYSTEM
         // ==========================================
         class Enemy {
-            constructor(x, y, type, timeScale) {
+            constructor(x, y, type, timeScale, ultVariant = null, ultHpMult = 1) {
                 this.x = x; this.y = y; this.type = type;
                 let hpMulti = (1 + (timeScale / 50) * 1.8) * enemyHpScaleMulti;
                 this.dead = false;
@@ -2323,6 +2704,24 @@
                     this.initialSpeed = 2.8; this.hp = 12 * hpMulti; this.size = 11; this.stroke = '#ea580c'; this.damage = 4;
                 } else if (type === 'tank') {
                     this.initialSpeed = 0.7; this.hp = 70 * hpMulti; this.size = 23; this.stroke = '#16a34a'; this.damage = 16;
+                } else if (type === 'ultimate_boss') {
+                    this.isBoss = true;
+                    this.isUltimateBoss = true;
+                    let v = ultVariant;
+                    this.bossName = v.name;
+                    this.bossSubType = v.subType;
+                    this.ultimateBossId = v.id;
+                    this.initialSpeed = v.speed;
+                    this.hp = v.baseHp * ultHpMult * hpMulti;
+                    this.size = v.size;
+                    this.stroke = v.stroke;
+                    this.damage = v.damage;
+                    this._baseDamage = v.damage;
+                    this.shootCooldown = 0;
+                    this.knockbackResist = true;
+                    this.ultTimers = {};
+                    this.berserkActive = false;
+                    this.desperationActive = false;
                 } else if (type === 'boss') {
                     this.isBoss = true;
                     const variants = [
@@ -2375,7 +2774,9 @@
 
                 // Boss subtype custom behaviors
                 if (this.isBoss && !this.dead) {
-                    if (this.bossSubType === 'phantom') {
+                    if (this.isUltimateBoss) {
+                        updateUltimateBossBehavior(this, dist, dx, dy);
+                    } else if (this.bossSubType === 'phantom') {
                         this.shootCooldown++;
                         if (this.shootCooldown >= 120) {
                             this.shootCooldown = 0;
@@ -2414,19 +2815,26 @@
             draw(ctx) {
                 drawFastHexagon(ctx, this.x, this.y, this.size, '#ffffff', this.stroke, 3);
                 if (this.isBoss) {
-                    ctx.beginPath(); ctx.arc(this.x, this.y, this.size + 10, 0, Math.PI * 2);
-                    ctx.strokeStyle = this.stroke + '44'; ctx.lineWidth = 2.5; ctx.stroke();
+                    if (this.isUltimateBoss) {
+                        ctx.beginPath(); ctx.arc(this.x, this.y, this.size + 18, 0, Math.PI * 2);
+                        ctx.strokeStyle = this.stroke + '66'; ctx.lineWidth = 4; ctx.stroke();
+                        ctx.beginPath(); ctx.arc(this.x, this.y, this.size + 10, 0, Math.PI * 2);
+                        ctx.strokeStyle = this.stroke + '33'; ctx.lineWidth = 2; ctx.stroke();
+                    } else {
+                        ctx.beginPath(); ctx.arc(this.x, this.y, this.size + 10, 0, Math.PI * 2);
+                        ctx.strokeStyle = this.stroke + '44'; ctx.lineWidth = 2.5; ctx.stroke();
+                    }
                     
-                    let barW = this.size * 1.5;
-                    let barH = 5;
+                    let barW = this.size * (this.isUltimateBoss ? 2.2 : 1.5);
+                    let barH = this.isUltimateBoss ? 7 : 5;
                     let barX = this.x - barW / 2;
-                    let barY = this.y - this.size - 15;
+                    let barY = this.y - this.size - (this.isUltimateBoss ? 22 : 15);
                     
                     ctx.fillStyle = '#dee2e6'; ctx.fillRect(barX, barY, barW, barH);
                     ctx.fillStyle = this.stroke; ctx.fillRect(barX, barY, barW * (this.hp / this.maxHp), barH);
                     
-                    ctx.fillStyle = '#1e293b'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
-                    ctx.fillText(this.bossName, this.x, barY - 7);
+                    ctx.fillStyle = '#1e293b'; ctx.font = `bold ${this.isUltimateBoss ? 13 : 11}px sans-serif`; ctx.textAlign = 'center';
+                    ctx.fillText(this.isUltimateBoss ? '☠ ' + this.bossName : this.bossName, this.x, barY - 7);
                     ctx.textAlign = 'left';
                 }
             }
@@ -2443,7 +2851,18 @@
                 if (this.hp <= 0 && !this.dead) {
                     this.dead = true;
                     createParticles(this.x, this.y, this.stroke, 12);
-                    triggerGuaranteedDrop(this.x, this.y, this.isBoss);
+                    if (this.isUltimateBoss) {
+                        ultimateBossActive = false;
+                        if (this.bossSubType === 'strongest_today') {
+                            player.deathThroesTimer = 300;
+                            player.deathThroesDmg = 10;
+                            player.stunTimer = Math.max(player.stunTimer, 300);
+                            createDamageText(player.x, player.y - 45, 'DEATH THROES! 💀', this.stroke, 20);
+                        }
+                        triggerGuaranteedDrop(this.x, this.y, true, true);
+                    } else {
+                        triggerGuaranteedDrop(this.x, this.y, this.isBoss);
+                    }
 
                     // Efek stun melingkar Dragon Cry saat musuh terdebuff mati
                     if (this.dragonCryDebuff) {
@@ -2572,10 +2991,11 @@
             }
         }
 
-        function triggerGuaranteedDrop(x, y, isBoss) {
-            if (isBoss) bossActive = false;
+        function triggerGuaranteedDrop(x, y, isBoss, isUltimateBoss = false) {
+            if (isBoss && !isUltimateBoss) bossActive = false;
             let numDrops = Math.random() < 0.15 ? 2 : 1;
             if (isBoss) numDrops = 3;
+            if (isUltimateBoss) numDrops = 6;
 
             // Frenzy Time: 50% peluang drop 2x item bagi Boss saat mati
             if (isBoss && activeUltimate === 'frenzy_time' && Math.random() < 0.5) {
@@ -2730,6 +3150,11 @@
                 nextBossAt = gameTime + currentBossInterval;
                 let bossMsg = `⚠️ BOS MUNCUL: ${boss.bossName.toUpperCase()}! (Berikutnya: ${currentBossInterval}s)`;
                 createDamageText(player.x, player.y - 40, bossMsg, boss.stroke, 22);
+            }
+
+            // Spawn Ultimate Boss (interval terpisah, scaling 10% per spawn)
+            if (gameTime >= nextUltimateBossAt && !ultimateBossActive) {
+                spawnUltimateBoss();
             }
         }
 
@@ -3246,7 +3671,7 @@
 
         document.getElementById('btn-start').onclick = () => {
             gameTime = 0; frameCount = 0; runCoins = 0; runCosmic = 0; currentLevel = 1; currentExp = 0; expNeeded = 10; rerollsLeft = 3;
-            entities = { enemies: [], drops: [], projectiles: [], damageTexts: [], particles: [] }; bossActive = false;
+            entities = { enemies: [], drops: [], projectiles: [], damageTexts: [], particles: [] }; bossActive = false; ultimateBossActive = false;
             activeUltimate = null;
             ultimateActiveTimer = 0;
             ultimateCooldownTimer = 0;
@@ -3254,6 +3679,10 @@
             enemyHpScaleMulti = 1;
             currentBossInterval = CONFIG.BOSS_SPAWN_INTERVAL;
             nextBossAt = CONFIG.BOSS_SPAWN_INTERVAL;
+            currentUltimateBossInterval = CONFIG.ULTIMATE_BOSS_SPAWN_INTERVAL;
+            nextUltimateBossAt = CONFIG.ULTIMATE_BOSS_SPAWN_INTERVAL;
+            lastUltimateBossId = null;
+            lastUltimateBossConsecutive = 0;
             lastMinuteScaled = 0;
 
             player = new Player(); camera = new Camera();
