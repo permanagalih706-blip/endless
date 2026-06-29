@@ -527,32 +527,32 @@
         .shop-categories-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 24px;
+            gap: 20px;
             width: 100%;
-            max-width: 800px;
-            margin: 30px auto;
-            padding: 0 15px;
+            max-width: 880px;
+            margin: 24px auto 0 auto;
+            padding: 0;
             pointer-events: auto;
         }
 
         @media (max-width: 768px) {
             .shop-categories-grid {
                 grid-template-columns: 1fr;
-                gap: 16px;
+                gap: 14px;
             }
         }
 
         .shop-category-card {
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            border-radius: 20px;
-            padding: 24px;
+            border: 1.5px solid rgba(226, 232, 240, 0.9);
+            border-radius: 22px;
+            padding: 28px 24px 22px 24px;
             text-align: center;
             cursor: pointer;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.06), 0 2px 6px -2px rgba(0,0,0,0.04);
+            transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -560,62 +560,86 @@
             position: relative;
             overflow: hidden;
             pointer-events: auto;
+            min-height: 170px;
+        }
+
+        .shop-category-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #6366f1 0%, #818cf8 100%);
+            opacity: 0;
+            transition: opacity 0.28s ease;
+            border-radius: 22px 22px 0 0;
+        }
+
+        .shop-category-card:hover::after {
+            opacity: 1;
         }
 
         .shop-category-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 30px -10px rgba(99, 102, 241, 0.15);
-            border-color: #6366f1;
+            transform: translateY(-5px);
+            box-shadow: 0 20px 36px -10px rgba(99, 102, 241, 0.18), 0 4px 10px -2px rgba(0,0,0,0.08);
+            border-color: rgba(99, 102, 241, 0.35);
+            background: rgba(255, 255, 255, 0.97);
+        }
+
+        .shop-category-card:active {
+            transform: translateY(-2px) scale(0.99);
         }
 
         .shop-category-card .category-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
+            font-size: 42px;
+            margin-bottom: 12px;
             transition: transform 0.3s ease;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08));
         }
 
         .shop-category-card:hover .category-icon {
-            transform: scale(1.15) rotate(5deg);
+            transform: scale(1.18) rotate(4deg);
         }
 
         .shop-category-card h3 {
-            margin: 6px 0;
-            font-size: 18px;
+            margin: 0 0 6px 0;
+            font-size: 17px;
             font-weight: 800;
             color: #0f172a;
+            letter-spacing: 0.2px;
         }
 
         .shop-category-card p {
-            font-size: 12.5px;
+            font-size: 12px;
             color: #64748b;
-            margin: 4px 0 14px 0;
-            line-height: 1.5;
+            margin: 0 0 14px 0;
+            line-height: 1.55;
             text-align: center;
         }
 
         .shop-category-card .key-badge {
             font-size: 10.5px;
             font-weight: 800;
-            padding: 4px 10px;
-            background: rgba(99, 102, 241, 0.1);
+            padding: 5px 12px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.06) 100%);
             color: #4f46e5;
-            border-radius: 8px;
+            border-radius: 10px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.6px;
+            border: 1px solid rgba(99, 102, 241, 0.15);
             margin-top: auto;
         }
 
         /* Overlay sub-shop panel style */
         .subshop-overlay {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(248, 250, 252, 0.95);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            z-index: 110;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(248, 250, 252, 0.97);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 160;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -626,16 +650,16 @@
 
         .subshop-content {
             width: 100%;
-            max-width: 800px;
-            background: rgba(255, 255, 255, 0.75);
-            border: 1px solid rgba(226, 232, 240, 0.9);
-            border-radius: 24px;
-            padding: 28px;
-            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
+            max-width: 820px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1.5px solid rgba(226, 232, 240, 0.9);
+            border-radius: 26px;
+            padding: 32px 32px 24px 32px;
+            box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(255,255,255,0.8) inset;
             display: flex;
             flex-direction: column;
-            height: 85%;
-            max-height: 650px;
+            height: 82vh;
+            max-height: 680px;
             pointer-events: auto;
         }
 
@@ -731,6 +755,117 @@
         .ultimate-bar.cooldown {
             background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
         }
+
+        /* Pop Up Shop Modal & Backdrop Overlay */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 130;
+            transition: all 0.3s ease;
+        }
+
+        .shop-popup-container {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            transform: none !important;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: none !important;
+            max-height: none !important;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.97) 0%, rgba(248,250,252,0.99) 100%) !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            z-index: 100 !important;
+            overflow-y: auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            padding: 36px 36px 28px 36px !important;
+            animation: none !important;
+        }
+
+        #shop-modal.hidden 
+        {
+            display: none !important;
+        }
+
+        /* Sell Button Style */
+        .sell-btn {
+            padding: 8px 14px;
+            font-size: 11.5px;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+
+        .sell-btn:hover:not(:disabled) {
+            background: #cbd5e1;
+            color: #1e293b;
+            transform: scale(1.04);
+        }
+
+        .sell-btn:disabled {
+            background: #f1f5f9 !important;
+            color: #94a3b8 !important;
+            border-color: #e2e8f0 !important;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .sell-btn.border-cosmic {
+            border: 1px solid #99f6e4;
+        }
+
+        /* Multiplier Buttons */
+        .mult-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 800;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #475569;
+        }
+
+        .mult-btn:hover {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .mult-btn.active {
+            background: #4f46e5;
+            color: #ffffff;
+            border-color: #4f46e5;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+
+        /* Hack Terminal shake animation on error */
+        @keyframes hackShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+
+        .error-shake {
+            animation: hackShake 0.4s ease;
+        }
     </style>
 </head>
 
@@ -771,6 +906,7 @@
                 <span class="coin-text">🪙 <span id="run-coin">0</span></span>
                 <span class="cosmic-text">🔮 <span id="run-cosmic">0</span></span>
             </div>
+            <div id="cheat-hud-container" style="margin-top: 6px; font-size: 11px; color: #dc2626; font-weight: 800; display: none;"></div>
         </div>
     </div>
 
@@ -794,13 +930,19 @@
         <button class="btn" id="btn-reset-save">Reset Seluruh Save Data</button>
     </div>
 
-    <div id="shop-modal" class="menu-screen hidden">
+    <div id="shop-overlay-bg" class="modal-backdrop hidden" onclick="closeShopModal()"></div>
+    <div id="shop-modal" class="shop-popup-container hidden">
+        <div class="shop-multiplier-container" style="position: absolute; top: 20px; right: 20px; display: flex; gap: 6px; pointer-events: auto;">
+            <button class="mult-btn active" onclick="setShopMultiplier(1)">1x</button>
+            <button class="mult-btn" onclick="setShopMultiplier(3)">3x</button>
+            <button class="mult-btn" onclick="setShopMultiplier('max')">MAX</button>
+        </div>
         <h1>Toko Upgrade Evolusi</h1>
         <div class="currency-box">
             <span class="coin-text">🪙 Koin: <span id="shop-coin">0</span></span>
             <span class="cosmic-text">🔮 Cosmic: <span id="shop-cosmic">0</span></span>
         </div>
-        <button class="btn" id="btn-close-shop">KEMBALI KE MENU UTAMA</button>
+        <button class="btn" id="btn-close-shop" onclick="closeShopModal()">KEMBALI KE MENU UTAMA</button>
 
         <!-- Modern minimalist 2x2 grid -->
         <div id="shop-categories" class="shop-categories-grid">
@@ -829,14 +971,18 @@
                 <span class="key-badge">Pencet [4]</span>
             </div>
         </div>
+    </div>
 
-        <!-- Sleek Glassmorphism Sub-Shop Overlay -->
-        <div id="subshop-overlay" class="subshop-overlay hidden">
-            <div class="subshop-content">
-                <h2 id="subshop-title">Nama Kategori</h2>
-                <div class="panel-scroll" id="subshop-list"></div>
-                <button class="btn" id="btn-close-subshop" style="margin-top: 15px;">KEMBALI KE PILIHAN TOKO</button>
+    <!-- Sub-Shop Overlay — di LUAR shop-modal agar full-screen dan scroll benar -->
+    <div id="subshop-overlay" class="subshop-overlay hidden">
+        <div class="subshop-content">
+            <h2 id="subshop-title">Nama Kategori</h2>
+            <div class="currency-box" style="margin-bottom: 12px; font-size: 14px; padding: 6px 16px; align-self: center;">
+                <span class="coin-text">🪙 Koin: <span id="subshop-coin">0</span></span>
+                <span class="cosmic-text">🔮 Cosmic: <span id="subshop-cosmic">0</span></span>
             </div>
+            <div class="panel-scroll" id="subshop-list"></div>
+            <button class="btn" id="btn-close-subshop" onclick="closeSubShop()" style="margin-top: 15px; flex-shrink: 0;">KEMBALI KE PILIHAN TOKO</button>
         </div>
     </div>
 
@@ -893,6 +1039,81 @@
             <button class="btn" id="btn-exit-menu"
                 style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; width: 100%; margin: 0;">Kembali
                 ke Menu Utama</button>
+        </div>
+    </div>
+
+    <!-- Hack Terminal Popup -->
+    <div id="hack-overlay-bg" class="modal-backdrop hidden" onclick="closeHackModal()"></div>
+    <div id="hack-modal" class="hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; padding: 24px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); z-index: 200; font-family: monospace; color: #4ade80;">
+        <h3 style="margin-top: 0; margin-bottom: 12px; color: #ffffff; text-align: center; letter-spacing: 2px;">⚡ HACK TERMINAL ⚡</h3>
+        <p style="font-size: 11px; margin-bottom: 16px; color: #94a3b8; text-align: center; line-height: 1.4;">
+            Ketik kode cheat di bawah ini lalu tekan ENTER.<br>
+        </p>
+        <input type="text" id="hack-input" style="width: 100%; padding: 12px; background: #020617; border: 1px solid #22c55e; border-radius: 8px; color: #4ade80; font-family: monospace; font-size: 14px; text-transform: uppercase; outline: none; margin-bottom: 16px; text-align: center;" placeholder="Ketik kode cheat..." autocomplete="off" />
+        <div style="display: flex; justify-content: space-between; gap: 10px;">
+            <button class="btn" onclick="submitHack()" style="flex: 1; margin: 0; padding: 8px; font-size: 13px; background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); color: white; border-radius: 8px;">EXECUTE</button>
+            <button class="btn" onclick="closeHackModal()" style="flex: 1; margin: 0; padding: 8px; font-size: 13px; background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: white; border-radius: 8px;">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- Admin Panel Modal -->
+    <div id="admin-overlay-bg" class="modal-backdrop hidden" onclick="closeAdminModal()"></div>
+    <div id="admin-modal" class="hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 450px; max-height: 90%; overflow-y: auto; padding: 28px; background: rgba(15, 23, 42, 0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6); z-index: 250; font-family: 'Plus Jakarta Sans', sans-serif; color: #f1f5f9;">
+        <h2 style="margin-top: 0; margin-bottom: 18px; color: #ffffff; text-align: center; font-weight: 800; letter-spacing: 1px; background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🛠️ WEAPON CREATOR</h2>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; text-align: left;">
+            <div>
+                <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Nama Senjata</label>
+                <input type="text" id="admin-wpn-name" placeholder="Contoh: Laser Penghancur Rayhan" style="width: 100%; padding: 8px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+            </div>
+            
+            <div>
+                <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Deskripsi Senjata</label>
+                <input type="text" id="admin-wpn-desc" placeholder="Contoh: Menembak laser super kuat yang menembus musuh." style="width: 100%; padding: 8px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Damage Dasar</label>
+                    <input type="number" id="admin-wpn-dmg" value="25" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+                </div>
+                <div>
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Cooldown (Frame)</label>
+                    <input type="number" id="admin-wpn-cd" value="30" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Kecepatan Peluru</label>
+                    <input type="number" id="admin-wpn-speed" value="8" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+                </div>
+                <div>
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Pierce (Tembusan)</label>
+                    <input type="number" id="admin-wpn-pierce" value="1" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Warna Peluru</label>
+                    <input type="color" id="admin-wpn-color" value="#ff00ea" style="width: 100%; height: 35px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; cursor: pointer; padding: 2px;" />
+                </div>
+                <div>
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Ukuran Peluru</label>
+                    <input type="number" id="admin-wpn-size" value="6" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+                </div>
+            </div>
+            
+            <div>
+                <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Radius Ledakan AOE (0 = Tidak ada)</label>
+                <input type="number" id="admin-wpn-aoe" value="0" style="width: 100%; padding: 8px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+            </div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; gap: 12px;">
+            <button class="btn" onclick="createCustomWeapon()" style="flex: 1; margin: 0; padding: 10px; font-size: 14px; background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); color: white; border-radius: 8px;">CIPTAKAN</button>
+            <button class="btn" onclick="closeAdminModal()" style="flex: 1; margin: 0; padding: 10px; font-size: 14px; background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: white; border-radius: 8px;">BATAL</button>
         </div>
     </div>
 
@@ -980,7 +1201,10 @@
             highscoreTime: 0,
             highscoreLevel: 1,
             ownedUltimates: [],
-            equippedUltimate: null
+            equippedUltimate: null,
+            cheatGod: false,
+            cheatTriple: false,
+            cheatRayhan: false
         };
 
         for (let w in WEAPON_DEFS) {
@@ -1006,6 +1230,9 @@
         // Failsafe migration for Ultimate properties
         if (!saveData.ownedUltimates) saveData.ownedUltimates = [];
         if (saveData.equippedUltimate === undefined) saveData.equippedUltimate = null;
+        if (saveData.cheatGod === undefined) saveData.cheatGod = false;
+        if (saveData.cheatTriple === undefined) saveData.cheatTriple = false;
+        if (saveData.cheatRayhan === undefined) saveData.cheatRayhan = false;
 
         // Force all stats max levels to 25
         if (saveData.stats) {
@@ -1149,13 +1376,13 @@
         // OPTIMASI LOW-END LAPTOP
         // ==========================================
         // Batasi jumlah maksimum partikel aktif sekaligus agar GPU tidak kewalahan
-        const MAX_PARTICLES = 150;
-        const MAX_PROJECTILES = 200;
-        const MAX_DAMAGE_TEXTS = 30;
+        const MAX_PARTICLES = 80;
+        const MAX_PROJECTILES = 120;
+        const MAX_DAMAGE_TEXTS = 20;
 
         // Counter untuk throttle updateHUD — tidak perlu update DOM setiap frame
         let _hudUpdateCounter = 0;
-        const HUD_UPDATE_INTERVAL = 3; // update HUD setiap 3 frame sekali
+        const HUD_UPDATE_INTERVAL = 5; // update HUD setiap 5 frame sekali
 
         // ==========================================
         // SYSTEM ENGINE CONSTANTS & STATE
@@ -1182,10 +1409,14 @@
                         if (activeSubShop) {
                             closeSubShop();
                         } else {
-                            shopModal.classList.add('hidden');
+                            closeShopModal();
                         }
                     }
                 }
+            }
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                openHackModal();
             }
             if (gameState === 'playing' && player.dashCooldown <= 0) {
                 if (k === 'j') {
@@ -1204,16 +1435,6 @@
                 else if (e.key === '2') openSubShop('weapon');
                 else if (e.key === '3') openSubShop('artifact');
                 else if (e.key === '4') openSubShop('ultimate');
-            }
-            // Cheat untuk testing: Tekan tombol 'c' di menu utama/shop untuk menambah 50.000 koin & 100 cosmic
-            if (gameState === 'menu' && k === 'c') {
-                saveData.coins += 50000;
-                saveData.cosmicCoins += 100;
-                saveGame();
-                updateMenuUI();
-                if (activeSubShop) {
-                    renderSubShop();
-                }
             }
         });
         window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
@@ -1310,9 +1531,12 @@
         class Player {
             constructor() {
                 this.x = 0; this.y = 0; this.size = 18;
+                this.isGod = saveData.cheatGod || false;
+                this.isTripleSpeed = saveData.cheatTriple || false;
+                this.isRayhan = saveData.cheatRayhan || false;
                 this.maxHp = CONFIG.BASE_PLAYER_HP + (saveData.stats.hp.level * saveData.stats.hp.val);
                 this.hp = this.maxHp;
-                this.speed = CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val);
+                this.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (this.isRayhan ? 2 : 1);
                 this.baseDmgMulti = 1 + (saveData.stats.atk.level * saveData.stats.atk.val);
                 this.magnetArea = CONFIG.MAGNET_BASE_RANGE + (saveData.stats.magnet.level * saveData.stats.magnet.val);
 
@@ -1728,8 +1952,9 @@
                 ctx.shadowColor = 'rgba(15, 23, 42, 0.08)';
                 ctx.shadowBlur = 10;
                 ctx.shadowOffsetY = 4;
-                let visualColor = this.dashDuration > 0 ? '#6366f1' : '#1e293b';
-                drawHexagon(ctx, this.x, this.y, this.size, '#ffffff', visualColor, 3, frameCount * 0.04);
+                let fillCol = (this.isRayhan || saveData.cheatRayhan) ? '#8B4513' : '#ffffff';
+                let visualColor = (this.isRayhan || saveData.cheatRayhan) ? '#5C2E0B' : (this.dashDuration > 0 ? '#6366f1' : '#1e293b');
+                drawHexagon(ctx, this.x, this.y, this.size, fillCol, visualColor, 3, frameCount * 0.04);
                 ctx.restore();
 
                 let flameTexts = [];
@@ -1754,6 +1979,7 @@
                 this.weapons.forEach(w => w.draw(ctx));
             }
             takeDamage(amount) {
+                if (this.isGod || saveData.cheatGod) return; // GOD mode cheat
                 if (this.dashDuration > 0) return; // Ultimate Dasher Invincibility
                 if (this.reviveInvulnerableTimer > 0) return; // Invulnerability after revive
 
@@ -1833,7 +2059,9 @@
                 if (this.cooldown > 0) {
                     // Apply Chronos Watch cooldown reduction
                     let cdRed = player.artMods.cooldownReduction || 0;
-                    this.cooldown -= (1 + cdRed);
+                    let cdSub = 1 + cdRed;
+                    if (player.isTripleSpeed || saveData.cheatTriple) cdSub *= 3;
+                    this.cooldown -= cdSub;
                     if (this.cooldown > 0) return;
                 }
 
@@ -2268,6 +2496,29 @@
                         this.cooldown = 30;
                         break;
                     }
+                    default: {
+                        if (this.def && this.def.isCustom) {
+                            let cfg = this.def.customConfig;
+                            let target = getNearestEnemy(player.x, player.y, 600);
+                            let targetAng = target ? getAngle(player.x, player.y, target.x, target.y) : (player.lastMoveAngle || 0);
+                            fireBullet(
+                                player.x,
+                                player.y,
+                                targetAng,
+                                (cfg.damage + (this.level - 1) * (cfg.damage * 0.15)) * player.baseDmgMulti,
+                                cfg.speed,
+                                cfg.color,
+                                cfg.size,
+                                isCrit,
+                                cfg.pierce,
+                                false,
+                                false,
+                                cfg.aoe
+                            );
+                            this.cooldown = cfg.cooldown;
+                        }
+                        break;
+                    }
                 }
             }
             draw(ctx) {
@@ -2406,8 +2657,8 @@
 
         function pickUltimateBossVariant() {
             let roll = Math.random();
-            if (roll < 0.05) return ULTIMATE_BOSS_DEFS.strongest_history;
-            if (roll < 0.10) return ULTIMATE_BOSS_DEFS.strongest_today;
+            if (roll < 0.15) return ULTIMATE_BOSS_DEFS.strongest_history;
+            if (roll < 0.30) return ULTIMATE_BOSS_DEFS.strongest_today;
             const common = [ULTIMATE_BOSS_DEFS.enraged_beast, ULTIMATE_BOSS_DEFS.fire_shower, ULTIMATE_BOSS_DEFS.berserker];
             return common[Math.floor(Math.random() * common.length)];
         }
@@ -2609,8 +2860,36 @@
                     t.slash = (t.slash || 0) + 1;
                     if (t.slash >= 160) {
                         t.slash = 0;
-                        createPlayerStrikeEffect(e.x, e.y, 200, 45, 'rgba(99, 102, 241, 0.3)', { dashOnlyDodge: true });
-                        createDamageText(e.x, e.y - 20, 'SLASH! ⚔️ (Dash!)', e.stroke, 13);
+                        // 3 sequential slashes targeting player
+                        for (let sIdx = 0; sIdx < 3; sIdx++) {
+                            setTimeout(() => {
+                                if (gameState !== 'playing' || e.dead) return;
+                                let targetAngle = getAngle(e.x, e.y, player.x, player.y) + (Math.random() * 0.4 - 0.2);
+                                let slashLen = 350;
+                                let endX = e.x + Math.cos(targetAngle) * slashLen;
+                                let endY = e.y + Math.sin(targetAngle) * slashLen;
+                                
+                                entities.particles.push({
+                                    life: 15,
+                                    sx: e.x, sy: e.y, ex: endX, ey: endY,
+                                    update() { this.life--; },
+                                    draw(ctx) {
+                                        ctx.beginPath(); ctx.moveTo(this.sx, this.sy); ctx.lineTo(this.ex, this.ey);
+                                        ctx.strokeStyle = '#6366f1'; ctx.lineWidth = 14 * (this.life / 15); ctx.stroke();
+                                        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4 * (this.life / 15); ctx.stroke();
+                                    }
+                                });
+                                
+                                let d = pointToSegmentDistance(player.x, player.y, e.x, e.y, endX, endY);
+                                if (d < 30 + player.size && player.dashDuration <= 0) {
+                                    player.takeDamage(45);
+                                    let ka = getAngle(e.x, e.y, player.x, player.y);
+                                    player.x += Math.cos(ka) * 60;
+                                    player.y += Math.sin(ka) * 60;
+                                }
+                            }, sIdx * 150);
+                        }
+                        createDamageText(e.x, e.y - 20, 'SLASH! ⚔️', e.stroke, 13);
                     }
                     if (dist < e.size + player.size + 30 && !player.dismantleTimer) {
                         player.dismantleTimer = 180;
@@ -2626,10 +2905,10 @@
                         t.heavenly = 0;
                         fireEnemyBullet(e.x, e.y, ang, 50, 6.5, '#f59e0b', 10);
                         setTimeout(() => {
-                            if (gameState !== 'playing') return;
+                            if (gameState !== 'playing' || e.dead) return;
                             let tx = player.x, ty = player.y;
-                            createPlayerStrikeEffect(tx, ty, 100, 55, 'rgba(245, 158, 11, 0.45)');
-                            createParticles(tx, ty, '#f59e0b', 10);
+                            createPlayerStrikeEffect(tx, ty, 60, 65, 'rgba(245, 158, 11, 0.55)', { burn: true, burnDmg: 5 });
+                            createParticles(tx, ty, '#f59e0b', 12);
                         }, 450);
                         createDamageText(e.x, e.y - 20, 'HEAVENLY FLAME! 🏹', '#f59e0b', 14);
                     }
@@ -2640,43 +2919,112 @@
                     t.blueLapse = (t.blueLapse || 0) + 1;
                     if (t.blueLapse >= 200) {
                         t.blueLapse = 0;
+                        let blAng = getAngle(e.x, e.y, player.x, player.y);
                         entities.particles.push({
-                            id: 'ub_vortex', x: e.x, y: e.y, radius: 180, life: 150, pull: 3.5,
+                            id: 'boss_blue_lapse',
+                            x: e.x, y: e.y, radius: 140, life: 240, dmg: 35,
+                            vx: Math.cos(blAng) * 2.2, vy: Math.sin(blAng) * 2.2,
                             update() {
                                 this.life--;
+                                this.x += this.vx;
+                                this.y += this.vy;
                                 let d = getDistance(this.x, this.y, player.x, player.y);
-                                if (d < this.radius && d > 5) {
+                                if (d < this.radius) {
                                     let da = getAngle(player.x, player.y, this.x, this.y);
-                                    player.x += Math.cos(da) * this.pull;
-                                    player.y += Math.sin(da) * this.pull;
+                                    player.x += Math.cos(da) * 3.8;
+                                    player.y += Math.sin(da) * 3.8;
+                                    if (this.life % 10 === 0) {
+                                        player.takeDamage(this.dmg * 0.2);
+                                    }
                                 }
                             },
                             draw(ctx) {
-                                let pulse = 0.85 + 0.15 * Math.sin(frameCount * 0.12);
+                                let pulse = 0.85 + 0.15 * Math.sin(frameCount * 0.15);
                                 ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * pulse, 0, Math.PI * 2);
-                                ctx.fillStyle = 'rgba(15, 23, 42, 0.25)'; ctx.fill();
-                                ctx.strokeStyle = 'rgba(139, 92, 246, 0.5)'; ctx.lineWidth = 3; ctx.stroke();
+                                ctx.fillStyle = 'rgba(59, 130, 246, 0.15)'; ctx.fill();
+                                ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 3; ctx.stroke();
+                                ctx.beginPath(); ctx.arc(this.x, this.y, 16, 0, Math.PI * 2);
+                                ctx.fillStyle = '#1d4ed8'; ctx.fill();
                             }
                         });
-                        createDamageText(e.x, e.y - 20, 'BLUE LAPSE! 🌀', '#8b5cf6', 14);
+                        createDamageText(e.x, e.y - 20, 'BLUE LAPSE! 🌀', '#3b82f6', 14);
                     }
                     t.reversal = (t.reversal || 0) + 1;
                     if (t.reversal >= 170) {
                         t.reversal = 0;
-                        createPlayerStrikeEffect(e.x, e.y, 140, 50, 'rgba(220, 38, 38, 0.35)', { knockback: 90 });
+                        let redAng = getAngle(e.x, e.y, player.x, player.y);
+                        entities.particles.push({
+                            id: 'boss_reversal_red',
+                            x: e.x, y: e.y, radius: 20, life: 180, dmg: 75,
+                            vx: Math.cos(redAng) * 6.5, vy: Math.sin(redAng) * 6.5,
+                            update() {
+                                this.life--;
+                                this.x += this.vx;
+                                this.y += this.vy;
+                                
+                                let d = getDistance(this.x, this.y, player.x, player.y);
+                                if (d < this.radius + player.size) {
+                                    this.explode();
+                                    this.life = 0;
+                                } else if (this.life <= 0) {
+                                    this.explode();
+                                }
+                            },
+                            explode() {
+                                let explodeRadius = 180;
+                                createPlayerStrikeEffect(this.x, this.y, explodeRadius, this.dmg, 'rgba(220, 38, 38, 0.5)', { knockback: 200 });
+                                createParticles(this.x, this.y, '#dc2626', 25);
+                                createDamageText(this.x, this.y, "RED BURST! 💥🔴", '#dc2626', 18);
+                            },
+                            draw(ctx) {
+                                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                                ctx.fillStyle = '#dc2626'; ctx.fill();
+                                ctx.strokeStyle = '#f87171'; ctx.lineWidth = 2.5; ctx.stroke();
+                            }
+                        });
                         createDamageText(e.x, e.y - 20, 'REVERSAL RED! 🔴', '#dc2626', 14);
                     }
                     t.special = (t.special || 0) + 1;
                     if (t.special >= 240) {
                         t.special = 0;
-                        let roll = Math.random();
-                        if (roll < 0.05) {
-                            createPlayerStrikeEffect(player.x, player.y, 120, 0, 'rgba(168, 85, 247, 0.5)', { hpToOnePercent: true });
-                            createDamageText(player.x, player.y - 40, 'HOLLOW PURPLE! 🟣', '#a855f7', 22);
-                        } else if (roll < 0.10) {
-                            createPlayerStrikeEffect(e.x, e.y, 220, 0, 'rgba(168, 85, 247, 0.4)', { hpToOnePercent: true });
-                            createDamageText(e.x, e.y - 30, 'HOLLOW NUKE! 💥🟣', '#a855f7', 22);
-                        }
+                        let hpAng = getAngle(e.x, e.y, player.x, player.y);
+                        entities.particles.push({
+                            id: 'boss_hollow_purple',
+                            x: e.x, y: e.y, radius: 45, maxRadius: 320, life: 200, dmg: 90,
+                            vx: Math.cos(hpAng) * 2.8, vy: Math.sin(hpAng) * 2.8,
+                            update() {
+                                this.life--;
+                                this.x += this.vx;
+                                this.y += this.vy;
+                                if (this.radius < this.maxRadius) this.radius += 3.5;
+                                
+                                let dPlayer = getDistance(this.x, this.y, player.x, player.y);
+                                if (dPlayer < this.radius + player.size) {
+                                    if (this.life % 10 === 0) {
+                                        player.takeDamage(this.dmg * 0.4);
+                                    }
+                                }
+                                let radSq = this.radius * this.radius;
+                                for (let i = 0; i < entities.enemies.length; i++) {
+                                    let enemy = entities.enemies[i];
+                                    if (enemy && enemy !== e && !enemy.dead) {
+                                        let dEnemy = getDistanceSq(this.x, this.y, enemy.x, enemy.y);
+                                        if (dEnemy < radSq) {
+                                            enemy.takeDamage(9999);
+                                        }
+                                    }
+                                }
+                            },
+                            draw(ctx) {
+                                let alpha = 0.5 + 0.3 * Math.sin(frameCount * 0.2);
+                                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                                ctx.fillStyle = `rgba(139, 92, 246, ${alpha * 0.35})`; ctx.fill();
+                                ctx.strokeStyle = `rgba(168, 85, 247, ${alpha})`; ctx.lineWidth = 10; ctx.stroke();
+                                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * 0.6, 0, Math.PI * 2);
+                                ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'; ctx.fill();
+                            }
+                        });
+                        createDamageText(e.x, e.y - 30, 'HOLLOW PURPLE! 🟣', '#a855f7', 20);
                     }
                     break;
                 }
@@ -3119,7 +3467,7 @@
         }
 
         function handleSpawning() {
-            if (entities.enemies.length >= 250) return;
+            if (entities.enemies.length >= 150) return;
             let rate = Math.max(12, 55 - Math.floor(gameTime / 8));
             if (frameCount % rate === 0) {
                 let batch = 1 + Math.floor(gameTime / 24);
@@ -3173,6 +3521,7 @@
             pool.push({ type: 'stat', name: "Sembuh Total HP & Shield", desc: "Memulihkan kondisi HP dan Shield hingga penuh.", action: p => { p.hp = p.maxHp; p.shieldHp = p.artMods.maxShield; } });
             pool.push({ type: 'stat', name: "Suplemen Stamina (+15 HP)", desc: "Meningkatkan Max HP tempur sebesar 15.", action: p => { p.maxHp += 15; p.hp += 15; } });
             pool.push({ type: 'stat', name: "Sepatu Lari Kinetik (+10% Speed)", desc: "Kecepatan gerak player meningkat instan.", action: p => p.speed += 0.35 });
+            pool.push({ type: 'stat', name: "Suplemen Kekuatan (+10% Damage)", desc: "Meningkatkan damage senjata player sebesar 10%.", action: p => p.damageMult *= 1.10 });
 
             player.weapons.forEach(w => {
                 if (w.level < WEAPON_DEFS[w.id].max) pool.push({ type: 'upgrade_wpn', id: w.id, name: `Upgrade: ${w.def.name}`, desc: `Naikkan tingkat efektifitas senjata ini ke Lv ${w.level + 1}.`, instance: w });
@@ -3347,23 +3696,37 @@
             for (let y = (-camera.y % gSz); y < canvas.height; y += gSz) { ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); }
             ctx.stroke();
 
+            function inViewport(x, y, margin = 100) {
+                return x >= camera.x - margin && x <= camera.x + canvas.width + margin &&
+                       y >= camera.y - margin && y <= camera.y + canvas.height + margin;
+            }
+
             camera.apply(ctx);
-            // Ganti .forEach dengan loop for konvensional untuk performa render
+            // Conventional loops with viewport culling for performance
             for (let i = 0; i < entities.drops.length; i++) {
-                entities.drops[i].draw(ctx);
+                let drop = entities.drops[i];
+                if (inViewport(drop.x, drop.y, 50)) drop.draw(ctx);
             }
             for (let i = 0; i < entities.particles.length; i++) {
-                entities.particles[i].draw(ctx);
+                let p = entities.particles[i];
+                if (p.x !== undefined && p.y !== undefined) {
+                    if (inViewport(p.x, p.y, 100)) p.draw(ctx);
+                } else {
+                    p.draw(ctx); // fallback for fullscreen or special particles without x/y
+                }
             }
             for (let i = 0; i < entities.projectiles.length; i++) {
-                entities.projectiles[i].draw(ctx);
+                let proj = entities.projectiles[i];
+                if (inViewport(proj.x, proj.y, 50)) proj.draw(ctx);
             }
             for (let i = 0; i < entities.enemies.length; i++) {
-                entities.enemies[i].draw(ctx);
+                let enemy = entities.enemies[i];
+                if (inViewport(enemy.x, enemy.y, 100)) enemy.draw(ctx);
             }
             player.draw(ctx);
             for (let i = 0; i < entities.damageTexts.length; i++) {
-                entities.damageTexts[i].draw(ctx);
+                let dt = entities.damageTexts[i];
+                if (inViewport(dt.x, dt.y, 50)) dt.draw(ctx);
             }
             camera.reset(ctx);
 
@@ -3387,6 +3750,19 @@
             document.getElementById('dash-text').style.color = player.dashCooldown <= 0 ? "#10b981" : "#ef4444";
             document.getElementById('exp-bar').style.width = `${(currentExp / expNeeded) * 100}%`;
             document.getElementById('level-text').innerText = `LVL ${currentLevel}`;
+
+            // Cheat Indicators
+            const cheatHud = document.getElementById('cheat-hud-container');
+            let activeCheats = [];
+            if (saveData.cheatGod) activeCheats.push("GOD");
+            if (saveData.cheatTriple) activeCheats.push("TRIPLE");
+            if (saveData.cheatRayhan) activeCheats.push("RAYHAN");
+            if (activeCheats.length > 0) {
+                cheatHud.innerText = `CHEAT: ${activeCheats.join(' | ')}`;
+                cheatHud.style.display = 'block';
+            } else {
+                cheatHud.style.display = 'none';
+            }
 
             // Update Ultimate HUD
             const ultHud = document.getElementById('ultimate-hud');
@@ -3450,10 +3826,20 @@
         // TOKO UPGRADE MODAL POPUP & META PROGRESSION
         // ==========================================
         function initMenu() {
-            updateMenuUI();
-            document.getElementById('main-menu').classList.remove('hidden');
+            // Reset sub-shop state
+            activeSubShop = null;
+            document.getElementById('subshop-overlay').classList.add('hidden');
+            document.getElementById('shop-overlay-bg').classList.add('hidden');
             document.getElementById('shop-modal').classList.add('hidden');
+            // Hide all game HUD
             document.getElementById('ui-layer').querySelectorAll('.hud, #exp-container').forEach(el => el.classList.add('hidden'));
+            // Show main menu
+            document.getElementById('main-menu').classList.remove('hidden');
+            // Ensure all other screens are hidden
+            document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('pause-screen').classList.add('hidden');
+            document.getElementById('levelup-screen').classList.add('hidden');
+            updateMenuUI();
         }
 
         function updateMenuUI() {
@@ -3472,6 +3858,35 @@
 
         // Sistem Navigasi Sub-Toko Kategori
         let activeSubShop = null;
+        let shopMultiplier = 1;
+
+        window.openShopModal = function() {
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('shop-overlay-bg').classList.add('hidden'); // tidak dipakai untuk shop
+            document.getElementById('shop-modal').classList.remove('hidden');
+            updateMenuUI();
+        };
+
+        window.closeShopModal = function() {
+            activeSubShop = null;
+            document.getElementById('subshop-overlay').classList.add('hidden');
+            document.getElementById('shop-overlay-bg').classList.add('hidden');
+            document.getElementById('shop-modal').classList.add('hidden');
+            document.getElementById('main-menu').classList.remove('hidden');
+            updateMenuUI();
+        };
+
+        window.setShopMultiplier = function(val) {
+            shopMultiplier = val;
+            document.querySelectorAll('.mult-btn').forEach(btn => {
+                if (btn.innerText.toLowerCase() === (val === 'max' ? 'max' : val + 'x')) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            if (activeSubShop) renderSubShop();
+        };
 
         window.openSubShop = function(cat) {
             activeSubShop = cat;
@@ -3485,9 +3900,184 @@
             updateMenuUI();
         };
 
-        document.getElementById('btn-close-subshop').onclick = () => {
-            closeSubShop();
-        };
+        document.getElementById('btn-close-subshop').addEventListener('click', () => closeSubShop());
+
+        // Purchase Plan Calculators
+        function getStatPurchasePlan(k) {
+            let st = saveData.stats[k];
+            let currentLevel = st.level;
+            let maxLevel = st.max;
+            let costBase = st.costBase;
+            let coins = saveData.coins;
+            
+            let mult = shopMultiplier;
+            let maxPossible = maxLevel - currentLevel;
+            let targetCount = (mult === 'max') ? maxPossible : Math.min(mult, maxPossible);
+            
+            let count = 0;
+            let cost = 0;
+            for (let i = 0; i < targetCount; i++) {
+                let nextLevelCost = costBase * (currentLevel + i + 1);
+                if (mult === 'max') {
+                    if (coins >= cost + nextLevelCost) {
+                        cost += nextLevelCost;
+                        count++;
+                    } else {
+                        break;
+                    }
+                } else {
+                    if (coins >= cost + nextLevelCost) {
+                        cost += nextLevelCost;
+                        count++;
+                    } else {
+                        if (count === 0) cost = nextLevelCost;
+                        break;
+                    }
+                }
+            }
+            if (count === 0 && maxPossible > 0 && cost === 0) {
+                cost = costBase * (currentLevel + 1);
+            }
+            return { count, cost, maxed: currentLevel >= maxLevel };
+        }
+
+        function getWeaponPurchasePlan(k) {
+            let wp = saveData.weapons[k];
+            let info = WEAPON_DEFS[k];
+            let currentLevel = wp.level;
+            let maxLevel = info.max;
+            let costBase = wp.costBase;
+            let cosmic = saveData.cosmicCoins;
+            
+            let mult = shopMultiplier;
+            let maxPossible = maxLevel - currentLevel;
+            let targetCount = (mult === 'max') ? maxPossible : Math.min(mult, maxPossible);
+            
+            let count = 0;
+            let cost = 0;
+            for (let i = 0; i < targetCount; i++) {
+                let nextLevelCost = costBase * (currentLevel + i + 1);
+                if (mult === 'max') {
+                    if (cosmic >= cost + nextLevelCost) {
+                        cost += nextLevelCost;
+                        count++;
+                    } else {
+                        break;
+                    }
+                } else {
+                    if (cosmic >= cost + nextLevelCost) {
+                        cost += nextLevelCost;
+                        count++;
+                    } else {
+                        if (count === 0) cost = nextLevelCost;
+                        break;
+                    }
+                }
+            }
+            if (count === 0 && maxPossible > 0 && cost === 0) {
+                cost = costBase * (currentLevel + 1);
+            }
+            return { count, cost, maxed: currentLevel >= maxLevel };
+        }
+
+        function getArtifactPurchasePlan(k) {
+            let art = saveData.artifacts[k];
+            let info = ARTIFACT_DEFS[k];
+            let currentLevel = art.level;
+            let maxLevel = info.max;
+            let costBase = info.costBase;
+            let coins = saveData.coins;
+            
+            let mult = shopMultiplier;
+            let maxPossible = maxLevel - currentLevel;
+            let targetCount = (mult === 'max') ? maxPossible : Math.min(mult, maxPossible);
+            
+            let count = 0;
+            let cost = 0;
+            for (let i = 0; i < targetCount; i++) {
+                let nextLevelCost = costBase * (currentLevel + i + 1);
+                if (mult === 'max') {
+                    if (coins >= cost + nextLevelCost) {
+                        cost += nextLevelCost;
+                        count++;
+                    } else {
+                        break;
+                    }
+                } else {
+                    if (coins >= cost + nextLevelCost) {
+                        cost += nextLevelCost;
+                        count++;
+                    } else {
+                        if (count === 0) cost = nextLevelCost;
+                        break;
+                    }
+                }
+            }
+            if (count === 0 && maxPossible > 0 && cost === 0) {
+                cost = costBase * (currentLevel + 1);
+            }
+            return { count, cost, maxed: currentLevel >= maxLevel };
+        }
+
+        // Sell Plan Calculators
+        function getStatSellPlan(k) {
+            let st = saveData.stats[k];
+            let currentLevel = st.level;
+            let costBase = st.costBase;
+            
+            let mult = shopMultiplier;
+            let maxPossible = currentLevel;
+            let targetCount = (mult === 'max') ? maxPossible : Math.min(mult, maxPossible);
+            
+            let count = 0;
+            let refund = 0;
+            for (let i = 0; i < targetCount; i++) {
+                let levelCost = costBase * (currentLevel - i);
+                refund += Math.floor(levelCost * 0.7);
+                count++;
+            }
+            return { count, refund };
+        }
+
+        function getWeaponSellPlan(k) {
+            let wp = saveData.weapons[k];
+            let minLevel = (k === 'pistol') ? 1 : 0;
+            let currentLevel = wp.level;
+            let costBase = wp.costBase;
+            
+            let mult = shopMultiplier;
+            let maxPossible = Math.max(0, currentLevel - minLevel);
+            let targetCount = (mult === 'max') ? maxPossible : Math.min(mult, maxPossible);
+            
+            let count = 0;
+            let refund = 0;
+            for (let i = 0; i < targetCount; i++) {
+                let levelCost = costBase * (currentLevel - i);
+                refund += Math.floor(levelCost * 0.7);
+                count++;
+            }
+            return { count, refund };
+        }
+
+        function getArtifactSellPlan(k) {
+            let art = saveData.artifacts[k];
+            let currentLevel = art.level;
+            let info = ARTIFACT_DEFS[k];
+            let costBase = info.costBase;
+            
+            let mult = shopMultiplier;
+            let maxPossible = currentLevel;
+            let targetCount = (mult === 'max') ? maxPossible : Math.min(mult, maxPossible);
+            
+            let count = 0;
+            let refund = 0;
+            for (let i = 0; i < targetCount; i++) {
+                let levelCost = costBase * (currentLevel - i);
+                refund += Math.floor(levelCost * 0.7);
+                count++;
+            }
+            return { count, refund };
+        }
 
         function renderSubShop() {
             if (!activeSubShop) return;
@@ -3496,21 +4086,27 @@
             const listEl = document.getElementById('subshop-list');
             listEl.innerHTML = '';
 
-            // Sinkronkan koin pada header
+            // Sinkronkan koin pada header dan overlay
             document.getElementById('shop-coin').innerText = saveData.coins;
             document.getElementById('shop-cosmic').innerText = saveData.cosmicCoins;
+            document.getElementById('subshop-coin').innerText = saveData.coins;
+            document.getElementById('subshop-cosmic').innerText = saveData.cosmicCoins;
 
             if (activeSubShop === 'stat') {
                 titleEl.innerText = "Statistik Utama (Koin)";
                 for (let k in saveData.stats) {
                     let st = saveData.stats[k];
-                    let cost = st.costBase * (st.level + 1);
-                    let maxed = st.level >= st.max;
+                    let plan = getStatPurchasePlan(k);
+                    let sellPlan = getStatSellPlan(k);
+                    let costLabel = plan.maxed ? 'MAX' : `${plan.cost} Koin`;
+                    let sellDisabled = sellPlan.count === 0;
+
                     listEl.innerHTML += `
                         <div class="upgrade-item"><div class="upgrade-row">
                             <div class="upgrade-cell-left"><strong>${st.name}</strong><br><small>Lv ${st.level}/${st.max}</small></div>
-                            <div class="upgrade-cell-right">
-                                <button ${maxed || saveData.coins < cost ? 'disabled' : ''} onclick="buyStat('${k}'); renderSubShop();">${maxed ? 'MAX' : cost + ' Koin'}</button>
+                            <div class="upgrade-cell-right" style="display: flex; gap: 8px; align-items: center;">
+                                <button class="sell-btn" ${sellDisabled ? 'disabled' : ''} onclick="sellStat('${k}', ${sellPlan.count}, ${sellPlan.refund}); renderSubShop();">Jual -${sellPlan.count} (+${sellPlan.refund} 🪙)</button>
+                                <button ${plan.maxed || saveData.coins < plan.cost ? 'disabled' : ''} onclick="buyStat('${k}', ${plan.count}, ${plan.cost}); renderSubShop();">Beli +${plan.count} (${costLabel})</button>
                             </div>
                         </div></div>`;
                 }
@@ -3520,8 +4116,10 @@
                     let wp = saveData.weapons[k];
                     let info = WEAPON_DEFS[k];
                     if (!info) continue;
-                    let cost = wp.costBase * (wp.level + 1);
-                    let maxed = wp.level >= info.max;
+                    let plan = getWeaponPurchasePlan(k);
+                    let sellPlan = getWeaponSellPlan(k);
+                    let costLabel = plan.maxed ? 'MAX' : `${plan.cost} Cosmic`;
+                    let sellDisabled = sellPlan.count === 0;
                     let statusTag = wp.level > 0 ? `<span style="color:#10b981; font-weight:700;">[Aktif]</span>` : `<span style="color:#8b5cf6;">[Terkunci]</span>`;
 
                     listEl.innerHTML += `
@@ -3531,8 +4129,9 @@
                                 <small style="color:#666; display:block; margin: 2px 0;">${info.desc}</small>
                                 <small>Level Mulai: Lv +${wp.level}/${info.max}</small>
                             </div>
-                            <div class="upgrade-cell-right">
-                                <button class="cosmic-btn" ${maxed || saveData.cosmicCoins < cost ? 'disabled' : ''} onclick="buyWeapon('${k}'); renderSubShop();">${maxed ? 'MAX' : cost + ' Cosmic'}</button>
+                            <div class="upgrade-cell-right" style="display: flex; gap: 8px; align-items: center;">
+                                <button class="sell-btn border-cosmic" ${sellDisabled ? 'disabled' : ''} onclick="sellWeapon('${k}', ${sellPlan.count}, ${sellPlan.refund}); renderSubShop();">Jual -${sellPlan.count} (+${sellPlan.refund} 🔮)</button>
+                                <button class="cosmic-btn" ${plan.maxed || saveData.cosmicCoins < plan.cost ? 'disabled' : ''} onclick="buyWeapon('${k}', ${plan.count}, ${plan.cost}); renderSubShop();">Beli +${plan.count} (${costLabel})</button>
                             </div>
                         </div></div>`;
                 }
@@ -3542,8 +4141,10 @@
                     if (!saveData.artifacts[k]) saveData.artifacts[k] = { level: 0 };
                     let art = saveData.artifacts[k];
                     let info = ARTIFACT_DEFS[k];
-                    let cost = info.costBase * (art.level + 1);
-                    let maxed = art.level >= info.max;
+                    let plan = getArtifactPurchasePlan(k);
+                    let sellPlan = getArtifactSellPlan(k);
+                    let costLabel = plan.maxed ? 'MAX' : `${plan.cost} Koin`;
+                    let sellDisabled = sellPlan.count === 0;
 
                     listEl.innerHTML += `
                         <div class="upgrade-item"><div class="upgrade-row">
@@ -3552,8 +4153,9 @@
                                 <small style="color:#666; display:block; margin: 2px 0;">${info.desc}</small>
                                 <small>Tingkat: Lv ${art.level}/${info.max}</small>
                             </div>
-                            <div class="upgrade-cell-right">
-                                <button class="art-btn" ${maxed || saveData.coins < cost ? 'disabled' : ''} onclick="buyArtifact('${k}'); renderSubShop();">${maxed ? 'MAX' : cost + ' Koin'}</button>
+                            <div class="upgrade-cell-right" style="display: flex; gap: 8px; align-items: center;">
+                                <button class="sell-btn" ${sellDisabled ? 'disabled' : ''} onclick="sellArtifact('${k}', ${sellPlan.count}, ${sellPlan.refund}); renderSubShop();">Jual -${sellPlan.count} (+${sellPlan.refund} 🪙)</button>
+                                <button class="art-btn" ${plan.maxed || saveData.coins < plan.cost ? 'disabled' : ''} onclick="buyArtifact('${k}', ${plan.count}, ${plan.cost}); renderSubShop();">Beli +${plan.count} (${costLabel})</button>
                             </div>
                         </div></div>`;
                 }
@@ -3623,13 +4225,8 @@
             }
         };
 
-        document.getElementById('btn-open-shop').onclick = () => {
-            document.getElementById('shop-modal').classList.remove('hidden');
-            document.getElementById('subshop-overlay').classList.add('hidden');
-            activeSubShop = null;
-            updateMenuUI();
-        };
-        document.getElementById('btn-close-shop').onclick = () => { document.getElementById('shop-modal').classList.add('hidden'); };
+        document.getElementById('btn-open-shop').addEventListener('click', () => openShopModal());
+        document.getElementById('btn-close-shop').addEventListener('click', () => closeShopModal());
 
         // Bind Pause menu options
         document.getElementById('btn-resume').onclick = () => {
@@ -3647,17 +4244,56 @@
             initMenu();
         };
 
-        window.buyStat = function (k) {
-            let st = saveData.stats[k], cost = st.costBase * (st.level + 1);
-            if (saveData.coins >= cost && st.level < st.max) { saveData.coins -= cost; st.level++; saveGame(); }
+        window.buyStat = function (k, count, cost) {
+            let st = saveData.stats[k];
+            if (saveData.coins >= cost && st.level < st.max) {
+                saveData.coins -= cost;
+                st.level += count;
+                saveGame();
+            }
         };
-        window.buyWeapon = function (k) {
-            let wp = saveData.weapons[k], cost = wp.costBase * (wp.level + 1);
-            if (saveData.cosmicCoins >= cost && wp.level < WEAPON_DEFS[k].max) { saveData.cosmicCoins -= cost; wp.level++; saveGame(); }
+        window.sellStat = function (k, count, refund) {
+            let st = saveData.stats[k];
+            if (st.level >= count) {
+                st.level -= count;
+                saveData.coins += refund;
+                saveGame();
+            }
         };
-        window.buyArtifact = function (k) {
-            let art = saveData.artifacts[k], cost = ARTIFACT_DEFS[k].costBase * (art.level + 1);
-            if (saveData.coins >= cost && art.level < ARTIFACT_DEFS[k].max) { saveData.coins -= cost; art.level++; saveGame(); }
+
+        window.buyWeapon = function (k, count, cost) {
+            let wp = saveData.weapons[k];
+            if (saveData.cosmicCoins >= cost && wp.level < WEAPON_DEFS[k].max) {
+                saveData.cosmicCoins -= cost;
+                wp.level += count;
+                saveGame();
+            }
+        };
+        window.sellWeapon = function (k, count, refund) {
+            let wp = saveData.weapons[k];
+            let minLevel = (k === 'pistol') ? 1 : 0;
+            if (wp.level - count >= minLevel) {
+                wp.level -= count;
+                saveData.cosmicCoins += refund;
+                saveGame();
+            }
+        };
+
+        window.buyArtifact = function (k, count, cost) {
+            let art = saveData.artifacts[k];
+            if (saveData.coins >= cost && art.level < ARTIFACT_DEFS[k].max) {
+                saveData.coins -= cost;
+                art.level += count;
+                saveGame();
+            }
+        };
+        window.sellArtifact = function (k, count, refund) {
+            let art = saveData.artifacts[k];
+            if (art.level >= count) {
+                art.level -= count;
+                saveData.coins += refund;
+                saveGame();
+            }
         };
 
         document.getElementById('btn-reset-save').onclick = () => {
@@ -3694,7 +4330,10 @@
             requestAnimationFrame(gameLoop);
         };
 
-        document.getElementById('btn-back-menu').onclick = () => { document.getElementById('game-over-screen').classList.add('hidden'); initMenu(); };
+        document.getElementById('btn-back-menu').onclick = function() {
+            document.getElementById('game-over-screen').classList.add('hidden');
+            initMenu();
+        };
 
         // ==========================================
         // ULTIMATE WEAPONS LOGIC HANDLERS
@@ -4134,6 +4773,148 @@
             updateHUD();
         }
 
+        // ==========================================
+        // HACK TERMINAL & ADMIN WEAPON CREATOR LOGIC
+        // ==========================================
+        window.openHackModal = function() {
+            document.getElementById('hack-overlay-bg').classList.remove('hidden');
+            document.getElementById('hack-modal').classList.remove('hidden');
+            let inp = document.getElementById('hack-input');
+            inp.value = '';
+            inp.style.borderColor = '#22c55e';
+            inp.focus();
+            if (gameState === 'playing') {
+                pauseGame();
+            }
+        };
+
+        window.closeHackModal = function() {
+            document.getElementById('hack-overlay-bg').classList.add('hidden');
+            document.getElementById('hack-modal').classList.add('hidden');
+            if (gameState === 'paused' && document.getElementById('pause-screen').classList.contains('hidden')) {
+                resumeGame();
+            }
+        };
+
+        window.submitHack = function() {
+            let inp = document.getElementById('hack-input');
+            let code = inp.value.trim().toUpperCase();
+            if (!code) return;
+
+            let handled = false;
+            if (code === 'OF-CAM MINING') {
+                saveData.coins = 999999999;
+                saveData.cosmicCoins = 999999999;
+                saveGame();
+                updateMenuUI();
+                if (activeSubShop) renderSubShop();
+                createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, "⚡ INFINITE COINS ACTIVE! ✨", '#fbbf24', 16);
+                handled = true;
+            } else if (code === 'GOD') {
+                saveData.cheatGod = !saveData.cheatGod;
+                if (player) player.isGod = saveData.cheatGod;
+                createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `🛡️ GOD MODE: ${saveData.cheatGod ? 'ON' : 'OFF'}`, '#ef4444', 16);
+                handled = true;
+            } else if (code === 'TRIPLE') {
+                saveData.cheatTriple = !saveData.cheatTriple;
+                if (player) player.isTripleSpeed = saveData.cheatTriple;
+                createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `⚡ TRIPLE SPEED: ${saveData.cheatTriple ? 'ON' : 'OFF'}`, '#38bdf8', 16);
+                handled = true;
+            } else if (code === 'RAYHAN') {
+                saveData.cheatRayhan = !saveData.cheatRayhan;
+                if (player) {
+                    player.isRayhan = saveData.cheatRayhan;
+                    player.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (player.isRayhan ? 2 : 1);
+                }
+                createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `🟫 RAYHAN MODE: ${saveData.cheatRayhan ? 'ON' : 'OFF'} 🚀`, '#d97706', 16);
+                handled = true;
+            } else if (code === 'ADMIN') {
+                closeHackModal();
+                openAdminPanel();
+                handled = true;
+            }
+
+            if (handled) {
+                inp.style.borderColor = '#22c55e';
+                setTimeout(() => {
+                    closeHackModal();
+                }, 800);
+            } else {
+                inp.style.borderColor = '#ef4444';
+                inp.classList.add('error-shake');
+                setTimeout(() => {
+                    inp.classList.remove('error-shake');
+                }, 500);
+            }
+        };
+
+        document.getElementById('hack-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                submitHack();
+            }
+        });
+
+        window.openAdminPanel = function() {
+            document.getElementById('admin-overlay-bg').classList.remove('hidden');
+            document.getElementById('admin-modal').classList.remove('hidden');
+            if (gameState === 'playing') {
+                pauseGame();
+            }
+        };
+
+        window.closeAdminModal = function() {
+            document.getElementById('admin-overlay-bg').classList.add('hidden');
+            document.getElementById('admin-modal').classList.add('hidden');
+            if (gameState === 'paused' && document.getElementById('pause-screen').classList.contains('hidden')) {
+                resumeGame();
+            }
+        };
+
+        window.createCustomWeapon = function() {
+            let name = document.getElementById('admin-wpn-name').value.trim();
+            let desc = document.getElementById('admin-wpn-desc').value.trim();
+            let dmg = parseFloat(document.getElementById('admin-wpn-dmg').value) || 25;
+            let cd = parseInt(document.getElementById('admin-wpn-cd').value) || 30;
+            let speed = parseFloat(document.getElementById('admin-wpn-speed').value) || 8;
+            let pierce = parseInt(document.getElementById('admin-wpn-pierce').value) || 1;
+            let color = document.getElementById('admin-wpn-color').value;
+            let size = parseFloat(document.getElementById('admin-wpn-size').value) || 6;
+            let aoe = parseFloat(document.getElementById('admin-wpn-aoe').value) || 0;
+
+            if (!name) name = "Custom Weapon";
+            if (!desc) desc = "Senjata rancangan khusus admin.";
+
+            let id = "custom_" + Date.now();
+
+            WEAPON_DEFS[id] = {
+                name: name,
+                max: 10,
+                costBase: 1,
+                desc: desc,
+                isCustom: true,
+                customConfig: {
+                    damage: dmg,
+                    cooldown: cd,
+                    speed: speed,
+                    color: color,
+                    size: size,
+                    pierce: pierce,
+                    aoe: aoe
+                }
+            };
+
+            saveData.weapons[id] = { level: 1, max: 10, costBase: 1 };
+            saveGame();
+
+            if (player) {
+                player.weapons.push(new WeaponInstance(id, 1));
+            }
+
+            createDamageText(player ? player.x : 0, player ? player.y - 50 : 0, `🛠️ CUSTOM WEAPON CREATED: ${name}! ✨`, '#a855f7', 16);
+            closeAdminModal();
+        };
+
+        // Ensure initMenu is called on page load
         initMenu();
     </script>
 </body>
