@@ -1064,12 +1064,12 @@
         <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; text-align: left;">
             <div>
                 <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Nama Senjata</label>
-                <input type="text" id="admin-wpn-name" placeholder="Contoh: Laser Penghancur Rayhan" style="width: 100%; padding: 8px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+                <input type="text" id="admin-wpn-name" placeholder="Lorem Ipsum" style="width: 100%; padding: 8px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
             </div>
             
             <div>
                 <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Deskripsi Senjata</label>
-                <input type="text" id="admin-wpn-desc" placeholder="Contoh: Menembak laser super kuat yang menembus musuh." style="width: 100%; padding: 8px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+                <input type="text" id="admin-wpn-desc" placeholder="Lorem Ipsum" style="width: 100%; padding: 8px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
             </div>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -1204,7 +1204,7 @@
             equippedUltimate: null,
             cheatGod: false,
             cheatTriple: false,
-            cheatRayhan: false
+            cheatSpeed: false
         };
 
         for (let w in WEAPON_DEFS) {
@@ -1232,7 +1232,7 @@
         if (saveData.equippedUltimate === undefined) saveData.equippedUltimate = null;
         if (saveData.cheatGod === undefined) saveData.cheatGod = false;
         if (saveData.cheatTriple === undefined) saveData.cheatTriple = false;
-        if (saveData.cheatRayhan === undefined) saveData.cheatRayhan = false;
+        if (saveData.cheatSpeed === undefined) saveData.cheatSpeed = false;
 
         // Force all stats max levels to 25
         if (saveData.stats) {
@@ -1533,10 +1533,10 @@
                 this.x = 0; this.y = 0; this.size = 18;
                 this.isGod = saveData.cheatGod || false;
                 this.isTripleSpeed = saveData.cheatTriple || false;
-                this.isRayhan = saveData.cheatRayhan || false;
+                this.isSpeed = saveData.cheatSpeed || false;
                 this.maxHp = CONFIG.BASE_PLAYER_HP + (saveData.stats.hp.level * saveData.stats.hp.val);
                 this.hp = this.maxHp;
-                this.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (this.isRayhan ? 2 : 1);
+                this.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (this.isSpeed ? 2 : 1);
                 this.baseDmgMulti = 1 + (saveData.stats.atk.level * saveData.stats.atk.val);
                 this.magnetArea = CONFIG.MAGNET_BASE_RANGE + (saveData.stats.magnet.level * saveData.stats.magnet.val);
 
@@ -1952,8 +1952,8 @@
                 ctx.shadowColor = 'rgba(15, 23, 42, 0.08)';
                 ctx.shadowBlur = 10;
                 ctx.shadowOffsetY = 4;
-                let fillCol = (this.isRayhan || saveData.cheatRayhan) ? '#8B4513' : '#ffffff';
-                let visualColor = (this.isRayhan || saveData.cheatRayhan) ? '#5C2E0B' : (this.dashDuration > 0 ? '#6366f1' : '#1e293b');
+                let fillCol = (this.isSpeed || saveData.cheatSpeed) ? '#8B4513' : '#ffffff';
+                let visualColor = (this.isSpeed || saveData.cheatSpeed) ? '#5C2E0B' : (this.dashDuration > 0 ? '#6366f1' : '#1e293b');
                 drawHexagon(ctx, this.x, this.y, this.size, fillCol, visualColor, 3, frameCount * 0.04);
                 ctx.restore();
 
@@ -3756,7 +3756,7 @@
             let activeCheats = [];
             if (saveData.cheatGod) activeCheats.push("GOD");
             if (saveData.cheatTriple) activeCheats.push("TRIPLE");
-            if (saveData.cheatRayhan) activeCheats.push("RAYHAN");
+            if (saveData.cheatSpeed) activeCheats.push("SPEED");
             if (activeCheats.length > 0) {
                 cheatHud.innerText = `CHEAT: ${activeCheats.join(' | ')}`;
                 cheatHud.style.display = 'block';
@@ -4820,13 +4820,13 @@
                 if (player) player.isTripleSpeed = saveData.cheatTriple;
                 createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `⚡ TRIPLE SPEED: ${saveData.cheatTriple ? 'ON' : 'OFF'}`, '#38bdf8', 16);
                 handled = true;
-            } else if (code === 'RAYHAN') {
-                saveData.cheatRayhan = !saveData.cheatRayhan;
+            } else if (code === 'SPEED') {
+                saveData.cheatSpeed = !saveData.cheatSpeed;
                 if (player) {
-                    player.isRayhan = saveData.cheatRayhan;
-                    player.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (player.isRayhan ? 2 : 1);
+                    player.isSpeed= saveData.cheatSpeed;
+                    player.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (player.isSpeed ? 2 : 1);
                 }
-                createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `🟫 RAYHAN MODE: ${saveData.cheatRayhan ? 'ON' : 'OFF'} 🚀`, '#d97706', 16);
+                createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `🟫 SPEED MODE: ${saveData.cheatSpeed ? 'ON' : 'OFF'} 🚀`, '#d97706', 16);
                 handled = true;
             } else if (code === 'ADMIN') {
                 closeHackModal();
