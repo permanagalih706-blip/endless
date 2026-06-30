@@ -1059,8 +1059,14 @@
     <!-- Admin Panel Modal -->
     <div id="admin-overlay-bg" class="modal-backdrop hidden" onclick="closeAdminModal()"></div>
     <div id="admin-modal" class="hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 450px; max-height: 90%; overflow-y: auto; padding: 28px; background: rgba(15, 23, 42, 0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6); z-index: 250; font-family: 'Plus Jakarta Sans', sans-serif; color: #f1f5f9;">
-        <h2 style="margin-top: 0; margin-bottom: 18px; color: #ffffff; text-align: center; font-weight: 800; letter-spacing: 1px; background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🛠️ WEAPON CREATOR</h2>
-        
+        <h2 style="margin-top: 0; margin-bottom: 14px; color: #ffffff; text-align: center; font-weight: 800; letter-spacing: 1px; background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🛠️ ADMIN WEAPON PANEL</h2>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+            <button class="btn" id="admin-tab-btn-creator" onclick="switchAdminTab('creator')" style="flex: 1; margin: 0; padding: 8px; font-size: 12px; font-weight: 800; background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); color: white; border-radius: 8px;">CREATOR</button>
+            <button class="btn" id="admin-tab-btn-editor" onclick="switchAdminTab('editor')" style="flex: 1; margin: 0; padding: 8px; font-size: 12px; font-weight: 800; background: linear-gradient(135deg, #475569 0%, #334155 100%); color: white; border-radius: 8px;">EDITOR</button>
+        </div>
+
+        <div id="admin-tab-creator">
         <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; text-align: left;">
             <div>
                 <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Nama Senjata</label>
@@ -1115,7 +1121,86 @@
             <button class="btn" onclick="createCustomWeapon()" style="flex: 1; margin: 0; padding: 10px; font-size: 14px; background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); color: white; border-radius: 8px;">CIPTAKAN</button>
             <button class="btn" onclick="closeAdminModal()" style="flex: 1; margin: 0; padding: 10px; font-size: 14px; background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: white; border-radius: 8px;">BATAL</button>
         </div>
+        </div>
+
+        <div id="admin-tab-editor" class="hidden">
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Pilih Senjata</label>
+                <select id="admin-edit-select" onchange="loadAdminWeaponEditor()" style="width: 100%; padding: 8px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;"></select>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; text-align: left;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Damage Multiplier</label>
+                        <input type="number" step="0.1" id="admin-edit-dmgmult" value="1" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+                    </div>
+                    <div>
+                        <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Cooldown Multiplier</label>
+                        <input type="number" step="0.1" id="admin-edit-cdmult" value="1" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Rarity</label>
+                    <select id="admin-edit-rarity" style="width: 100%; padding: 8px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;">
+                        <option value="Common">Common</option>
+                        <option value="Rare">Rare</option>
+                        <option value="Epic">Epic</option>
+                        <option value="Legendary">Legendary</option>
+                    </select>
+                </div>
+
+                <div id="admin-edit-custom-fields" class="hidden" style="display: flex; flex-direction: column; gap: 12px; border-top: 1px solid #334155; padding-top: 12px;">
+                    <small style="color: #94a3b8;">Senjata custom - properti projectile dapat diubah langsung:</small>
+                    <div>
+                        <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Nama</label>
+                        <input type="text" id="admin-edit-name" style="width: 100%; padding: 8px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Damage Dasar</label>
+                            <input type="number" id="admin-edit-dmg" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Cooldown (Frame)</label>
+                            <input type="number" id="admin-edit-cd" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Kecepatan Peluru</label>
+                            <input type="number" id="admin-edit-speed" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Pierce</label>
+                            <input type="number" id="admin-edit-pierce" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Warna Peluru</label>
+                            <input type="color" id="admin-edit-color" style="width: 100%; height: 35px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; cursor: pointer; padding: 2px;" />
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Ukuran Peluru</label>
+                            <input type="number" id="admin-edit-size" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px;">Radius AOE</label>
+                        <input type="number" id="admin-edit-aoe" style="width: 100%; padding: 8px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #ffffff; font-size: 13px;" />
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px;">
+                <button class="btn" onclick="saveAdminWeaponEdit()" style="flex: 1; margin: 0; padding: 10px; font-size: 14px; background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); color: white; border-radius: 8px;">SIMPAN</button>
+                <button class="btn" onclick="deleteAdminWeapon()" style="flex: 1; margin: 0; padding: 10px; font-size: 14px; background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: white; border-radius: 8px;">HAPUS</button>
+            </div>
+            <button class="btn" onclick="closeAdminModal()" style="width: 100%; margin: 0; padding: 10px; font-size: 14px; background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: white; border-radius: 8px;">TUTUP</button>
+        </div>
     </div>
+
 
     <script>
         // =========================================================================
@@ -1204,7 +1289,11 @@
             equippedUltimate: null,
             cheatGod: false,
             cheatTriple: false,
-            cheatSpeed: false
+            cheatSpeed: false,
+            cheatDoom: false,
+            cheatBrute: false,
+            cheatMagnet: false,
+            weaponOverrides: {}
         };
 
         for (let w in WEAPON_DEFS) {
@@ -1233,6 +1322,10 @@
         if (saveData.cheatGod === undefined) saveData.cheatGod = false;
         if (saveData.cheatTriple === undefined) saveData.cheatTriple = false;
         if (saveData.cheatSpeed === undefined) saveData.cheatSpeed = false;
+        if (saveData.cheatDoom === undefined) saveData.cheatDoom = false;
+        if (saveData.cheatBrute === undefined) saveData.cheatBrute = false;
+        if (saveData.cheatMagnet === undefined) saveData.cheatMagnet = false;
+        if (!saveData.weaponOverrides) saveData.weaponOverrides = {};
 
         // Force all stats max levels to 25
         if (saveData.stats) {
@@ -1244,6 +1337,12 @@
         function saveGame() {
             localStorage.setItem('thousandYearsBattleSave', JSON.stringify(saveData));
             updateMenuUI();
+        }
+
+        // Mengembalikan multiplier efek hack, dikalikan 5x jika BRUTE aktif.
+        // Hanya dipakai oleh kode-kode hack (SPEED, TRIPLE, DOOM) - tidak pernah dipakai oleh sistem normal.
+        function getHackMult(baseMult) {
+            return saveData.cheatBrute ? baseMult * 5 : baseMult;
         }
 
         // ==========================================
@@ -1536,7 +1635,7 @@
                 this.isSpeed = saveData.cheatSpeed || false;
                 this.maxHp = CONFIG.BASE_PLAYER_HP + (saveData.stats.hp.level * saveData.stats.hp.val);
                 this.hp = this.maxHp;
-                this.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (this.isSpeed ? 2 : 1);
+                this.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (this.isSpeed ? getHackMult(2) : 1);
                 this.baseDmgMulti = 1 + (saveData.stats.atk.level * saveData.stats.atk.val);
                 this.magnetArea = CONFIG.MAGNET_BASE_RANGE + (saveData.stats.magnet.level * saveData.stats.magnet.val);
 
@@ -1620,6 +1719,11 @@
                 }
                 if (this.weapons.length === 0) {
                     this.weapons.push(new WeaponInstance('pistol', 1));
+                }
+
+                // Hack MAGNET: gandakan magnet range (2x normal, atau lebih kuat jika BRUTE aktif).
+                if (saveData.cheatMagnet) {
+                    this.magnetArea *= getHackMult(2);
                 }
             }
             triggerDash(clickType) {
@@ -2060,7 +2164,7 @@
                     // Apply Chronos Watch cooldown reduction
                     let cdRed = player.artMods.cooldownReduction || 0;
                     let cdSub = 1 + cdRed;
-                    if (player.isTripleSpeed || saveData.cheatTriple) cdSub *= 3;
+                    if (player.isTripleSpeed || saveData.cheatTriple) cdSub *= getHackMult(3);
                     this.cooldown -= cdSub;
                     if (this.cooldown > 0) return;
                 }
@@ -2077,6 +2181,15 @@
                 if (isCrit) finalDmg *= CONFIG.CRIT_DAMAGE_MULTIPLIER;
 
                 let near = getNearestEnemy(player.x, player.y, 600);
+
+                // Admin Weapon Editor: terapkan override damage (berlaku untuk seluruh formula
+                // di switch case ini karena semuanya membaca player.baseDmgMulti).
+                let wOverride = saveData.weaponOverrides[this.id];
+                let _origBaseDmgMulti = player.baseDmgMulti;
+                if (wOverride && wOverride.dmgMult) {
+                    player.baseDmgMulti = _origBaseDmgMulti * wOverride.dmgMult;
+                    finalDmg *= wOverride.dmgMult;
+                }
 
                 switch (this.id) {
                     case 'pistol':
@@ -2519,6 +2632,12 @@
                         }
                         break;
                     }
+                }
+
+                // Admin Weapon Editor: kembalikan baseDmgMulti & terapkan override cooldown.
+                player.baseDmgMulti = _origBaseDmgMulti;
+                if (wOverride && wOverride.cdMult) {
+                    this.cooldown *= wOverride.cdMult;
                 }
             }
             draw(ctx) {
@@ -3093,6 +3212,11 @@
                 }
                 this.speed = this.initialSpeed;
                 this.maxHp = this.hp;
+
+                // Hack DOOM: upgrade enemy tier otomatis untuk setiap musuh yang baru spawn selama hack aktif.
+                if (saveData.cheatDoom) {
+                    applyDoomToEnemy(this, saveData.cheatBrute ? 50 : 10);
+                }
             }
             update() {
                 if (this.dead) return;
@@ -3252,8 +3376,65 @@
         }
 
         // ==========================================
-        // GUARANTEED DROPS SYSTEM
+        // HACK DOOM - ENEMY TIER UPGRADE SYSTEM
         // ==========================================
+        function applyDoomToEnemy(e, mult) {
+            if (!e || e.dead || e._doomBuffed) return;
+            let hpRatio = (e.maxHp && e.maxHp > 0) ? (e.hp / e.maxHp) : 1;
+
+            if (e.isUltimateBoss) {
+                // Ultimate Boss: dapat buff ~10x (atau ~50x jika BRUTE aktif) ke HP, Damage, dan Size.
+                e.maxHp = e.maxHp * mult;
+                e.hp = e.maxHp * hpRatio;
+                e.damage = e.damage * mult;
+                e._baseDamage = (e._baseDamage || e.damage) * mult;
+                e.size = e.size * 1.6;
+            } else if (e.isBoss) {
+                // Boss -> Ultimate Boss, lalu kena buff ~10x (atau ~50x) seperti di atas.
+                let variant = pickUltimateBossVariant();
+                e.isUltimateBoss = true;
+                e.bossName = variant.name;
+                e.bossSubType = variant.subType;
+                e.ultimateBossId = variant.id;
+                e.stroke = variant.stroke;
+                e.initialSpeed = variant.speed;
+                e.speed = variant.speed;
+                e.size = variant.size * 1.6;
+                e.maxHp = variant.baseHp * mult;
+                e.hp = e.maxHp * hpRatio;
+                e.damage = variant.damage * mult;
+                e._baseDamage = e.damage;
+                e.shootCooldown = 0;
+                e.knockbackResist = true;
+                e.ultTimers = {};
+                e.berserkActive = false;
+                e.desperationActive = false;
+            } else {
+                // Musuh biasa (normal/fast/tank) -> Boss, memakai salah satu variant Boss yang sudah ada.
+                const variants = [
+                    { name: 'Goliath', stroke: '#6b21a8', hpBase: 1600, speed: 0.7, size: 48, damage: 60, subType: 'goliath' },
+                    { name: 'Phantom', stroke: '#0d9488', hpBase: 900, speed: 1.9, size: 30, damage: 35, subType: 'phantom' },
+                    { name: 'Pyromancer', stroke: '#ea580c', hpBase: 1100, speed: 1.1, size: 36, damage: 40, subType: 'pyromancer' },
+                    { name: 'Void Sentinel', stroke: '#dc2626', hpBase: 1300, speed: 1.3, size: 38, damage: 45, subType: 'sentinel' }
+                ];
+                let v = variants[Math.floor(Math.random() * variants.length)];
+                e.isBoss = true;
+                e.bossName = v.name;
+                e.bossSubType = v.subType;
+                e.stroke = v.stroke;
+                e.initialSpeed = v.speed;
+                e.speed = v.speed;
+                e.size = v.size;
+                e.maxHp = v.hpBase;
+                e.hp = e.maxHp * hpRatio;
+                e.damage = v.damage;
+                e.shootCooldown = 0;
+                e.knockbackResist = (v.subType === 'goliath');
+            }
+            e._doomBuffed = true;
+        }
+
+
         class Drop {
             constructor(x, y, type, value) {
                 this.x = x + (Math.random() * 16 - 8); this.y = y + (Math.random() * 16 - 8);
@@ -3521,7 +3702,7 @@
             pool.push({ type: 'stat', name: "Sembuh Total HP & Shield", desc: "Memulihkan kondisi HP dan Shield hingga penuh.", action: p => { p.hp = p.maxHp; p.shieldHp = p.artMods.maxShield; } });
             pool.push({ type: 'stat', name: "Suplemen Stamina (+15 HP)", desc: "Meningkatkan Max HP tempur sebesar 15.", action: p => { p.maxHp += 15; p.hp += 15; } });
             pool.push({ type: 'stat', name: "Sepatu Lari Kinetik (+10% Speed)", desc: "Kecepatan gerak player meningkat instan.", action: p => p.speed += 0.35 });
-            pool.push({ type: 'stat', name: "Suplemen Kekuatan (+10% Damage)", desc: "Meningkatkan damage senjata player sebesar 10%.", action: p => p.damageMult *= 1.10 });
+            pool.push({ type: 'stat', name: "Suplemen Kekuatan (+10% Damage)", desc: "Meningkatkan damage senjata player sebesar 10%.", action: p => p.baseDmgMulti *= 1.10 });
 
             player.weapons.forEach(w => {
                 if (w.level < WEAPON_DEFS[w.id].max) pool.push({ type: 'upgrade_wpn', id: w.id, name: `Upgrade: ${w.def.name}`, desc: `Naikkan tingkat efektifitas senjata ini ke Lv ${w.level + 1}.`, instance: w });
@@ -3757,6 +3938,9 @@
             if (saveData.cheatGod) activeCheats.push("GOD");
             if (saveData.cheatTriple) activeCheats.push("TRIPLE");
             if (saveData.cheatSpeed) activeCheats.push("SPEED");
+            if (saveData.cheatDoom) activeCheats.push("DOOM");
+            if (saveData.cheatBrute) activeCheats.push("BRUTE");
+            if (saveData.cheatMagnet) activeCheats.push("MAGNET");
             if (activeCheats.length > 0) {
                 cheatHud.innerText = `CHEAT: ${activeCheats.join(' | ')}`;
                 cheatHud.style.display = 'block';
@@ -4234,6 +4418,9 @@
         };
         document.getElementById('btn-restart-run').onclick = () => {
             document.getElementById('pause-screen').classList.add('hidden');
+            saveData.coins += runCoins;
+            saveData.cosmicCoins += runCosmic;
+            saveGame();
             document.getElementById('btn-start').click();
         };
         document.getElementById('btn-exit-menu').onclick = () => {
@@ -4824,13 +5011,39 @@
                 saveData.cheatSpeed = !saveData.cheatSpeed;
                 if (player) {
                     player.isSpeed= saveData.cheatSpeed;
-                    player.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (player.isSpeed ? 2 : 1);
+                    player.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (player.isSpeed ? getHackMult(2) : 1);
                 }
                 createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `🟫 SPEED MODE: ${saveData.cheatSpeed ? 'ON' : 'OFF'} 🚀`, '#d97706', 16);
                 handled = true;
             } else if (code === 'ADMIN') {
                 closeHackModal();
                 openAdminPanel();
+                handled = true;
+            } else if (code === 'MAGNET') {
+                saveData.cheatMagnet = !saveData.cheatMagnet;
+                if (player) {
+                    if (saveData.cheatMagnet) {
+                        player.magnetArea *= getHackMult(2);
+                    } else {
+                        player.magnetArea /= getHackMult(2);
+                    }
+                }
+                createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `🧲 MAGNET MODE: ${saveData.cheatMagnet ? 'ON' : 'OFF'} (2x Range)`, '#ef4444', 16);
+                handled = true;
+            } else if (code === 'DOOM') {
+                saveData.cheatDoom = !saveData.cheatDoom;
+                if (saveData.cheatDoom) {
+                    let mult = saveData.cheatBrute ? 50 : 10;
+                    entities.enemies.forEach(e => applyDoomToEnemy(e, mult));
+                }
+                createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `☠️ DOOM MODE: ${saveData.cheatDoom ? 'ON' : 'OFF'}`, '#7c2d12', 16);
+                handled = true;
+            } else if (code === 'BRUTE') {
+                saveData.cheatBrute = !saveData.cheatBrute;
+                if (player) {
+                    player.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (player.isSpeed ? getHackMult(2) : 1);
+                }
+                createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `💀 BRUTE MODE: ${saveData.cheatBrute ? 'ON' : 'OFF'} (5x Hack Power)`, '#991b1b', 16);
                 handled = true;
             }
 
@@ -4857,6 +5070,7 @@
         window.openAdminPanel = function() {
             document.getElementById('admin-overlay-bg').classList.remove('hidden');
             document.getElementById('admin-modal').classList.remove('hidden');
+            switchAdminTab('creator');
             if (gameState === 'playing') {
                 pauseGame();
             }
@@ -4912,6 +5126,126 @@
 
             createDamageText(player ? player.x : 0, player ? player.y - 50 : 0, `🛠️ CUSTOM WEAPON CREATED: ${name}! ✨`, '#a855f7', 16);
             closeAdminModal();
+        };
+
+        // ==========================================
+        // ADMIN WEAPON EDITOR
+        // ==========================================
+        window.switchAdminTab = function(tab) {
+            let creatorTab = document.getElementById('admin-tab-creator');
+            let editorTab = document.getElementById('admin-tab-editor');
+            let creatorBtn = document.getElementById('admin-tab-btn-creator');
+            let editorBtn = document.getElementById('admin-tab-btn-editor');
+            const activeGrad = 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)';
+            const inactiveGrad = 'linear-gradient(135deg, #475569 0%, #334155 100%)';
+
+            if (tab === 'editor') {
+                creatorTab.classList.add('hidden');
+                editorTab.classList.remove('hidden');
+                creatorBtn.style.background = inactiveGrad;
+                editorBtn.style.background = activeGrad;
+                populateAdminWeaponSelect();
+                loadAdminWeaponEditor();
+            } else {
+                creatorTab.classList.remove('hidden');
+                editorTab.classList.add('hidden');
+                creatorBtn.style.background = activeGrad;
+                editorBtn.style.background = inactiveGrad;
+            }
+        };
+
+        function populateAdminWeaponSelect() {
+            let select = document.getElementById('admin-edit-select');
+            let prevSelected = select.value;
+            select.innerHTML = '';
+            for (let id in WEAPON_DEFS) {
+                let def = WEAPON_DEFS[id];
+                let opt = document.createElement('option');
+                opt.value = id;
+                opt.innerText = def.name + (def.isCustom ? ' (Custom)' : '');
+                select.appendChild(opt);
+            }
+            if (prevSelected && WEAPON_DEFS[prevSelected]) select.value = prevSelected;
+        }
+
+        window.loadAdminWeaponEditor = function() {
+            let id = document.getElementById('admin-edit-select').value;
+            let def = WEAPON_DEFS[id];
+            if (!def) return;
+            let override = saveData.weaponOverrides[id] || {};
+
+            document.getElementById('admin-edit-dmgmult').value = override.dmgMult || 1;
+            document.getElementById('admin-edit-cdmult').value = override.cdMult || 1;
+            document.getElementById('admin-edit-rarity').value = override.rarity || def.rarity || 'Common';
+
+            let customFields = document.getElementById('admin-edit-custom-fields');
+            if (def.isCustom) {
+                customFields.classList.remove('hidden');
+                document.getElementById('admin-edit-name').value = def.name;
+                document.getElementById('admin-edit-dmg').value = def.customConfig.damage;
+                document.getElementById('admin-edit-cd').value = def.customConfig.cooldown;
+                document.getElementById('admin-edit-speed').value = def.customConfig.speed;
+                document.getElementById('admin-edit-pierce').value = def.customConfig.pierce;
+                document.getElementById('admin-edit-color').value = def.customConfig.color;
+                document.getElementById('admin-edit-size').value = def.customConfig.size;
+                document.getElementById('admin-edit-aoe').value = def.customConfig.aoe;
+            } else {
+                customFields.classList.add('hidden');
+            }
+        };
+
+        window.saveAdminWeaponEdit = function() {
+            let id = document.getElementById('admin-edit-select').value;
+            let def = WEAPON_DEFS[id];
+            if (!def) return;
+
+            let dmgMult = parseFloat(document.getElementById('admin-edit-dmgmult').value) || 1;
+            let cdMult = parseFloat(document.getElementById('admin-edit-cdmult').value) || 1;
+            let rarity = document.getElementById('admin-edit-rarity').value;
+            saveData.weaponOverrides[id] = { dmgMult: dmgMult, cdMult: cdMult, rarity: rarity };
+            def.rarity = rarity;
+
+            if (def.isCustom) {
+                let newName = document.getElementById('admin-edit-name').value.trim();
+                if (newName) def.name = newName;
+                def.customConfig.damage = parseFloat(document.getElementById('admin-edit-dmg').value) || def.customConfig.damage;
+                def.customConfig.cooldown = parseInt(document.getElementById('admin-edit-cd').value) || def.customConfig.cooldown;
+                def.customConfig.speed = parseFloat(document.getElementById('admin-edit-speed').value) || def.customConfig.speed;
+                def.customConfig.pierce = parseInt(document.getElementById('admin-edit-pierce').value) || def.customConfig.pierce;
+                def.customConfig.color = document.getElementById('admin-edit-color').value || def.customConfig.color;
+                def.customConfig.size = parseFloat(document.getElementById('admin-edit-size').value) || def.customConfig.size;
+                def.customConfig.aoe = parseFloat(document.getElementById('admin-edit-aoe').value);
+                if (isNaN(def.customConfig.aoe)) def.customConfig.aoe = 0;
+            }
+
+            saveGame();
+            populateAdminWeaponSelect();
+            document.getElementById('admin-edit-select').value = id;
+            createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `🛠️ WEAPON UPDATED: ${def.name}`, '#22c55e', 14);
+        };
+
+        window.deleteAdminWeapon = function() {
+            let id = document.getElementById('admin-edit-select').value;
+            let def = WEAPON_DEFS[id];
+            if (!def) return;
+            if (!confirm(`Hapus senjata "${def.name}"? Tindakan ini tidak dapat dibatalkan.`)) return;
+
+            let deletedName = def.name;
+            delete WEAPON_DEFS[id];
+            delete saveData.weapons[id];
+            delete saveData.weaponOverrides[id];
+
+            if (player) {
+                player.weapons = player.weapons.filter(w => w.id !== id);
+                if (player.weapons.length === 0) {
+                    player.weapons.push(new WeaponInstance('pistol', 1));
+                }
+            }
+
+            saveGame();
+            populateAdminWeaponSelect();
+            loadAdminWeaponEditor();
+            createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `🗑️ WEAPON DELETED: ${deletedName}`, '#ef4444', 14);
         };
 
         // Ensure initMenu is called on page load
