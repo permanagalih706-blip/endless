@@ -866,6 +866,132 @@
         .error-shake {
             animation: hackShake 0.4s ease;
         }
+
+        /* Code Entry Panel - pojok kiri atas menu */
+        #code-entry-panel {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+        #code-entry-panel label {
+            font-size: 12px;
+            font-weight: 800;
+            color: #6366f1;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            user-select: none;
+        }
+        #code-input-row {
+            display: none;
+            flex-direction: row;
+            gap: 6px;
+            align-items: center;
+        }
+        #code-input-row.show {
+            display: flex;
+        }
+        #code-input-field {
+            width: 180px;
+            padding: 7px 12px;
+            border-radius: 10px;
+            border: 2px solid #a5b4fc;
+            background: rgba(255,255,255,0.9);
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            outline: none;
+            font-family: monospace;
+            transition: border-color 0.2s;
+        }
+        #code-input-field:focus {
+            border-color: #6366f1;
+        }
+        #code-submit-btn {
+            padding: 7px 14px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        #code-submit-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(99,102,241,0.4);
+        }
+
+        /* Code Reward Popup */
+        #code-reward-popup {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            min-width: 320px;
+            max-width: 420px;
+            padding: 28px 32px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid rgba(99, 102, 241, 0.5);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 40px rgba(99,102,241,0.15);
+            z-index: 300;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        #code-reward-popup.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        #code-reward-popup .reward-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        #code-reward-popup .reward-title {
+            font-size: 20px;
+            font-weight: 900;
+            color: #a5b4fc;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        #code-reward-popup .reward-desc {
+            font-size: 14px;
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        #code-reward-popup .reward-close-btn {
+            padding: 10px 28px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        #code-reward-popup .reward-close-btn:hover {
+            transform: scale(1.06);
+        }
+
+        @keyframes rewardPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(99,102,241,0.15); }
+            50% { box-shadow: 0 0 40px rgba(99,102,241,0.4); }
+        }
+        #code-reward-popup.show {
+            animation: rewardPulse 2s ease infinite;
+        }
     </style>
 </head>
 
@@ -911,6 +1037,14 @@
     </div>
 
     <div id="main-menu" class="menu-screen">
+        <!-- Code Entry Panel pojok kiri atas -->
+        <div id="code-entry-panel">
+            <label id="code-toggle-label">📝 Enter Code</label>
+            <div id="code-input-row">
+                <input type="text" id="code-input-field" placeholder="Ketik kode..." autocomplete="off" spellcheck="false">
+                <button id="code-submit-btn">REDEEM</button>
+            </div>
+        </div>
         <h1>Thousand years battle</h1>
         <div class="currency-box">
             <span class="coin-text">🪙 Koin: <span id="menu-coin">0</span></span>
@@ -928,6 +1062,14 @@
             <button class="btn" id="btn-open-shop">TOKO UPGRADE PERMANEN</button>
         </div>
         <button class="btn" id="btn-reset-save">Reset Seluruh Save Data</button>
+    </div>
+
+    <!-- Code Reward Popup -->
+    <div id="code-reward-popup">
+        <div class="reward-icon" id="reward-icon">🎁</div>
+        <div class="reward-title" id="reward-title">KODE DITERIMA!</div>
+        <div class="reward-desc" id="reward-desc"></div>
+        <button class="reward-close-btn" onclick="closeRewardPopup()">OK!</button>
     </div>
 
     <div id="shop-overlay-bg" class="modal-backdrop hidden" onclick="closeShopModal()"></div>
@@ -1274,7 +1416,7 @@
         // 3. SAVE DATA STRUCTURE
         // ==========================================
         const BASE_SAVE = {
-            coins: 100, cosmicCoins: 10,
+            coins: 0, cosmicCoins: 0,
             stats: {
                 hp: { level: 0, max: 50, costBase: 30, val: 15, name: "Max HP Up" },
                 atk: { level: 0, max: 75, costBase: 20, val: 0.1, name: "All Weapon Damage" },
@@ -1293,7 +1435,14 @@
             cheatDoom: false,
             cheatBrute: false,
             cheatMagnet: false,
-            weaponOverrides: {}
+            cheatSkip: false,
+            weaponOverrides: {},
+            redeemedCodes: [],
+            codeBonuses: {
+                extraBullet: 0,
+                fasterStart: false,
+                coolDash: false
+            }
         };
 
         for (let w in WEAPON_DEFS) {
@@ -1325,7 +1474,13 @@
         if (saveData.cheatDoom === undefined) saveData.cheatDoom = false;
         if (saveData.cheatBrute === undefined) saveData.cheatBrute = false;
         if (saveData.cheatMagnet === undefined) saveData.cheatMagnet = false;
+        if (saveData.cheatSkip === undefined) saveData.cheatSkip = false;
         if (!saveData.weaponOverrides) saveData.weaponOverrides = {};
+        if (!saveData.redeemedCodes) saveData.redeemedCodes = [];
+        if (!saveData.codeBonuses) saveData.codeBonuses = { extraBullet: 0, fasterStart: false, coolDash: false };
+        if (saveData.codeBonuses.extraBullet === undefined) saveData.codeBonuses.extraBullet = 0;
+        if (saveData.codeBonuses.fasterStart === undefined) saveData.codeBonuses.fasterStart = false;
+        if (saveData.codeBonuses.coolDash === undefined) saveData.codeBonuses.coolDash = false;
 
         // Force all stats max levels to 25
         if (saveData.stats) {
@@ -1337,6 +1492,18 @@
         function saveGame() {
             localStorage.setItem('thousandYearsBattleSave', JSON.stringify(saveData));
             updateMenuUI();
+        }
+
+        function checkAndSaveRunData() {
+            if (currentLevel > (saveData.highscoreLevel || 1)) {
+                saveData.highscoreLevel = currentLevel;
+            }
+            if (gameTime > (saveData.highscoreTime || 0)) {
+                saveData.highscoreTime = gameTime;
+            }
+            saveData.coins += runCoins;
+            saveData.cosmicCoins += runCosmic;
+            saveGame();
         }
 
         // Mengembalikan multiplier efek hack, dikalikan 5x jika BRUTE aktif.
@@ -1475,13 +1642,13 @@
         // OPTIMASI LOW-END LAPTOP
         // ==========================================
         // Batasi jumlah maksimum partikel aktif sekaligus agar GPU tidak kewalahan
-        const MAX_PARTICLES = 80;
-        const MAX_PROJECTILES = 120;
-        const MAX_DAMAGE_TEXTS = 20;
+        const MAX_PARTICLES = 50;
+        const MAX_PROJECTILES = 80;
+        const MAX_DAMAGE_TEXTS = 12;
 
         // Counter untuk throttle updateHUD — tidak perlu update DOM setiap frame
         let _hudUpdateCounter = 0;
-        const HUD_UPDATE_INTERVAL = 5; // update HUD setiap 5 frame sekali
+        const HUD_UPDATE_INTERVAL = 10; // update HUD setiap 10 frame sekali
 
         // ==========================================
         // SYSTEM ENGINE CONSTANTS & STATE
@@ -1635,7 +1802,7 @@
                 this.isSpeed = saveData.cheatSpeed || false;
                 this.maxHp = CONFIG.BASE_PLAYER_HP + (saveData.stats.hp.level * saveData.stats.hp.val);
                 this.hp = this.maxHp;
-                this.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (this.isSpeed ? getHackMult(2) : 1);
+                this.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (this.isSpeed ? (saveData.cheatBrute ? 5 : 3) : 1);
                 this.baseDmgMulti = 1 + (saveData.stats.atk.level * saveData.stats.atk.val);
                 this.magnetArea = CONFIG.MAGNET_BASE_RANGE + (saveData.stats.magnet.level * saveData.stats.magnet.val);
 
@@ -1926,7 +2093,26 @@
                 }
 
                 let activeSpeed = this.dashDuration > 0 ? this.dashSpeed : this.speed * this.debuffSpeedMult;
-                if (this.dashDuration > 0) { this.dashDuration--; createParticles(this.x, this.y, '#f1f3f5', 1); }
+                if (this.dashDuration > 0) {
+                    this.dashDuration--;
+                    createParticles(this.x, this.y, '#f1f3f5', 1);
+                    // Cool Dash: knockback area saat dash selesai
+                    if (this.dashDuration === 0 && saveData.codeBonuses && saveData.codeBonuses.coolDash) {
+                        let knockRadius = 80;
+                        let knockForce = 12;
+                        createParticles(this.x, this.y, '#818cf8', 20);
+                        createParticles(this.x, this.y, '#c4b5fd', 10);
+                        for (let ei = 0; ei < entities.enemies.length; ei++) {
+                            let en = entities.enemies[ei];
+                            let edx = en.x - this.x, edy = en.y - this.y;
+                            let eDist = Math.hypot(edx, edy);
+                            if (eDist < knockRadius && eDist > 0) {
+                                en.x += (edx / eDist) * knockForce;
+                                en.y += (edy / eDist) * knockForce;
+                            }
+                        }
+                    }
+                }
 
                 this.x += dx * activeSpeed; this.y += dy * activeSpeed;
                 if (this.dashCooldown > 0) this.dashCooldown--;
@@ -2193,7 +2379,7 @@
 
                 switch (this.id) {
                     case 'pistol':
-                        let bulletCount = this.level;
+                        let bulletCount = this.level + ((saveData.codeBonuses && saveData.codeBonuses.extraBullet) || 0);
                         let baseAngle = near ? getAngle(player.x, player.y, near.x, near.y) : 0;
                         for (let i = 0; i < bulletCount; i++) {
                             let spread = (i - (bulletCount - 1) / 2) * 0.15;
@@ -3835,38 +4021,46 @@
                 }
             }
 
-            // Ganti .filter() dengan loop for konvensional untuk performa dan pencegahan GC garbage
-            let activeProjectiles = [];
+            // Ganti in-place array updates untuk menghindari alokasi baru tiap frame (Ramah RAM)
+            let writeProj = 0;
             for (let i = 0; i < entities.projectiles.length; i++) {
                 let p = entities.projectiles[i];
                 p.update();
-                if (p.life > 0) activeProjectiles.push(p);
+                if (p.life > 0) {
+                    entities.projectiles[writeProj++] = p;
+                }
             }
-            entities.projectiles = activeProjectiles;
+            entities.projectiles.length = writeProj;
 
-            let activeEnemies = [];
+            let writeEnemy = 0;
             for (let i = 0; i < entities.enemies.length; i++) {
                 let e = entities.enemies[i];
                 e.update();
-                if (!e.dead) activeEnemies.push(e);
+                if (!e.dead) {
+                    entities.enemies[writeEnemy++] = e;
+                }
             }
-            entities.enemies = activeEnemies;
+            entities.enemies.length = writeEnemy;
 
-            let activeDamageTexts = [];
+            let writeDmgTxt = 0;
             for (let i = 0; i < entities.damageTexts.length; i++) {
                 let d = entities.damageTexts[i];
                 d.update();
-                if (d.life > 0) activeDamageTexts.push(d);
+                if (d.life > 0) {
+                    entities.damageTexts[writeDmgTxt++] = d;
+                }
             }
-            entities.damageTexts = activeDamageTexts;
+            entities.damageTexts.length = writeDmgTxt;
 
-            let activeParticles = [];
+            let writePart = 0;
             for (let i = 0; i < entities.particles.length; i++) {
                 let pt = entities.particles[i];
                 pt.update();
-                if (pt.life > 0) activeParticles.push(pt);
+                if (pt.life > 0) {
+                    entities.particles[writePart++] = pt;
+                }
             }
-            entities.particles = activeParticles;
+            entities.particles.length = writePart;
 
             ctx.fillStyle = '#f8fafc'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -3941,6 +4135,7 @@
             if (saveData.cheatDoom) activeCheats.push("DOOM");
             if (saveData.cheatBrute) activeCheats.push("BRUTE");
             if (saveData.cheatMagnet) activeCheats.push("MAGNET");
+            if (saveData.cheatSkip) activeCheats.push("SKIP");
             if (activeCheats.length > 0) {
                 cheatHud.innerText = `CHEAT: ${activeCheats.join(' | ')}`;
                 cheatHud.style.display = 'block';
@@ -4010,6 +4205,17 @@
         // TOKO UPGRADE MODAL POPUP & META PROGRESSION
         // ==========================================
         function initMenu() {
+            gameState = 'menu';
+            
+            // Clear entities from memory for low-RAM laptops
+            entities = { enemies: [], drops: [], projectiles: [], damageTexts: [], particles: [] };
+            player = null;
+            camera = null;
+            
+            // Clear canvas to blank/slate color
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
             // Reset sub-shop state
             activeSubShop = null;
             document.getElementById('subshop-overlay').classList.add('hidden');
@@ -4418,16 +4624,12 @@
         };
         document.getElementById('btn-restart-run').onclick = () => {
             document.getElementById('pause-screen').classList.add('hidden');
-            saveData.coins += runCoins;
-            saveData.cosmicCoins += runCosmic;
-            saveGame();
+            checkAndSaveRunData();
             document.getElementById('btn-start').click();
         };
         document.getElementById('btn-exit-menu').onclick = () => {
             document.getElementById('pause-screen').classList.add('hidden');
-            saveData.coins += runCoins;
-            saveData.cosmicCoins += runCosmic;
-            saveGame();
+            checkAndSaveRunData();
             initMenu();
         };
 
@@ -4493,20 +4695,47 @@
         };
 
         document.getElementById('btn-start').onclick = () => {
-            gameTime = 0; frameCount = 0; runCoins = 0; runCosmic = 0; currentLevel = 1; currentExp = 0; expNeeded = 10; rerollsLeft = 3;
+            // Tentukan detik/menit awal: hack SKIP pakai highscoreTime (detik), code fasterStart pakai 60 detik (menit 1)
+            let skipSeconds = 0;
+            if (saveData.cheatSkip) {
+                skipSeconds = saveData.highscoreTime || 0;
+            } else if (saveData.codeBonuses && saveData.codeBonuses.fasterStart) {
+                skipSeconds = 60;
+            }
+            gameTime = skipSeconds;
+            frameCount = 0; runCoins = 0; runCosmic = 0; currentLevel = 1; currentExp = 0; expNeeded = 10; rerollsLeft = 3;
             entities = { enemies: [], drops: [], projectiles: [], damageTexts: [], particles: [] }; bossActive = false; ultimateBossActive = false;
             activeUltimate = null;
             ultimateActiveTimer = 0;
             ultimateCooldownTimer = 0;
-            // Reset difficulty scaling
-            enemyHpScaleMulti = 1;
+
+            // Hitung difficulty scaling sesuai menit yang dilewati (stepwise per menit)
+            let skipMinutes = Math.floor(skipSeconds / 60);
+            enemyHpScaleMulti = Math.pow(1 + CONFIG.ENEMY_HP_SCALE_PER_MIN, skipMinutes);
+            lastMinuteScaled = skipMinutes;
+
+            // Pre-kalkulasi boss spawn intervals melewati waktu yang di-skip
             currentBossInterval = CONFIG.BOSS_SPAWN_INTERVAL;
             nextBossAt = CONFIG.BOSS_SPAWN_INTERVAL;
+            // Simulasi semua boss yang seharusnya muncul selama waktu skip
+            while (nextBossAt <= gameTime) {
+                currentBossInterval = Math.max(
+                    CONFIG.BOSS_MIN_INTERVAL,
+                    Math.floor(currentBossInterval * (1 - CONFIG.BOSS_INTERVAL_REDUCTION))
+                );
+                nextBossAt += currentBossInterval;
+            }
             currentUltimateBossInterval = CONFIG.ULTIMATE_BOSS_SPAWN_INTERVAL;
             nextUltimateBossAt = CONFIG.ULTIMATE_BOSS_SPAWN_INTERVAL;
+            while (nextUltimateBossAt <= gameTime) {
+                currentUltimateBossInterval = Math.max(
+                    CONFIG.ULTIMATE_BOSS_MIN_INTERVAL,
+                    Math.floor(currentUltimateBossInterval * (1 - CONFIG.ULTIMATE_BOSS_INTERVAL_REDUCTION))
+                );
+                nextUltimateBossAt += currentUltimateBossInterval;
+            }
             lastUltimateBossId = null;
             lastUltimateBossConsecutive = 0;
-            lastMinuteScaled = 0;
 
             player = new Player(); camera = new Camera();
             document.getElementById('main-menu').classList.add('hidden');
@@ -5010,8 +5239,8 @@
             } else if (code === 'SPEED') {
                 saveData.cheatSpeed = !saveData.cheatSpeed;
                 if (player) {
-                    player.isSpeed= saveData.cheatSpeed;
-                    player.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (player.isSpeed ? getHackMult(2) : 1);
+                    player.isSpeed = saveData.cheatSpeed;
+                    player.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (player.isSpeed ? (saveData.cheatBrute ? 5 : 3) : 1);
                 }
                 createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `🟫 SPEED MODE: ${saveData.cheatSpeed ? 'ON' : 'OFF'} 🚀`, '#d97706', 16);
                 handled = true;
@@ -5041,9 +5270,14 @@
             } else if (code === 'BRUTE') {
                 saveData.cheatBrute = !saveData.cheatBrute;
                 if (player) {
-                    player.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (player.isSpeed ? getHackMult(2) : 1);
+                    player.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (player.isSpeed ? (saveData.cheatBrute ? 5 : 3) : 1);
                 }
                 createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `💀 BRUTE MODE: ${saveData.cheatBrute ? 'ON' : 'OFF'} (5x Hack Power)`, '#991b1b', 16);
+                handled = true;
+            } else if (code === 'SKIP') {
+                saveData.cheatSkip = !saveData.cheatSkip;
+                createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `⏩ SKIP MODE: ${saveData.cheatSkip ? 'ON' : 'OFF'}`, '#a855f7', 16);
+                saveGame();
                 handled = true;
             }
 
@@ -5246,6 +5480,124 @@
             populateAdminWeaponSelect();
             loadAdminWeaponEditor();
             createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `🗑️ WEAPON DELETED: ${deletedName}`, '#ef4444', 14);
+        };
+
+        // ==========================================
+        // CODE REDEMPTION SYSTEM (One-Time Codes)
+        // ==========================================
+        const CODE_DEFS = {
+            'STARTER PACK': {
+                icon: '🪙',
+                title: 'STARTER PACK',
+                desc: 'Kamu mendapatkan <b>+1000 Koin</b> dan <b>+100 Cosmic Coin</b>!<br>Gunakan untuk membeli upgrade di toko.',
+                apply: function() {
+                    saveData.coins += 1000;
+                    saveData.cosmicCoins += 100;
+                }
+            },
+            'EXTRA BULLET': {
+                icon: '🔫',
+                title: 'EXTRA BULLET',
+                desc: 'Pistol mendapat <b>+1 peluru permanen</b>!<br>Bonus ini tidak memengaruhi level toko. Dengan upgrade max, pistol bisa menembak <b>11 peluru</b> sekaligus!',
+                apply: function() {
+                    saveData.codeBonuses.extraBullet = (saveData.codeBonuses.extraBullet || 0) + 1;
+                }
+            },
+            'FASTER START': {
+                icon: '⚡',
+                title: 'FASTER START',
+                desc: 'Setiap permainan baru akan <b>langsung mulai di menit ke-1</b> secara permanen!<br>Musuh lebih kuat dari awal, tapi kamu bisa mengumpulkan koin lebih cepat.',
+                apply: function() {
+                    saveData.codeBonuses.fasterStart = true;
+                }
+            },
+            'COOL DASH': {
+                icon: '💨',
+                title: 'COOL DASH',
+                desc: 'Dash sekarang memiliki <b>efek knockback area kecil</b> setiap kali selesai!<br>Musuh di sekitarmu akan terdorong menjauh setelah dash berakhir.',
+                apply: function() {
+                    saveData.codeBonuses.coolDash = true;
+                }
+            }
+        };
+
+        // Toggle Code input row visibility
+        document.getElementById('code-toggle-label').onclick = function() {
+            let row = document.getElementById('code-input-row');
+            row.classList.toggle('show');
+            if (row.classList.contains('show')) {
+                document.getElementById('code-input-field').focus();
+            }
+        };
+
+        // Submit code via button click
+        document.getElementById('code-submit-btn').onclick = function() {
+            redeemCode();
+        };
+
+        // Submit code via Enter key
+        document.getElementById('code-input-field').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                redeemCode();
+            }
+        });
+
+        function redeemCode() {
+            let inp = document.getElementById('code-input-field');
+            let rawCode = inp.value.trim().toUpperCase().replace(/\s+/g, ' ');
+            let code = rawCode;
+            if (code === 'STARTERPACK') code = 'STARTER PACK';
+            if (code === 'EXTRABULLET') code = 'EXTRA BULLET';
+            if (code === 'FASTERSTART') code = 'FASTER START';
+            if (code === 'COOLDASH') code = 'COOL DASH';
+            
+            if (!code) return;
+
+            // Sudah pernah digunakan?
+            if (saveData.redeemedCodes.indexOf(code) !== -1) {
+                inp.style.borderColor = '#ef4444';
+                inp.value = '';
+                inp.placeholder = 'Kode sudah digunakan!';
+                setTimeout(() => { inp.style.borderColor = '#a5b4fc'; inp.placeholder = 'Ketik kode...'; }, 2000);
+                return;
+            }
+
+            let def = CODE_DEFS[code];
+            if (!def) {
+                inp.style.borderColor = '#ef4444';
+                inp.classList.add('error-shake');
+                setTimeout(() => { inp.classList.remove('error-shake'); inp.style.borderColor = '#a5b4fc'; }, 500);
+                return;
+            }
+
+            // Apply code reward
+            def.apply();
+            saveData.redeemedCodes.push(code);
+            saveGame();
+
+            // Clear input and hide row
+            inp.value = '';
+            inp.style.borderColor = '#22c55e';
+            document.getElementById('code-input-row').classList.remove('show');
+
+            // Show reward popup
+            showRewardPopup(def.icon, def.title, def.desc);
+
+            // Update menu UI
+            updateMenuUI();
+        }
+
+        function showRewardPopup(icon, title, desc) {
+            document.getElementById('reward-icon').textContent = icon;
+            document.getElementById('reward-title').textContent = title;
+            document.getElementById('reward-desc').innerHTML = desc;
+            document.getElementById('code-reward-popup').classList.add('show');
+        }
+
+        window.closeRewardPopup = function() {
+            document.getElementById('code-reward-popup').classList.remove('show');
         };
 
         // Ensure initMenu is called on page load
