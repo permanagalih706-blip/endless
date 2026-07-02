@@ -1187,6 +1187,51 @@
         <div id="pause-toggles" style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px; max-width: 320px; width: 100%;"></div>
     </div>
 
+    <!-- Unfair Advantages Settings Modal -->
+    <div id="unfair-settings-overlay-bg" class="modal-backdrop hidden" onclick="closeUnfairSettingsModal()"></div>
+    <div id="unfair-settings-modal" class="hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 380px; max-height: 90%; overflow-y: auto; padding: 24px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6); z-index: 210; font-family: 'Plus Jakarta Sans', sans-serif; color: #f1f5f9;">
+        <h3 style="margin-top: 0; margin-bottom: 16px; color: #ffffff; text-align: center; font-weight: 800; letter-spacing: 1px; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 18px;">⚙️ UNFAIR SETTINGS</h3>
+        
+        <div style="display: flex; flex-direction: column; gap: 16px; text-align: left; margin-bottom: 20px;">
+            <!-- Ban Stat Upgrades Section -->
+            <div>
+                <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 8px; letter-spacing: 0.5px;">Banned Stat Upgrades (Dari Pool)</label>
+                <div style="display: flex; flex-direction: column; gap: 8px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; cursor: pointer; color: #e2e8f0; font-weight: 500;">
+                        <input type="checkbox" id="ban-stat-heal" style="accent-color: #6366f1; width: 15px; height: 15px;" />
+                        <span>Sembuh Total HP & Shield</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; cursor: pointer; color: #e2e8f0; font-weight: 500;">
+                        <input type="checkbox" id="ban-stat-hp" style="accent-color: #6366f1; width: 15px; height: 15px;" />
+                        <span>Suplemen Stamina (+15 HP)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; cursor: pointer; color: #e2e8f0; font-weight: 500;">
+                        <input type="checkbox" id="ban-stat-speed" style="accent-color: #6366f1; width: 15px; height: 15px;" />
+                        <span>Sepatu Lari Kinetik (+10% Speed)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; cursor: pointer; color: #e2e8f0; font-weight: 500;">
+                        <input type="checkbox" id="ban-stat-damage" style="accent-color: #6366f1; width: 15px; height: 15px;" />
+                        <span>Suplemen Kekuatan (+10% Damage)</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Upgrade Priority Section -->
+            <div>
+                <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 6px; letter-spacing: 0.5px;">Upgrade Priority</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                    <div style="display: flex; flex-direction: column;">
+                        <span id="priority-label-title" style="font-size: 13px; font-weight: 700; color: #e2e8f0;">Weapon Upgrade Priority</span>
+                        <span id="priority-label-desc" style="font-size: 10.5px; color: #94a3b8; margin-top: 2px;">ON: Lebih sering upgrade. OFF: Lebih sering senjata baru.</span>
+                    </div>
+                    <button class="btn" id="btn-toggle-priority" onclick="toggleUpgradePriority()" style="margin: 0; padding: 6px 14px; font-size: 11.5px; min-width: 50px; background: linear-gradient(135deg, #64748b, #475569); color: white; border-radius: 8px;">OFF</button>
+                </div>
+            </div>
+        </div>
+        
+        <button class="btn" onclick="closeUnfairSettingsModal()" style="width: 100%; margin: 0; padding: 12px; font-size: 14px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; border-radius: 10px; font-weight: 700; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">SIMPAN & TUTUP</button>
+    </div>
+
     <!-- Hack Terminal Popup -->
     <div id="hack-overlay-bg" class="modal-backdrop hidden" onclick="closeHackModal()"></div>
     <div id="hack-modal" class="hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; padding: 24px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); z-index: 200; font-family: monospace; color: #4ade80;">
@@ -1511,6 +1556,8 @@
             divineGeneralUnlocked: false,
             autoRandomPickUnlocked: false,
             autoRandomPickUpgrade: false,
+            bannedStats: { heal: false, hp: false, speed: false, damage: false },
+            upgradePriority: false,
             locateEnemyUnlocked: false,
             locateEnemy: false,
             mode67Unlocked: false,
@@ -1802,27 +1849,12 @@
             // Build pause toggles
             let tBox = document.getElementById('pause-toggles');
             tBox.innerHTML = '';
-            if (saveData.autoRandomPickUnlocked) {
-                let row = document.createElement('div');
-                row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;background:rgba(99,102,241,0.08);padding:8px 14px;border-radius:8px;';
-                row.innerHTML = `<span style="font-size:13px;font-weight:700;color:#6366f1;">🤖 Auto Random Pick</span>`;
-                let btn = document.createElement('button');
-                btn.className = 'btn';
-                btn.style.cssText = 'margin:0;padding:4px 14px;font-size:12px;min-width:50px;background:' + (saveData.autoRandomPickUpgrade ? 'linear-gradient(135deg,#10b981,#059669)' : 'linear-gradient(135deg,#64748b,#475569)');
-                btn.textContent = saveData.autoRandomPickUpgrade ? 'ON' : 'OFF';
-                btn.onclick = () => {
-                    saveData.autoRandomPickUpgrade = !saveData.autoRandomPickUpgrade;
-                    saveGame();
-                    btn.textContent = saveData.autoRandomPickUpgrade ? 'ON' : 'OFF';
-                    btn.style.background = saveData.autoRandomPickUpgrade ? 'linear-gradient(135deg,#10b981,#059669)' : 'linear-gradient(135deg,#64748b,#475569)';
-                };
-                row.appendChild(btn);
-                tBox.appendChild(row);
-            }
+
+            // 1. Fair Advantages (Locate Enemy)
             if (saveData.locateEnemyUnlocked) {
                 let row = document.createElement('div');
                 row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;background:rgba(239,68,68,0.08);padding:8px 14px;border-radius:8px;';
-                row.innerHTML = `<span style="font-size:13px;font-weight:700;color:#ef4444;">🏹 Locate Enemy</span>`;
+                row.innerHTML = `<span style="font-size:13px;font-weight:700;color:#ef4444;">🏹 Fair Advantages</span>`;
                 let btn = document.createElement('button');
                 btn.className = 'btn';
                 btn.style.cssText = 'margin:0;padding:4px 14px;font-size:12px;min-width:50px;background:' + (saveData.locateEnemy ? 'linear-gradient(135deg,#10b981,#059669)' : 'linear-gradient(135deg,#64748b,#475569)');
@@ -1836,6 +1868,91 @@
                 row.appendChild(btn);
                 tBox.appendChild(row);
             }
+
+            // 2. Unfair Advantages (Auto Random Pick)
+            if (saveData.autoRandomPickUnlocked) {
+                let row = document.createElement('div');
+                row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;background:rgba(99,102,241,0.08);padding:8px 14px;border-radius:8px;';
+                
+                let leftContainer = document.createElement('div');
+                leftContainer.style.cssText = 'display:flex;align-items:center;gap:8px;';
+                
+                let settingsBtn = document.createElement('button');
+                settingsBtn.innerHTML = '⚙️';
+                settingsBtn.style.cssText = 'background:none;border:none;cursor:pointer;font-size:16px;padding:2px;outline:none;line-height:1;margin:0;display:inline-flex;align-items:center;justify-content:center;';
+                settingsBtn.onclick = () => {
+                    openUnfairSettingsModal();
+                };
+                
+                let label = document.createElement('span');
+                label.style.cssText = 'font-size:13px;font-weight:700;color:#6366f1;';
+                label.textContent = '🤖 Unfair Advantages';
+                
+                leftContainer.appendChild(settingsBtn);
+                leftContainer.appendChild(label);
+                
+                let btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.style.cssText = 'margin:0;padding:4px 14px;font-size:12px;min-width:50px;background:' + (saveData.autoRandomPickUpgrade ? 'linear-gradient(135deg,#10b981,#059669)' : 'linear-gradient(135deg,#64748b,#475569)');
+                btn.textContent = saveData.autoRandomPickUpgrade ? 'ON' : 'OFF';
+                btn.onclick = () => {
+                    saveData.autoRandomPickUpgrade = !saveData.autoRandomPickUpgrade;
+                    saveGame();
+                    btn.textContent = saveData.autoRandomPickUpgrade ? 'ON' : 'OFF';
+                    btn.style.background = saveData.autoRandomPickUpgrade ? 'linear-gradient(135deg,#10b981,#059669)' : 'linear-gradient(135deg,#64748b,#475569)';
+                };
+                
+                row.appendChild(leftContainer);
+                row.appendChild(btn);
+                tBox.appendChild(row);
+            }
+        }
+
+        function openUnfairSettingsModal() {
+            if (!saveData.bannedStats) {
+                saveData.bannedStats = { heal: false, hp: false, speed: false, damage: false };
+            }
+            document.getElementById('ban-stat-heal').checked = saveData.bannedStats.heal || false;
+            document.getElementById('ban-stat-hp').checked = saveData.bannedStats.hp || false;
+            document.getElementById('ban-stat-speed').checked = saveData.bannedStats.speed || false;
+            document.getElementById('ban-stat-damage').checked = saveData.bannedStats.damage || false;
+            
+            updatePriorityBtnUI();
+            
+            document.getElementById('unfair-settings-overlay-bg').classList.remove('hidden');
+            document.getElementById('unfair-settings-modal').classList.remove('hidden');
+        }
+        
+        function updatePriorityBtnUI() {
+            let btn = document.getElementById('btn-toggle-priority');
+            if (saveData.upgradePriority) {
+                btn.textContent = 'ON';
+                btn.style.background = 'linear-gradient(135deg,#10b981,#059669)';
+            } else {
+                btn.textContent = 'OFF';
+                btn.style.background = 'linear-gradient(135deg,#64748b,#475569)';
+            }
+        }
+        
+        function toggleUpgradePriority() {
+            saveData.upgradePriority = !saveData.upgradePriority;
+            saveGame();
+            updatePriorityBtnUI();
+        }
+        
+        function closeUnfairSettingsModal() {
+            if (!saveData.bannedStats) {
+                saveData.bannedStats = { heal: false, hp: false, speed: false, damage: false };
+            }
+            saveData.bannedStats.heal = document.getElementById('ban-stat-heal').checked;
+            saveData.bannedStats.hp = document.getElementById('ban-stat-hp').checked;
+            saveData.bannedStats.speed = document.getElementById('ban-stat-speed').checked;
+            saveData.bannedStats.damage = document.getElementById('ban-stat-damage').checked;
+            
+            saveGame();
+            
+            document.getElementById('unfair-settings-overlay-bg').classList.add('hidden');
+            document.getElementById('unfair-settings-modal').classList.add('hidden');
         }
 
         function resumeGame() {
@@ -2412,8 +2529,8 @@
                 if (this.reviveInvulnerableTimer > 0) return; // Invulnerability after revive
 
                 let dgActive = (divineGeneralInstance !== null);
-                let dgReduction = dgActive ? 0.10 : 0;
-                let damageToInflict = amount * (1 - this.artMods.dmgReduction - dgReduction);
+                let dgDebuff = dgActive ? 0.10 : 0;
+                let damageToInflict = amount * (1 - this.artMods.dmgReduction + dgDebuff);
                 if (this.shieldHp > 0) {
                     if (this.shieldHp >= damageToInflict) {
                         this.shieldHp -= damageToInflict;
@@ -3595,8 +3712,20 @@
                     }
                 }
 
-                let dx = player.x - this.x;
-                let dy = player.y - this.y;
+                let targetEntity = player;
+                let isTargetingDG = false;
+                if (divineGeneralInstance) {
+                    let dxToDG = divineGeneralInstance.x - this.x;
+                    let dyToDG = divineGeneralInstance.y - this.y;
+                    let distToDG = Math.sqrt(dxToDG * dxToDG + dyToDG * dyToDG);
+                    if (distToDG < 350) {
+                        targetEntity = divineGeneralInstance;
+                        isTargetingDG = true;
+                    }
+                }
+
+                let dx = targetEntity.x - this.x;
+                let dy = targetEntity.y - this.y;
                 let dist = Math.sqrt(dx * dx + dy * dy);
 
                 if (dist > 0) {
@@ -3635,12 +3764,33 @@
                     }
                 }
 
-                let minDist = this.size + player.size;
-                if (dist < minDist) {
+                // Collision with player
+                let distToPlayer = getDistance(this.x, this.y, player.x, player.y);
+                let minPlayerDist = this.size + player.size;
+                if (distToPlayer < minPlayerDist) {
                     player.takeDamage(this.damage);
-                    if (dist > 0) {
-                        this.x -= (dx / dist) * 15;
-                        this.y -= (dy / dist) * 15;
+                    let pdx = player.x - this.x;
+                    let pdy = player.y - this.y;
+                    let pdist = Math.sqrt(pdx * pdx + pdy * pdy);
+                    if (pdist > 0) {
+                        this.x -= (pdx / pdist) * 15;
+                        this.y -= (pdy / pdist) * 15;
+                    }
+                }
+
+                // Collision with Divine General
+                if (divineGeneralInstance) {
+                    let distToDG = getDistance(this.x, this.y, divineGeneralInstance.x, divineGeneralInstance.y);
+                    let minDGDist = this.size + divineGeneralInstance.size;
+                    if (distToDG < minDGDist) {
+                        divineGeneralInstance.takeDamage(this.damage * 0.1);
+                        let dgdx = divineGeneralInstance.x - this.x;
+                        let dgdy = divineGeneralInstance.y - this.y;
+                        let dgdist = Math.sqrt(dgdx * dgdx + dgdy * dgdy);
+                        if (dgdist > 0) {
+                            this.x -= (dgdx / dgdist) * 15;
+                            this.y -= (dgdy / dgdist) * 15;
+                        }
                     }
                 }
             }
@@ -3978,22 +4128,25 @@
                 this.size = 25;
                 this.hp = 1000000;
                 this.maxHp = 1000000;
-                this.life = 1800; // 30 seconds straight
                 this.damageReduction = 0.10; // 10% damage reduction
                 this.attackCooldown = 0;
             }
             update() {
-                this.life--;
                 if (this.attackCooldown > 0) this.attackCooldown--;
 
-                // Target the enemy with the most health
+                // Target the enemy closest to the player
                 let target = null;
-                let maxHp = -1;
+                let minDist = Infinity;
                 for (let i = 0; i < entities.enemies.length; i++) {
                     let e = entities.enemies[i];
-                    if (e && !e.dead && e.hp > maxHp) {
-                        maxHp = e.hp;
-                        target = e;
+                    if (e && !e.dead) {
+                        let dx = e.x - player.x;
+                        let dy = e.y - player.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            target = e;
+                        }
                     }
                 }
 
@@ -4006,20 +4159,6 @@
                         this.x += (dx / dist) * 3.5;
                         this.y += (dy / dist) * 3.5;
                     }
-
-                    // Attack target when close
-                    if (dist < this.size + target.size + 15 && this.attackCooldown <= 0) {
-                        this.attackCooldown = 30; // attack every 0.5s
-                        if (target.isBoss) {
-                            // Deals significant damage to boss
-                            target.takeDamage(5000);
-                        } else {
-                            // One shot any non-boss
-                            target.takeDamage(target.hp + 9999);
-                        }
-                        createParticles(target.x, target.y, '#eab308', 8);
-                        createDamageText(this.x, this.y, "DIVINE STRIKE! ⚔️", '#eab308', 14);
-                    }
                 } else {
                     // Move towards player if no enemies
                     let dx = player.x - this.x;
@@ -4031,15 +4170,45 @@
                     }
                 }
 
-                // Take damage from close enemies
-                let genSize = this.size;
-                for (let i = 0; i < entities.enemies.length; i++) {
-                    let e = entities.enemies[i];
-                    if (e && !e.dead) {
-                        let d = getDistance(this.x, this.y, e.x, e.y);
-                        if (d < genSize + e.size) {
-                            this.takeDamage(e.damage * 0.1);
+                // Attack all enemies & player in range
+                if (this.attackCooldown <= 0) {
+                    let attackRange = 120;
+                    let hitEnemies = [];
+                    for (let i = 0; i < entities.enemies.length; i++) {
+                        let e = entities.enemies[i];
+                        if (e && !e.dead) {
+                            let dist = getDistance(this.x, this.y, e.x, e.y);
+                            if (dist < attackRange) {
+                                hitEnemies.push(e);
+                            }
                         }
+                    }
+
+                    let hitPlayer = false;
+                    let distToPlayer = getDistance(this.x, this.y, player.x, player.y);
+                    if (distToPlayer < attackRange) {
+                        hitPlayer = true;
+                    }
+
+                    if (hitEnemies.length > 0 || hitPlayer) {
+                        this.attackCooldown = 30; // attack every 0.5s
+                        
+                        hitEnemies.forEach(e => {
+                            if (e.isBoss) {
+                                e.takeDamage(5000);
+                            } else {
+                                e.takeDamage(e.hp + 9999);
+                            }
+                            createParticles(e.x, e.y, '#eab308', 5);
+                        });
+
+                        if (hitPlayer) {
+                            player.takeDamage(15); // deal 15 damage to player
+                            createParticles(player.x, player.y, '#ef4444', 5);
+                        }
+
+                        createParticles(this.x, this.y, '#eab308', 12);
+                        createDamageText(this.x, this.y, "DIVINE STRIKE! ⚔️", '#eab308', 14);
                     }
                 }
             }
@@ -4063,11 +4232,6 @@
                 ctx.fillStyle = '#dee2e6'; ctx.fillRect(barX, barY, barW, barH);
                 ctx.fillStyle = '#eab308'; ctx.fillRect(barX, barY, barW * (this.hp / this.maxHp), barH);
                 
-                // Draw remaining time bar below HP bar
-                let timeBarY = barY + 5;
-                ctx.fillStyle = '#e2e8f0'; ctx.fillRect(barX, timeBarY, barW, 2);
-                ctx.fillStyle = '#3b82f6'; ctx.fillRect(barX, timeBarY, barW * (this.life / 1800), 2);
-
                 ctx.restore();
             }
         }
@@ -4153,11 +4317,11 @@
         // ==========================================
         function triggerLevelUp() {
             if (saveData.autoRandomPickUnlocked && saveData.autoRandomPickUpgrade) {
-                // Auto random pick: build pool, pick random, apply immediately
-                buildLevelUpChoices();
-                if (currentChoices.length > 0) {
-                    let pick = currentChoices[Math.floor(Math.random() * currentChoices.length)];
-                    selectChoice(pick);
+                // Auto random pick from the full pool using weighted random
+                let pool = buildLevelUpPoolOnly();
+                if (pool.length > 0) {
+                    let pick = getWeightedRandomPick(pool);
+                    selectChoiceAuto(pick);
                 }
                 return;
             }
@@ -4166,16 +4330,26 @@
             buildLevelUpChoices();
         }
 
-        function buildLevelUpChoices() {
+        function buildLevelUpPoolOnly() {
             let pool = [];
 
-            pool.push({ type: 'stat', name: "Sembuh Total HP & Shield", desc: "Memulihkan kondisi HP dan Shield hingga penuh.", action: p => { p.hp = p.maxHp; p.shieldHp = p.artMods.maxShield; } });
-            pool.push({ type: 'stat', name: "Suplemen Stamina (+15 HP)", desc: "Meningkatkan Max HP tempur sebesar 15.", action: p => { p.maxHp += 15; p.hp += 15; } });
-            pool.push({ type: 'stat', name: "Sepatu Lari Kinetik (+10% Speed)", desc: "Kecepatan gerak player meningkat instan.", action: p => p.speed += 0.35 });
-            pool.push({ type: 'stat', name: "Suplemen Kekuatan (+10% Damage)", desc: "Meningkatkan damage senjata player sebesar 10%.", action: p => p.baseDmgMulti *= 1.10 });
+            if (!saveData.bannedStats || !saveData.bannedStats.heal) {
+                pool.push({ type: 'stat', name: "Sembuh Total HP & Shield", desc: "Memulihkan kondisi HP dan Shield hingga penuh.", action: p => { p.hp = p.maxHp; p.shieldHp = p.artMods.maxShield; } });
+            }
+            if (!saveData.bannedStats || !saveData.bannedStats.hp) {
+                pool.push({ type: 'stat', name: "Suplemen Stamina (+15 HP)", desc: "Meningkatkan Max HP tempur sebesar 15.", action: p => { p.maxHp += 15; p.hp += 15; } });
+            }
+            if (!saveData.bannedStats || !saveData.bannedStats.speed) {
+                pool.push({ type: 'stat', name: "Sepatu Lari Kinetik (+10% Speed)", desc: "Kecepatan gerak player meningkat instan.", action: p => p.speed += 0.35 });
+            }
+            if (!saveData.bannedStats || !saveData.bannedStats.damage) {
+                pool.push({ type: 'stat', name: "Suplemen Kekuatan (+10% Damage)", desc: "Meningkatkan damage senjata player sebesar 10%.", action: p => p.baseDmgMulti *= 1.10 });
+            }
 
             player.weapons.forEach(w => {
-                if (w.level < WEAPON_DEFS[w.id].max) pool.push({ type: 'upgrade_wpn', id: w.id, name: `Upgrade: ${w.def.name}`, desc: `Naikkan tingkat efektifitas senjata ini ke Lv ${w.level + 1}.`, instance: w });
+                if (w.level < WEAPON_DEFS[w.id].max) {
+                    pool.push({ type: 'upgrade_wpn', id: w.id, name: `Upgrade: ${w.def.name}`, desc: `Naikkan tingkat efektifitas senjata ini ke Lv ${w.level + 1}.`, instance: w });
+                }
             });
 
             for (let wId in WEAPON_DEFS) {
@@ -4183,11 +4357,50 @@
                 if (!owned) {
                     if (wId === 'reversal_red') {
                         let checkLapse = player.weapons.find(pw => pw.id === 'blue_lapse');
-                        if (!checkLapse) continue; // Reversal Red butuh Blue Lapse terbuka terlebih dahulu
+                        if (!checkLapse) continue;
                     }
                     pool.push({ type: 'new_wpn', id: wId, name: `Senjata Baru: ${WEAPON_DEFS[wId].name}`, desc: WEAPON_DEFS[wId].desc });
                 }
             }
+
+            if (pool.length === 0) {
+                pool.push({ type: 'stat', name: "Koin Keberuntungan (+50 Koin)", desc: "Mendapatkan 50 koin instan.", action: p => { runCoins += 50; } });
+            }
+            return pool;
+        }
+
+        function getWeightedRandomPick(pool) {
+            let weights = pool.map(c => {
+                if (c.type === 'upgrade_wpn') {
+                    return saveData.upgradePriority ? 10 : 1;
+                } else if (c.type === 'new_wpn') {
+                    return saveData.upgradePriority ? 1 : 10;
+                } else {
+                    return 2; // stats baseline weight
+                }
+            });
+            let totalWeight = weights.reduce((a, b) => a + b, 0);
+            let rand = Math.random() * totalWeight;
+            let sum = 0;
+            for (let i = 0; i < pool.length; i++) {
+                sum += weights[i];
+                if (rand <= sum) {
+                    return pool[i];
+                }
+            }
+            return pool[pool.length - 1];
+        }
+
+        function selectChoiceAuto(c) {
+            if (c.type === 'stat') c.action(player);
+            else if (c.type === 'upgrade_wpn') c.instance.level = c.instance.level + 1;
+            else if (c.type === 'new_wpn') player.weapons.push(new WeaponInstance(c.id, 1));
+            
+            createDamageText(player.x, player.y - 65, `🤖 AUTO: ${c.name}`, '#6366f1', 14);
+        }
+
+        function buildLevelUpChoices() {
+            let pool = buildLevelUpPoolOnly();
 
             for (let i = pool.length - 1; i > 0; i--) {
                 let j = Math.floor(Math.random() * (i + 1));
