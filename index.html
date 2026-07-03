@@ -15,6 +15,29 @@
             user-select: none;
         }
 
+        @keyframes pulse-trader {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* LOW GRAPHICS MODE — untuk laptop dengan RAM/GPU kecil.
+           Mematikan backdrop-filter blur (paling berat) & shadow di semua HUD/modal. */
+        body.low-gfx .hud,
+        body.low-gfx #main-menu .currency-box,
+        body.low-gfx #main-menu .highscore-box,
+        body.low-gfx .shop-popup-container,
+        body.low-gfx .subshop-overlay,
+        body.low-gfx #unfair-settings-modal,
+        body.low-gfx #hack-modal,
+        body.low-gfx #admin-modal,
+        body.low-gfx #code-reward-popup,
+        body.low-gfx #game-over-screen > div,
+        body.low-gfx #trader-modal {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            box-shadow: none !important;
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -1039,6 +1062,14 @@
     <div id="main-menu" class="menu-screen">
         <!-- 67 Gamemode toggle top-right -->
         <button id="mode67-toggle" style="display:none; position:absolute; top:15px; right:15px; background:linear-gradient(135deg,#ef4444,#dc2626); color:white; border:none; padding:6px 14px; border-radius:8px; font-weight:800; font-size:12px; cursor:pointer; z-index:10; box-shadow: 0 2px 8px rgba(239,68,68,0.3);" onclick="toggleMode67()">🚨 67 MODE: ON</button>
+        <!-- Intergalactic Trader appearance button (10% chance/menit, muncul 1 menit) -->
+        <button id="trader-appear-btn" style="display:none; position:absolute; top:60px; right:15px; background:linear-gradient(135deg,#7c3aed,#a855f7); color:white; border:none; padding:8px 16px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; z-index:10; box-shadow: 0 2px 10px rgba(124,58,237,0.5); animation: pulse-trader 1.5s infinite;" onclick="openTraderModal()">👽 INTERGALACTIC TRADER (<span id="trader-time-left">60</span>s)</button>
+        <button id="honored-mode-toggle" style="display:none; position:absolute; top:105px; right:15px; background:linear-gradient(135deg,#78350f,#b45309); color:white; border:none; padding:6px 14px; border-radius:8px; font-weight:800; font-size:12px; cursor:pointer; z-index:10; box-shadow: 0 2px 8px rgba(180,83,9,0.4);" onclick="toggleHonoredMode()">🎖️ HONORED ONE: OFF</button>
+        <!-- Low Graphics & Sound toggle buttons -->
+        <div style="position:absolute; top:70px; left:18px; display:flex; gap:8px; z-index:10;">
+            <button id="lowgfx-toggle-btn" onclick="toggleLowGraphicsMode()" style="background:rgba(100,116,139,0.85); color:white; border:none; padding:6px 12px; border-radius:8px; font-weight:700; font-size:11px; cursor:pointer;">🖥️ Low Graphics: OFF</button>
+            <button id="sound-toggle-btn" onclick="toggleSoundMuted()" style="background:rgba(100,116,139,0.85); color:white; border:none; padding:6px 12px; border-radius:8px; font-weight:700; font-size:11px; cursor:pointer;">🔊 Suara: ON</button>
+        </div>
         <!-- Code Entry Panel pojok kiri atas -->
         <div id="code-entry-panel">
             <label id="code-toggle-label">📝 Enter Code</label>
@@ -1074,8 +1105,40 @@
         <button class="reward-close-btn" onclick="closeRewardPopup()">OK!</button>
     </div>
 
+    <!-- Intergalactic Trader Modal -->
+    <div id="trader-overlay-bg" class="modal-backdrop hidden" onclick="closeTraderModal()"></div>
+    <div id="trader-modal" class="hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 420px; max-height: 88%; overflow-y: auto; padding: 24px; background: rgba(30, 15, 60, 0.97); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(168,85,247,0.4); border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.6); z-index: 220; font-family: 'Plus Jakarta Sans', sans-serif; color: #f1f5f9;">
+        <h3 style="margin-top:0; margin-bottom:4px; text-align:center; font-weight:800; font-size:19px; background: linear-gradient(135deg, #a855f7, #ec4899); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">👽 Intergalactic Trader</h3>
+        <p style="font-size:11.5px; color:#c4b5fd; text-align:center; margin-bottom:16px;">Menetap selama <span id="trader-remaining">60</span> detik lagi! Ia selalu untung lebih besar darimu, tapi harga membaik semakin besar jumlahmu.</p>
+
+        <div style="background:rgba(255,255,255,0.06); border-radius:14px; padding:14px; margin-bottom:14px;">
+            <div style="font-size:12.5px; font-weight:700; color:#e9d5ff; margin-bottom:8px;">🪙 ⇄ 🔮 Tukar Koin</div>
+            <div style="display:flex; gap:8px; margin-bottom:8px;">
+                <button id="trader-dir-buy" class="btn" onclick="setTraderDirection('buy')" style="flex:1; margin:0; padding:6px; font-size:11px; background: linear-gradient(135deg,#a855f7,#7c3aed); color:white;">Koin → Cosmic</button>
+                <button id="trader-dir-sell" class="btn" onclick="setTraderDirection('sell')" style="flex:1; margin:0; padding:6px; font-size:11px; background: linear-gradient(135deg,#334155,#1e293b); color:white;">Cosmic → Koin</button>
+            </div>
+            <input type="number" id="trader-amount-input" min="1" value="1000" oninput="updateTraderPreview()" style="width:100%; padding:8px 10px; background:#0f0821; border:1px solid #7c3aed; border-radius:8px; color:#f1f5f9; font-size:13px; margin-bottom:8px;" />
+            <div id="trader-preview" style="font-size:12px; color:#c4b5fd; margin-bottom:10px; text-align:center;">-</div>
+            <button class="btn" onclick="executeTraderTrade()" style="width:100%; margin:0; padding:10px; font-size:13px; background: linear-gradient(135deg,#ec4899,#a855f7); color:white; border-radius:10px; font-weight:800;">TUKAR SEKARANG</button>
+        </div>
+
+        <div id="trader-mythic-offer-box" style="background:rgba(255,255,255,0.06); border-radius:14px; padding:14px; margin-bottom:14px; display:none;">
+            <div style="font-size:12.5px; font-weight:700; color:#fbbf24; margin-bottom:6px;">✨ Senjata Mistis Tersedia!</div>
+            <div id="trader-mythic-name" style="font-size:15px; font-weight:800; margin-bottom:4px;"></div>
+            <div id="trader-mythic-desc" style="font-size:11.5px; color:#cbd5e1; margin-bottom:8px; line-height:1.4;"></div>
+            <div id="trader-mythic-price" style="font-size:12px; color:#e9d5ff; margin-bottom:8px;"></div>
+            <button id="trader-mythic-buy-btn" class="btn" onclick="buyMythicFromTrader()" style="width:100%; margin:0; padding:10px; font-size:13px; background: linear-gradient(135deg,#f59e0b,#d97706); color:white; border-radius:10px; font-weight:800;">BELI SENJATA MISTIS</button>
+        </div>
+
+        <button class="btn" onclick="closeTraderModal()" style="width:100%; margin:0; padding:10px; font-size:13px; background: linear-gradient(135deg,#64748b,#475569); color:white; border-radius:10px;">TUTUP</button>
+    </div>
+
     <div id="shop-overlay-bg" class="modal-backdrop hidden" onclick="closeShopModal()"></div>
     <div id="shop-modal" class="shop-popup-container hidden">
+        <div id="shop-discount-info" style="position: absolute; top: 20px; left: 20px; display:none; background:rgba(217,119,6,0.15); border:1px solid rgba(217,119,6,0.4); border-radius:10px; padding:8px 14px; z-index:5;">
+            <div id="shop-discount-text" style="font-size:12.5px; font-weight:800; color:#b45309;">🏷️ Diskon Homeless: -10%</div>
+            <div id="shop-discount-timer" style="font-size:11px; font-weight:700; color:#d97706; opacity:0.9;"></div>
+        </div>
         <div class="shop-multiplier-container" style="position: absolute; top: 20px; right: 20px; display: flex; gap: 6px; pointer-events: auto;">
             <button class="mult-btn active" onclick="setShopMultiplier(1)">1x</button>
             <button class="mult-btn" onclick="setShopMultiplier(3)">3x</button>
@@ -1443,6 +1506,7 @@
                         <label style="display:flex; align-items:center; gap:6px; font-size:12px; cursor:pointer; color:#f1f5f9;"><input type="checkbox" id="admin-cheat-brute" onchange="toggleAdminCheat('cheatBrute')" /> Brute Force</label>
                         <label style="display:flex; align-items:center; gap:6px; font-size:12px; cursor:pointer; color:#f1f5f9;"><input type="checkbox" id="admin-cheat-magnet" onchange="toggleAdminCheat('cheatMagnet')" /> Mega Magnet</label>
                         <label style="display:flex; align-items:center; gap:6px; font-size:12px; cursor:pointer; color:#f1f5f9;"><input type="checkbox" id="admin-cheat-skip" onchange="toggleAdminCheat('cheatSkip')" /> Skip Mode</label>
+                        <label style="display:flex; align-items:center; gap:6px; font-size:12px; cursor:pointer; color:#f1f5f9;"><input type="checkbox" id="admin-cheat-summon" onchange="toggleAdminSummon()" /> 👽 Permanent Trader (SUMMON)</label>
                     </div>
                 </div>
             </div>
@@ -1520,6 +1584,42 @@
             art_chronos_watch: { name: "Chronos Watch", max: 5, costBase: 300, desc: "Mengurangi cooldown semua senjata aktif sebesar 4% (+3% per lv)." }
         };
 
+        // 5 Mythic Weapons — hanya bisa didapat dari Intergalactic Trader (10% peluang tampil per kemunculan trader).
+        // Urutan dari yang paling lemah/murah ke paling kuat/mahal, mulai dari 100rb koin & 10rb cosmic koin.
+        const MYTHIC_WEAPON_DEFS = {
+            trader_pass: {
+                name: "Interdimensional Trader Subscription Pass",
+                icon: "🪪",
+                costCoin: 100000, costCosmic: 10000,
+                desc: "Semua harga di Intergalactic Trader (tukar koin & senjata mistis) 10% lebih murah, dan kamu mendapat notifikasi saat Trader muncul selagi bermain."
+            },
+            god_of_artefact: {
+                name: "God Of Artefact",
+                icon: "👑",
+                costCoin: 250000, costCosmic: 25000,
+                desc: "Semua artefak menjadi 2x lebih kuat efeknya, dan harga artefak di toko 10% lebih murah."
+            },
+            spamer_one: {
+                name: "ImThe Spamer One",
+                icon: "⚡",
+                costCoin: 500000, costCosmic: 50000,
+                desc: "Blue Lapse & Reversal Red terisi 5x lebih cepat, durasi ultimate Infinite Void 2x lebih lama, efek knockback dash jauh lebih kuat, kebal total dari serangan musuh, & mendorong balik musuh yang mendekat. Membuka gamemode baru 'Honored One' (semua senjata terbuka kecuali Reversal Red & Blue Lapse, hanya musuh besar/tank & boss ber-HP tinggi, ultimate boss selalu yang terkuat sepanjang sejarah, HP musuh naik 30%/menit)."
+            },
+            hollow_purple: {
+                name: "Hollow Purple",
+                icon: "🟣",
+                costCoin: 750000, costCosmic: 75000,
+                desc: "Tekan [H] untuk melontarkan bola energi ungu (bergerak seperti Reversal Red) berdamage 80% dari Hollow Nuke. Setelah 5 detik, bola meledak ke SELURUH PETA memberi damage 10% dari HP maksimum tiap musuh (termasuk Ultimate Boss)."
+            },
+            potential_maxer: {
+                name: "Potential Maxer",
+                icon: "💠",
+                costCoin: 1000000, costCosmic: 100000,
+                desc: "The Divine General menjadi 100x lebih kuat & lebih cepat, tidak lagi memberi damage ke player, HP-nya menjadi 1 MILIAR, dan bisa dipanggil ulang setelah mati (cooldown 10 menit) alih-alih hanya sekali per game."
+            }
+        };
+        const MYTHIC_WEAPON_ORDER = ['trader_pass', 'god_of_artefact', 'spamer_one', 'hollow_purple', 'potential_maxer'];
+
         // ==========================================
         // 3. SAVE DATA STRUCTURE
         // ==========================================
@@ -1564,7 +1664,21 @@
             mode67Active: false,
             homelessDiscountRedeemed: false,
             homelessDiscountStart: 0,
-            sixEyeUnlocked: false
+            sixEyeUnlocked: false,
+            mythicWeapons: { potential_maxer: false, spamer_one: false, god_of_artefact: false, trader_pass: false, hollow_purple: false },
+            honoredModeUnlocked: false,
+            honoredModeActive: false,
+            traderSpawnedUntil: 0,
+            divineGeneralReadyAt: 0,
+            lowGraphicsMode: false,
+            soundMuted: false,
+            traderLastCheck: 0,
+            traderOffer: null,
+            traderPurchasedOfferRun: false,
+            tycoonUnlocked: false,
+            tycoonLastCollect: 0,
+            greedBonusPercent: 0,
+            konamiHpBonus: 0
         };
 
         for (let w in WEAPON_DEFS) {
@@ -1764,6 +1878,12 @@
 
         // State sistem Ultimate
         let activeUltimate = null;       // ID ultimate yang sedang aktif
+
+        function getEffectiveUltimate() {
+            // Honored One: ultimate yang dipakai SELALU digantikan oleh Infinite Void, walau tidak dimiliki.
+            if (saveData.honoredModeActive) return 'infinite_void';
+            return saveData.equippedUltimate;
+        }
         let ultimateActiveTimer = 0;     // sisa durasi aktif (frames)
         let ultimateActiveDuration = 0;  // total durasi aktif (frames)
         let ultimateCooldownTimer = 0;   // sisa cooldown (frames)
@@ -1773,9 +1893,73 @@
         // OPTIMASI LOW-END LAPTOP
         // ==========================================
         // Batasi jumlah maksimum partikel aktif sekaligus agar GPU tidak kewalahan
-        const MAX_PARTICLES = 50;
-        const MAX_PROJECTILES = 80;
-        const MAX_DAMAGE_TEXTS = 12;
+        const MAX_PARTICLES_NORMAL = 50;
+        const MAX_PROJECTILES_NORMAL = 80;
+        const MAX_DAMAGE_TEXTS_NORMAL = 12;
+        const MAX_PARTICLES_LOW = 12;
+        const MAX_PROJECTILES_LOW = 30;
+        const MAX_DAMAGE_TEXTS_LOW = 4;
+        let MAX_PARTICLES = MAX_PARTICLES_NORMAL;
+        let MAX_PROJECTILES = MAX_PROJECTILES_NORMAL;
+        let MAX_DAMAGE_TEXTS = MAX_DAMAGE_TEXTS_NORMAL;
+
+        // ==========================================
+        // SOUND ENGINE (ringan, tanpa file audio eksternal - pakai WebAudio beep)
+        // Aman dipakai walau tidak penting; jika gagal/di-mute, tidak akan crash.
+        // ==========================================
+        const Sound = {
+            ctx: null,
+            enabled: true,
+            _ensure() {
+                if (this.ctx) return this.ctx;
+                try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+                catch (e) { this.ctx = null; }
+                return this.ctx;
+            },
+            play(type) {
+                if (!this.enabled) return;
+                let ac = this._ensure();
+                if (!ac) return;
+                if (ac.state === 'suspended') { ac.resume().catch(() => {}); }
+                const presets = {
+                    buy: { freq: 720, dur: 0.08, wave: 'square', gain: 0.05 },
+                    nuke: { freq: 90, dur: 0.5, wave: 'sawtooth', gain: 0.12 },
+                    hit: { freq: 200, dur: 0.05, wave: 'square', gain: 0.03 },
+                    levelup: { freq: 880, dur: 0.16, wave: 'triangle', gain: 0.08 },
+                    trader: { freq: 520, dur: 0.22, wave: 'sine', gain: 0.07 },
+                    hack: { freq: 300, dur: 0.10, wave: 'square', gain: 0.06 },
+                    mythic: { freq: 660, dur: 0.30, wave: 'triangle', gain: 0.09 },
+                    error: { freq: 140, dur: 0.12, wave: 'sawtooth', gain: 0.06 }
+                };
+                const p = presets[type] || presets.buy;
+                try {
+                    let osc = ac.createOscillator();
+                    let gain = ac.createGain();
+                    osc.type = p.wave;
+                    osc.frequency.value = p.freq;
+                    gain.gain.value = p.gain;
+                    osc.connect(gain);
+                    gain.connect(ac.destination);
+                    osc.start();
+                    gain.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + p.dur);
+                    osc.stop(ac.currentTime + p.dur + 0.02);
+                } catch (e) { /* silently ignore, sound is non-essential */ }
+            },
+            toggle() { this.enabled = !this.enabled; return this.enabled; }
+        };
+
+        function applyLowGraphicsMode(on) {
+            document.body.classList.toggle('low-gfx', !!on);
+            if (on) {
+                MAX_PARTICLES = MAX_PARTICLES_LOW;
+                MAX_PROJECTILES = MAX_PROJECTILES_LOW;
+                MAX_DAMAGE_TEXTS = MAX_DAMAGE_TEXTS_LOW;
+            } else {
+                MAX_PARTICLES = MAX_PARTICLES_NORMAL;
+                MAX_PROJECTILES = MAX_PROJECTILES_NORMAL;
+                MAX_DAMAGE_TEXTS = MAX_DAMAGE_TEXTS_NORMAL;
+            }
+        }
 
         // Counter untuk throttle updateHUD — tidak perlu update DOM setiap frame
         let _hudUpdateCounter = 0;
@@ -1792,6 +1976,36 @@
         window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
 
         const keys = {};
+        // Kode rahasia: Up Up Down Down Left Right Left Right B A
+        const KONAMI_SEQUENCE = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a'];
+        let konamiBuffer = [];
+        function checkKonamiCode(k) {
+            konamiBuffer.push(k);
+            if (konamiBuffer.length > KONAMI_SEQUENCE.length) konamiBuffer.shift();
+            if (konamiBuffer.length === KONAMI_SEQUENCE.length && konamiBuffer.every((v, i) => v === KONAMI_SEQUENCE[i])) {
+                konamiBuffer = [];
+                // Permanen: +30 Max HP tiap kali kode dipakai (stack), & +30% dari koin/cosmic koin YANG DIMILIKI SAAT INI
+                let bonusCoin = Math.floor(saveData.coins * 0.30);
+                let bonusCosmic = Math.floor(saveData.cosmicCoins * 0.30);
+                saveData.coins += bonusCoin;
+                saveData.cosmicCoins += bonusCosmic;
+                saveData.konamiHpBonus = (saveData.konamiHpBonus || 0) + 30;
+                if (gameState === 'playing' && player) {
+                    player.maxHp += 30;
+                    player.hp = Math.min(player.maxHp, player.hp + 30);
+                    createParticles(player.x, player.y, '#fbbf24', 30);
+                    createDamageText(player.x, player.y - 50, `🎮 KONAMI CODE! +30 Max HP (permanen), +${bonusCoin} 🪙, +${bonusCosmic} 🔮`, '#fbbf24', 20);
+                } else {
+                    showRewardPopup('🎮', 'KONAMI CODE!', `+30 Max HP permanen, +${bonusCoin.toLocaleString()} 🪙 Koin, dan +${bonusCosmic.toLocaleString()} 🔮 Cosmic Koin (30% dari kepemilikanmu saat ini)!`);
+                }
+                Sound.play('mythic');
+                saveGame();
+                updateMenuUI();
+            }
+        }
+        window.addEventListener('keydown', e => {
+            checkKonamiCode(e.key.toLowerCase());
+        });
         window.addEventListener('keydown', e => {
             let k = e.key.toLowerCase();
             keys[k] = true;
@@ -1822,15 +2036,25 @@
                     player.triggerDash('right');
                 }
             }
-            if (gameState === 'playing' && k === 'p' && saveData.divineGeneralUnlocked && !divineGeneralSummonedThisGame) {
-                divineGeneralInstance = new DivineGeneral(player.x, player.y);
-                divineGeneralSummonedThisGame = true;
-                createParticles(player.x, player.y, '#eab308', 30);
-                createDamageText(player.x, player.y - 50, "SUMMON: THE DIVINE GENERAL! ⚔️👑", '#eab308', 20);
+            if (gameState === 'playing' && k === 'p' && saveData.divineGeneralUnlocked && !divineGeneralInstance) {
+                let isMaxer = saveData.mythicWeapons && saveData.mythicWeapons.potential_maxer;
+                let canSummon = !divineGeneralSummonedThisGame || (isMaxer && Date.now() >= (saveData.divineGeneralReadyAt || 0));
+                if (canSummon) {
+                    divineGeneralInstance = new DivineGeneral(player.x, player.y);
+                    divineGeneralSummonedThisGame = true;
+                    createParticles(player.x, player.y, '#eab308', 30);
+                    createDamageText(player.x, player.y - 50, "SUMMON: THE DIVINE GENERAL! ⚔️👑", '#eab308', 20);
+                } else if (isMaxer) {
+                    let secsLeft = Math.max(0, Math.ceil(((saveData.divineGeneralReadyAt || 0) - Date.now()) / 1000));
+                    createDamageText(player.x, player.y - 50, `Divine General cooldown: ${secsLeft}s`, '#94a3b8', 14);
+                }
+            }
+            if (gameState === 'playing' && k === 'h' && saveData.mythicWeapons && saveData.mythicWeapons.hollow_purple && player.hollowPurpleCd <= 0) {
+                triggerHollowPurple();
             }
             // Pemicuan Ultimate di dalam pertempuran (tombol U)
-            if (gameState === 'playing' && k === 'u' && saveData.equippedUltimate && !activeUltimate && ultimateCooldownTimer <= 0) {
-                activateUltimate(saveData.equippedUltimate);
+            if (gameState === 'playing' && k === 'u' && getEffectiveUltimate() && !activeUltimate && ultimateCooldownTimer <= 0) {
+                activateUltimate(getEffectiveUltimate());
             }
             // Navigasi cepat kategori Shop (tombol 1-4)
             if (gameState === 'menu' && !document.getElementById('shop-modal').classList.contains('hidden') && !activeSubShop) {
@@ -2045,7 +2269,7 @@
                 this.isGod = saveData.cheatGod || false;
                 this.isTripleSpeed = saveData.cheatTriple || false;
                 this.isSpeed = saveData.cheatSpeed || false;
-                this.maxHp = saveData.mode67Active ? 67 : (CONFIG.BASE_PLAYER_HP + (saveData.stats.hp.level * saveData.stats.hp.val));
+                this.maxHp = saveData.mode67Active ? 67 : (CONFIG.BASE_PLAYER_HP + (saveData.stats.hp.level * saveData.stats.hp.val) + (saveData.konamiHpBonus || 0));
                 this.hp = this.maxHp;
                 this.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (this.isSpeed ? (saveData.cheatBrute ? 5 : 3) : 1);
                 this.baseDmgMulti = 1 + (saveData.stats.atk.level * saveData.stats.atk.val);
@@ -2054,6 +2278,7 @@
                 this.dashCooldownMax = 180; this.dashCooldown = 0; this.dashDuration = 0; this.dashSpeed = 11;
                 this.superMagnetTimer = 0;
                 this.reviveInvulnerableTimer = 0;
+                this.hollowPurpleCd = 0; // Mythic Weapon: Hollow Purple (tekan H)
 
                 // Status effects (Ultimate Boss mechanics)
                 this.stunTimer = 0;
@@ -2087,7 +2312,9 @@
                     if (lv <= 0) continue;
                     if (key === 'art_eagle_eye') this.artMods.crit += 0.10 + (lv - 1) * 0.05;
                     if (key === 'art_the_force') {
-                        this.magnetArea += this.magnetArea * (0.02 + (lv - 1) * 0.01);
+                        let bonus = 0.02 + (lv - 1) * 0.01;
+                        if (saveData.mythicWeapons && saveData.mythicWeapons.god_of_artefact) bonus *= 2;
+                        this.magnetArea += this.magnetArea * bonus;
                         this.artMods.forceKnockback += 10 + (lv - 1) * 5;
                     }
                     if (key === 'art_ultimate_dasher') {
@@ -2098,7 +2325,9 @@
                         this.artMods.maxShield += lv * 100;
                     }
                     if (key === 'art_aegis_shoes') {
-                        this.speed += CONFIG.BASE_PLAYER_SPEED * (0.10 + (lv - 1) * 0.05);
+                        let bonus = CONFIG.BASE_PLAYER_SPEED * (0.10 + (lv - 1) * 0.05);
+                        if (saveData.mythicWeapons && saveData.mythicWeapons.god_of_artefact) bonus *= 2;
+                        this.speed += bonus;
                     }
                     // Process the 5 new artifacts
                     if (key === 'art_phoenix_feather') {
@@ -2118,20 +2347,38 @@
                         this.artMods.cooldownReduction = lv * 0.03;
                     }
                 }
+
+                if (saveData.mythicWeapons && saveData.mythicWeapons.god_of_artefact) {
+                    for (let key in this.artMods) {
+                        if (key !== 'reviveCount') {
+                            this.artMods[key] *= 2;
+                        }
+                    }
+                }
+
                 this.dashCooldownMax = Math.max(30, Math.floor(this.dashCooldownMax * (1 - this.artMods.dashCdRed)));
                 this.dashSpeed = 11 * this.artMods.dashDistMod;
                 this.shieldHp = this.artMods.maxShield;
 
                 this.weapons = [];
-                for (let wId in saveData.weapons) {
-                    let pWpn = saveData.weapons[wId];
-                    if (pWpn && pWpn.level > 0) {
-                        this.weapons.push(new WeaponInstance(wId, pWpn.level));
+                if (saveData.honoredModeActive) {
+                    // Honored One: HANYA Reversal Red & Blue Lapse yang dipakai.
+                    let savedRR = saveData.weapons['reversal_red'];
+                    let savedBL = saveData.weapons['blue_lapse'];
+                    this.weapons.push(new WeaponInstance('blue_lapse', (savedBL && savedBL.level > 0) ? savedBL.level : 1));
+                    this.weapons.push(new WeaponInstance('reversal_red', (savedRR && savedRR.level > 0) ? savedRR.level : 1));
+                } else {
+                    for (let wId in saveData.weapons) {
+                        let pWpn = saveData.weapons[wId];
+                        if (pWpn && pWpn.level > 0) {
+                            this.weapons.push(new WeaponInstance(wId, pWpn.level));
+                        }
+                    }
+                    if (this.weapons.length === 0) {
+                        this.weapons.push(new WeaponInstance('pistol', 1));
                     }
                 }
-                if (this.weapons.length === 0) {
-                    this.weapons.push(new WeaponInstance('pistol', 1));
-                }
+
                 if (saveData.codeBonuses && saveData.codeBonuses.twinMinionUpgrade) {
                     let minionW = this.weapons.find(w => w.id === 'minion');
                     if (minionW) {
@@ -2149,6 +2396,7 @@
             triggerDash(clickType) {
                 this.dashDuration = 14;
                 this.dashCooldown = this.dashCooldownMax;
+                Sound.play('hack');
                 createParticles(this.x, this.y, '#339af0', 12);
 
                 let hasLapse = this.weapons.find(w => w.id === 'blue_lapse');
@@ -2352,18 +2600,23 @@
                     this.dashDuration--;
                     createParticles(this.x, this.y, '#f1f3f5', 1);
                     // Cool Dash: knockback area saat dash selesai
-                    if (this.dashDuration === 0 && saveData.codeBonuses && saveData.codeBonuses.coolDash) {
-                        let knockRadius = 80;
-                        let knockForce = 12;
-                        createParticles(this.x, this.y, '#818cf8', 20);
-                        createParticles(this.x, this.y, '#c4b5fd', 10);
-                        for (let ei = 0; ei < entities.enemies.length; ei++) {
-                            let en = entities.enemies[ei];
-                            let edx = en.x - this.x, edy = en.y - this.y;
-                            let eDist = Math.hypot(edx, edy);
-                            if (eDist < knockRadius && eDist > 0) {
-                                en.x += (edx / eDist) * knockForce;
-                                en.y += (edy / eDist) * knockForce;
+                    if (this.dashDuration === 0) {
+                        let isSpamer = saveData.mythicWeapons && saveData.mythicWeapons.spamer_one;
+                        if ((saveData.codeBonuses && saveData.codeBonuses.coolDash) || isSpamer) {
+                            let knockRadius = isSpamer ? 200 : 80;
+                            let knockForce = isSpamer ? 35 : 12;
+                            createParticles(this.x, this.y, '#818cf8', isSpamer ? 40 : 20);
+                            createParticles(this.x, this.y, '#c4b5fd', isSpamer ? 20 : 10);
+                            for (let ei = 0; ei < entities.enemies.length; ei++) {
+                                let en = entities.enemies[ei];
+                                if (en && !en.dead) {
+                                    let edx = en.x - this.x, edy = en.y - this.y;
+                                    let eDist = Math.hypot(edx, edy);
+                                    if (eDist < knockRadius && eDist > 0) {
+                                        en.x += (edx / eDist) * knockForce;
+                                        en.y += (edy / eDist) * knockForce;
+                                    }
+                                }
                             }
                         }
                     }
@@ -2372,9 +2625,22 @@
                 this.x += dx * activeSpeed; this.y += dy * activeSpeed;
                 if (this.dashCooldown > 0) this.dashCooldown--;
 
+                // Cooldown decrement for Hollow Purple
+                if (this.hollowPurpleCd && this.hollowPurpleCd > 0) {
+                    let cdSpeed = (saveData.mythicWeapons && saveData.mythicWeapons.spamer_one) ? 5 : 1;
+                    this.hollowPurpleCd -= cdSpeed;
+                }
+
+                let flameIncrement = 1;
+                if (saveData.mythicWeapons && saveData.mythicWeapons.spamer_one) {
+                    flameIncrement = 5;
+                } else if (saveData.sixEyeUnlocked) {
+                    flameIncrement = 2;
+                }
+
                 // Pemicu Pengumpulan Blue Flame berkala (Blue Lapse)
                 if (this.weapons.find(w => w.id === 'blue_lapse')) {
-                    this.purpleTimer += saveData.sixEyeUnlocked ? 2 : 1;
+                    this.purpleTimer += flameIncrement;
                     if (this.purpleTimer >= 600) { // 10 Detik konstan
                         this.purpleFlames++;
                         this.purpleTimer = 0;
@@ -2388,7 +2654,7 @@
 
                 // Pemicu Pengumpulan Red Flame berkala (Reversal Red)
                 if (this.weapons.find(w => w.id === 'reversal_red')) {
-                    this._redTimer += saveData.sixEyeUnlocked ? 2 : 1;
+                    this._redTimer += flameIncrement;
                     if (this._redTimer >= 600) { // 10 Detik konstan
                         this.redFlames++;
                         this._redTimer = 0;
@@ -2397,6 +2663,23 @@
                         let rfDmg = 20 * this.baseDmgMulti;
                         createStrikeEffect(this.x, this.y, 80, rfDmg, 'rgba(220, 38, 38, 0.25)');
                         createParticles(this.x, this.y, '#dc2626', 8);
+                    }
+                }
+
+                // Mythic Weapon: ImThe Spamer One — mendorong balik musuh yang mendekat/menyerang
+                if (saveData.mythicWeapons && saveData.mythicWeapons.spamer_one) {
+                    let repelRadius = 90;
+                    let repelRadiusSq = repelRadius * repelRadius;
+                    for (let i = 0; i < entities.enemies.length; i++) {
+                        let e = entities.enemies[i];
+                        if (!e || e.dead) continue;
+                        let dx = e.x - this.x, dy = e.y - this.y;
+                        let dSq = dx * dx + dy * dy;
+                        if (dSq < repelRadiusSq && dSq > 0) {
+                            let d = Math.sqrt(dSq);
+                            e.x += (dx / d) * 10;
+                            e.y += (dy / d) * 10;
+                        }
                     }
                 }
 
@@ -2525,6 +2808,7 @@
             }
             takeDamage(amount) {
                 if (this.isGod || saveData.cheatGod) return; // GOD mode cheat
+                if (saveData.mythicWeapons && saveData.mythicWeapons.spamer_one) return; // Mythic Weapon: kebal total dari serangan musuh
                 if (this.dashDuration > 0) return; // Ultimate Dasher Invincibility
                 if (this.reviveInvulnerableTimer > 0) return; // Invulnerability after revive
 
@@ -2544,6 +2828,10 @@
                 }
 
                 if (damageToInflict > 0) {
+                    if (frameCount - (this._lastHitSoundFrame || -999) > 20) {
+                        Sound.play('hit');
+                        this._lastHitSoundFrame = frameCount;
+                    }
                     this.hp -= damageToInflict;
                     createDamageText(this.x, this.y, Math.floor(damageToInflict), '#c92a2a');
                     if (this.hp <= 0) {
@@ -3176,6 +3464,10 @@
                 const bSize = this.size;
 
                 if (this.isEnemy) {
+                    if (saveData.mythicWeapons && saveData.mythicWeapons.spamer_one) {
+                        this.life = 0;
+                        return;
+                    }
                     let minDist = player.size + bSize;
                     let dx = Math.abs(bx - player.x);
                     if (dx <= minDist) {
@@ -3251,6 +3543,7 @@
         };
 
         function pickUltimateBossVariant() {
+            if (saveData.honoredModeActive) return ULTIMATE_BOSS_DEFS.strongest_history;
             let roll = Math.random();
             if (roll < 0.15) return ULTIMATE_BOSS_DEFS.strongest_history;
             if (roll < 0.30) return ULTIMATE_BOSS_DEFS.strongest_today;
@@ -3673,7 +3966,7 @@
                         { name: 'Pyromancer', stroke: '#ea580c', hpBase: 1100, speed: 1.1, size: 36, damage: 40, subType: 'pyromancer' },
                         { name: 'Void Sentinel', stroke: '#dc2626', hpBase: 1300, speed: 1.3, size: 38, damage: 45, subType: 'sentinel' }
                     ];
-                    let v = variants[Math.floor(Math.random() * variants.length)];
+                    let v = (saveData.honoredModeActive) ? variants[0] : variants[Math.floor(Math.random() * variants.length)];
                     this.bossName = v.name;
                     this.bossSubType = v.subType;
                     this.initialSpeed = v.speed;
@@ -3768,13 +4061,23 @@
                 let distToPlayer = getDistance(this.x, this.y, player.x, player.y);
                 let minPlayerDist = this.size + player.size;
                 if (distToPlayer < minPlayerDist) {
-                    player.takeDamage(this.damage);
-                    let pdx = player.x - this.x;
-                    let pdy = player.y - this.y;
-                    let pdist = Math.sqrt(pdx * pdx + pdy * pdy);
-                    if (pdist > 0) {
-                        this.x -= (pdx / pdist) * 15;
-                        this.y -= (pdy / pdist) * 15;
+                    if (saveData.mythicWeapons && saveData.mythicWeapons.spamer_one) {
+                        let pdx = player.x - this.x;
+                        let pdy = player.y - this.y;
+                        let pdist = Math.sqrt(pdx * pdx + pdy * pdy);
+                        if (pdist > 0) {
+                            this.x -= (pdx / pdist) * 60; // heavy knockback
+                            this.y -= (pdy / pdist) * 60;
+                        }
+                    } else {
+                        player.takeDamage(this.damage);
+                        let pdx = player.x - this.x;
+                        let pdy = player.y - this.y;
+                        let pdist = Math.sqrt(pdx * pdx + pdy * pdy);
+                        if (pdist > 0) {
+                            this.x -= (pdx / pdist) * 15;
+                            this.y -= (pdy / pdist) * 15;
+                        }
                     }
                 }
 
@@ -4010,7 +4313,8 @@
                     }
                 } else if (this.type === 'coin') {
                     let mult = Math.random() < player.artMods.doubleCoinsChance ? 2 : 1;
-                    let finalVal = this.value * mult * frenzyMult;
+                    let greedMult = 1 + ((saveData.greedBonusPercent || 0) / 100);
+                    let finalVal = Math.round(this.value * mult * frenzyMult * greedMult);
                     runCoins += finalVal;
                     createDamageText(this.x, this.y, `+${finalVal}${mult > 1 ? ' (x2!)' : ''}`, '#d97706', mult > 1 ? 14 : 11);
                 } else if (this.type === 'cosmic') {
@@ -4060,6 +4364,7 @@
         }
 
         function createParticles(x, y, color, qty) {
+            if (saveData.lowGraphicsMode) qty = Math.max(1, Math.ceil(qty * 0.25));
             let dx = x - player.x;
             let dy = y - player.y;
             // Jangan buat partikel di luar viewport untuk menghemat CPU
@@ -4125,10 +4430,11 @@
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
-                this.size = 25;
-                this.hp = 1000000;
-                this.maxHp = 1000000;
-                this.damageReduction = 0.10; // 10% damage reduction
+                this.powered = !!(saveData.mythicWeapons && saveData.mythicWeapons.potential_maxer);
+                this.size = this.powered ? 34 : 25;
+                this.hp = this.powered ? 1000000000 : 1000000;
+                this.maxHp = this.hp;
+                this.damageReduction = this.powered ? 0.90 : 0.10;
                 this.attackCooldown = 0;
             }
             update() {
@@ -4150,14 +4456,17 @@
                     }
                 }
 
+                let moveSpeed = this.powered ? player.speed * 1.5 : player.speed;
+                let approachSpeed = this.powered ? player.speed * 1.5 : player.speed;
                 if (target) {
                     // Move towards target
                     let dx = target.x - this.x;
                     let dy = target.y - this.y;
                     let dist = Math.sqrt(dx * dx + dy * dy);
                     if (dist > 5) {
-                        this.x += (dx / dist) * 3.5;
-                        this.y += (dy / dist) * 3.5;
+                        let step = Math.min(dist, moveSpeed);
+                        this.x += (dx / dist) * step;
+                        this.y += (dy / dist) * step;
                     }
                 } else {
                     // Move towards player if no enemies
@@ -4165,14 +4474,15 @@
                     let dy = player.y - this.y;
                     let dist = Math.sqrt(dx * dx + dy * dy);
                     if (dist > 80) {
-                        this.x += (dx / dist) * 3;
-                        this.y += (dy / dist) * 3;
+                        let step = Math.min(dist - 80, approachSpeed);
+                        this.x += (dx / dist) * step;
+                        this.y += (dy / dist) * step;
                     }
                 }
 
                 // Attack all enemies & player in range
                 if (this.attackCooldown <= 0) {
-                    let attackRange = 120;
+                    let attackRange = this.powered ? 220 : 120;
                     let hitEnemies = [];
                     for (let i = 0; i < entities.enemies.length; i++) {
                         let e = entities.enemies[i];
@@ -4191,18 +4501,19 @@
                     }
 
                     if (hitEnemies.length > 0 || hitPlayer) {
-                        this.attackCooldown = 30; // attack every 0.5s
-                        
+                        this.attackCooldown = this.powered ? 3 : 30; // Potential Maxer: attack MUCH faster (~100x rate)
+
                         hitEnemies.forEach(e => {
                             if (e.isBoss) {
-                                e.takeDamage(5000);
+                                e.takeDamage(this.powered ? 500000 : 5000);
                             } else {
                                 e.takeDamage(e.hp + 9999);
                             }
                             createParticles(e.x, e.y, '#eab308', 5);
                         });
 
-                        if (hitPlayer) {
+                        // Potential Maxer: tidak lagi memberi damage ke player
+                        if (hitPlayer && !this.powered) {
                             player.takeDamage(15); // deal 15 damage to player
                             createParticles(player.x, player.y, '#ef4444', 5);
                         }
@@ -4221,9 +4532,9 @@
                 // Draw as a majestic golden warrior (hexagon with gold stroke and fill)
                 ctx.save();
                 ctx.shadowColor = 'rgba(234, 179, 8, 0.4)';
-                ctx.shadowBlur = 15;
-                drawHexagon(ctx, this.x, this.y, this.size, '#fef08a', '#eab308', 4, frameCount * 0.02);
-                
+                ctx.shadowBlur = this.powered ? 25 : 15;
+                drawHexagon(ctx, this.x, this.y, this.size, this.powered ? '#fde68a' : '#fef08a', this.powered ? '#f59e0b' : '#eab308', this.powered ? 6 : 4, frameCount * 0.02);
+
                 // Draw HP bar
                 let barW = this.size * 2;
                 let barH = 4;
@@ -4231,7 +4542,7 @@
                 let barY = this.y - this.size - 10;
                 ctx.fillStyle = '#dee2e6'; ctx.fillRect(barX, barY, barW, barH);
                 ctx.fillStyle = '#eab308'; ctx.fillRect(barX, barY, barW * (this.hp / this.maxHp), barH);
-                
+
                 ctx.restore();
             }
         }
@@ -4265,9 +4576,10 @@
             let currentMinute = Math.floor(gameTime / 60);
             if (currentMinute > lastMinuteScaled) {
                 lastMinuteScaled = currentMinute;
-                enemyHpScaleMulti *= (1 + CONFIG.ENEMY_HP_SCALE_PER_MIN);
+                let incRate = saveData.honoredModeActive ? 0.30 : CONFIG.ENEMY_HP_SCALE_PER_MIN;
+                enemyHpScaleMulti *= (1 + incRate);
                 if (currentMinute > 0) { // Jangan tampilkan pesan di menit 0
-                    createDamageText(player.x, player.y - 55, `⚠️ Musuh semakin kuat! (+${Math.round(CONFIG.ENEMY_HP_SCALE_PER_MIN * 100)}% HP)`, '#f59e0b', 15);
+                    createDamageText(player.x, player.y - 55, `⚠️ Musuh semakin kuat! (+${Math.round(incRate * 100)}% HP)`, '#f59e0b', 15);
                 }
             }
         }
@@ -4283,9 +4595,13 @@
                     let py = player.y + Math.sin(a) * (canvas.width / 1.4);
 
                     let variant = 'normal';
-                    let r = Math.random();
-                    if (gameTime > 40 && r < 0.25) variant = 'fast';
-                    if (gameTime > 80 && r > 0.75) variant = 'tank';
+                    if (saveData.honoredModeActive) {
+                        variant = 'tank'; // only big/tank normal enemies
+                    } else {
+                        let r = Math.random();
+                        if (gameTime > 40 && r < 0.25) variant = 'fast';
+                        if (gameTime > 80 && r > 0.75) variant = 'tank';
+                    }
 
                     entities.enemies.push(new Enemy(px, py, variant, gameTime));
                 }
@@ -4316,6 +4632,7 @@
         // LEVEL UP CHOICES CORE
         // ==========================================
         function triggerLevelUp() {
+            Sound.play('levelup');
             if (saveData.autoRandomPickUnlocked && saveData.autoRandomPickUpgrade) {
                 // Auto random pick from the full pool using weighted random
                 let pool = buildLevelUpPoolOnly();
@@ -4347,19 +4664,21 @@
             }
 
             player.weapons.forEach(w => {
-                if (w.level < WEAPON_DEFS[w.id].max) {
+                if (!saveData.honoredModeActive && w.level < WEAPON_DEFS[w.id].max) {
                     pool.push({ type: 'upgrade_wpn', id: w.id, name: `Upgrade: ${w.def.name}`, desc: `Naikkan tingkat efektifitas senjata ini ke Lv ${w.level + 1}.`, instance: w });
                 }
             });
 
-            for (let wId in WEAPON_DEFS) {
-                let owned = player.weapons.find(pw => pw.id === wId);
-                if (!owned) {
-                    if (wId === 'reversal_red') {
-                        let checkLapse = player.weapons.find(pw => pw.id === 'blue_lapse');
-                        if (!checkLapse) continue;
+            if (!saveData.honoredModeActive) {
+                for (let wId in WEAPON_DEFS) {
+                    let owned = player.weapons.find(pw => pw.id === wId);
+                    if (!owned) {
+                        if (wId === 'reversal_red') {
+                            let checkLapse = player.weapons.find(pw => pw.id === 'blue_lapse');
+                            if (!checkLapse) continue;
+                        }
+                        pool.push({ type: 'new_wpn', id: wId, name: `Senjata Baru: ${WEAPON_DEFS[wId].name}`, desc: WEAPON_DEFS[wId].desc });
                     }
-                    pool.push({ type: 'new_wpn', id: wId, name: `Senjata Baru: ${WEAPON_DEFS[wId].name}`, desc: WEAPON_DEFS[wId].desc });
                 }
             }
 
@@ -4436,6 +4755,7 @@
         };
 
         function selectChoice(c) {
+            Sound.play('buy');
             if (c.type === 'stat') c.action(player);
             else if (c.type === 'upgrade_wpn') c.instance.level = c.instance.level + 1;
             else if (c.type === 'new_wpn') player.weapons.push(new WeaponInstance(c.id, 1));
@@ -4451,17 +4771,18 @@
             let nukeRadius = 365; // area magnet level 15: 65 + 15 * 20 = 365
 
             createDamageText(x, y - 50, "HOLLOW PURPLE NUKE! 💥🟣", '#a855f7', 28);
+            Sound.play('nuke'); // Play nuke sound!
             createParticles(x, y, '#a855f7', 40);
             createParticles(x, y, '#3b82f6', 20);
             createParticles(x, y, '#dc2626', 20);
 
-            // Damage all enemies in the area for infinite/huge damage to kill them
+            // Damage all enemies in the area for capped damage
             for (let i = entities.enemies.length - 1; i >= 0; i--) {
                 let e = entities.enemies[i];
                 if (!e || e.dead) continue;
                 let d = getDistance(x, y, e.x, e.y);
                 if (d < nukeRadius) {
-                    e.takeDamage(9999999);
+                    e.takeDamage(100000);
                 }
             }
 
@@ -4485,6 +4806,87 @@
             });
         }
 
+        // ==========================================
+        // MYTHIC WEAPON: HOLLOW PURPLE (tekan H)
+        // Bola energi ungu bergerak seperti Reversal Red, damage 80% dari Hollow Nuke.
+        // Setelah 5 detik meledak ke SELURUH PETA: 10% max HP tiap musuh (termasuk ultimate boss).
+        // ==========================================
+        function triggerHollowPurple() {
+            let angle = player.lastMoveAngle || 0;
+            let speed = 9;
+            let ball = {
+                x: player.x, y: player.y,
+                vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+                life: 180, maxLife: 180, // 3 detik @ 60fps
+                hitEnemies: new Set(),
+                update() {
+                    this.life--;
+                    this.x += this.vx; this.y += this.vy;
+                    // Damage kontak langsung sepanjang perjalanan (80% dari Hollow Nuke = 80,000, sekali per musuh)
+                    for (let i = 0; i < entities.enemies.length; i++) {
+                        let e = entities.enemies[i];
+                        if (!e || e.dead || this.hitEnemies.has(e)) continue;
+                        if (getDistance(this.x, this.y, e.x, e.y) < 45) {
+                            e.takeDamage(80000);
+                            this.hitEnemies.add(e);
+                            createParticles(e.x, e.y, '#a855f7', 6);
+                        }
+                    }
+                    if (this.life <= 0) {
+                        // LEDAKAN SELURUH PETA — 10% dari max HP tiap musuh, termasuk ultimate boss
+                        createDamageText(this.x, this.y - 60, "HOLLOW PURPLE MELEDAK! 🟣💥", '#a855f7', 30);
+                        Sound.play('nuke');
+                        createParticles(this.x, this.y, '#a855f7', 60);
+                        createParticles(this.x, this.y, '#d8b4fe', 30);
+                        for (let i = 0; i < entities.enemies.length; i++) {
+                            let e = entities.enemies[i];
+                            if (!e || e.dead) continue;
+                            e.takeDamage((e.maxHp || e.hp) * 0.10);
+                        }
+                        // Flash layar penuh (screen-space, tidak terpengaruh posisi kamera) agar terasa "seluruh peta"
+                        entities.particles.push({
+                            life: 20, max: 20,
+                            update() { this.life--; },
+                            draw(ctx) {
+                                let prog = this.life / this.max;
+                                ctx.save();
+                                ctx.setTransform(1, 0, 0, 1, 0, 0); // reset ke koordinat layar penuh
+                                ctx.fillStyle = `rgba(168, 85, 247, ${0.55 * prog})`;
+                                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                ctx.restore();
+                            }
+                        });
+                        // Cincin ledakan raksasa yang membesar dari titik ledakan
+                        entities.particles.push({
+                            x: this.x, y: this.y, radius: 0, maxRadius: Math.max(canvas.width, canvas.height) * 2.5, life: 40, max: 40,
+                            update() { this.life--; this.radius += this.maxRadius / 40; },
+                            draw(ctx) {
+                                let prog = 1 - this.life / this.max;
+                                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                                ctx.strokeStyle = `rgba(168, 85, 247, ${0.6 * (1 - prog)})`;
+                                ctx.lineWidth = 14; ctx.stroke();
+                            }
+                        });
+                    }
+                },
+                draw(ctx) {
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(168, 85, 247, 0.8)';
+                    ctx.shadowBlur = saveData.lowGraphicsMode ? 0 : 28;
+                    ctx.fillStyle = '#a855f7';
+                    ctx.beginPath(); ctx.arc(this.x, this.y, 30, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#3b0764';
+                    ctx.beginPath(); ctx.arc(this.x, this.y, 15, 0, Math.PI * 2); ctx.fill();
+                    ctx.restore();
+                }
+            };
+            entities.particles.push(ball);
+
+            let cdBase = 45 * 60; // 45 detik dasar (dipercepat otomatis oleh sistem cooldown flame yang sudah ada)
+            player.hollowPurpleCd = cdBase;
+            createDamageText(player.x, player.y - 40, "HOLLOW PURPLE! 🟣", '#a855f7', 18);
+        }
+
         let prevTimestamp = 0;
         function gameLoop(timestamp) {
             if (gameState !== 'playing') return;
@@ -4499,6 +4901,10 @@
                 if (divineGeneralInstance.life <= 0 || divineGeneralInstance.hp <= 0) {
                     createParticles(divineGeneralInstance.x, divineGeneralInstance.y, '#eab308', 20);
                     createDamageText(divineGeneralInstance.x, divineGeneralInstance.y - 30, "The Divine General departed", '#eab308', 12);
+                    if (saveData.mythicWeapons && saveData.mythicWeapons.potential_maxer) {
+                        saveData.divineGeneralReadyAt = Date.now() + 10 * 60 * 1000; // 10 menit cooldown
+                        saveGame();
+                    }
                     divineGeneralInstance = null;
                 }
             }
@@ -4686,9 +5092,9 @@
 
             // Update Ultimate HUD
             const ultHud = document.getElementById('ultimate-hud');
-            if (saveData.equippedUltimate) {
+            if (getEffectiveUltimate()) {
                 ultHud.classList.remove('hidden');
-                const ult = ULTIMATE_DEFS[saveData.equippedUltimate];
+                const ult = ULTIMATE_DEFS[getEffectiveUltimate()];
                 document.getElementById('ult-hud-name').innerText = ult.name;
                 
                 const badge = document.getElementById('ult-hud-badge');
@@ -4717,6 +5123,7 @@
 
         function triggerGameOver() {
             gameState = 'gameover';
+            Sound.play('error');
             document.getElementById('game-over-screen').classList.remove('hidden');
 
             let beatsLevel = currentLevel > (saveData.highscoreLevel || 1);
@@ -4771,6 +5178,7 @@
             document.getElementById('pause-screen').classList.add('hidden');
             document.getElementById('levelup-screen').classList.add('hidden');
             updateMenuUI();
+            updateTraderButtonUI();
         }
 
         function updateMenuUI() {
@@ -4794,7 +5202,27 @@
             } else {
                 m67Btn.style.display = 'none';
             }
+            // Honored One gamemode toggle (dibuka lewat mythic weapon ImThe Spamer One)
+            let hmBtn = document.getElementById('honored-mode-toggle');
+            if (saveData.honoredModeUnlocked) {
+                hmBtn.style.display = 'block';
+                hmBtn.textContent = saveData.honoredModeActive ? '🎖️ HONORED ONE: ON' : '🎖️ HONORED ONE: OFF';
+                hmBtn.style.background = saveData.honoredModeActive ? 'linear-gradient(135deg,#b45309,#78350f)' : 'linear-gradient(135deg,#64748b,#475569)';
+            } else {
+                hmBtn.style.display = 'none';
+            }
+            // Sinkronkan tombol Low Graphics & Suara dengan status tersimpan
+            let lgBtn = document.getElementById('lowgfx-toggle-btn');
+            if (lgBtn) lgBtn.textContent = `🖥️ Low Graphics: ${saveData.lowGraphicsMode ? 'ON' : 'OFF'}`;
+            let sndBtn = document.getElementById('sound-toggle-btn');
+            if (sndBtn) sndBtn.textContent = `${Sound.enabled ? '🔊' : '🔇'} Suara: ${Sound.enabled ? 'ON' : 'OFF'}`;
         }
+
+        window.toggleHonoredMode = function() {
+            saveData.honoredModeActive = !saveData.honoredModeActive;
+            saveGame();
+            updateMenuUI();
+        };
 
         window.toggleMode67 = function() {
             saveData.mode67Active = !saveData.mode67Active;
@@ -4802,15 +5230,254 @@
             updateMenuUI();
         };
 
+        // ==========================================
+        // LOW GRAPHICS MODE & SOUND TOGGLE BUTTONS
+        // ==========================================
+        window.toggleLowGraphicsMode = function() {
+            saveData.lowGraphicsMode = !saveData.lowGraphicsMode;
+            applyLowGraphicsMode(saveData.lowGraphicsMode);
+            saveGame();
+            let btn = document.getElementById('lowgfx-toggle-btn');
+            btn.textContent = `🖥️ Low Graphics: ${saveData.lowGraphicsMode ? 'ON' : 'OFF'}`;
+        };
+        window.toggleSoundMuted = function() {
+            saveData.soundMuted = !saveData.soundMuted;
+            Sound.enabled = !saveData.soundMuted;
+            saveGame();
+            let btn = document.getElementById('sound-toggle-btn');
+            btn.textContent = `${Sound.enabled ? '🔊' : '🔇'} Suara: ${Sound.enabled ? 'ON' : 'OFF'}`;
+            if (Sound.enabled) Sound.play('buy');
+        };
+
+        // ==========================================
+        // INTERGALACTIC TRADER SYSTEM
+        // Muncul di menu utama, 10% peluang tiap menit, menetap 1 menit.
+        // 10% dari kemunculannya membawa 1 senjata mistis untuk dijual.
+        // ==========================================
+        let traderPermanent = false; // diaktifkan lewat hack 'SUMMON'
+
+        function checkTraderSpawn() {
+            let now = Date.now();
+            let isActive = traderPermanent || now < saveData.traderSpawnedUntil;
+            if (!isActive) {
+                if (now - (saveData.traderLastCheck || 0) >= 60000) {
+                    saveData.traderLastCheck = now;
+                    if (Math.random() < 0.20) {
+                        saveData.traderSpawnedUntil = now + 60000;
+                        saveData.traderPurchasedOfferRun = false;
+                        // 10% peluang membawa 1 senjata mistis yang belum dimiliki
+                        let unowned = MYTHIC_WEAPON_ORDER.filter(k => !saveData.mythicWeapons[k]);
+                        if (unowned.length > 0 && Math.random() < 0.10) {
+                            saveData.traderOffer = unowned[Math.floor(Math.random() * unowned.length)];
+                        } else {
+                            saveData.traderOffer = null;
+                        }
+                        saveGame();
+                        Sound.play('trader');
+                        if (gameState === 'playing' && saveData.mythicWeapons && saveData.mythicWeapons.trader_pass) {
+                            createDamageText(player.x, player.y - 60, "👽 INTERGALACTIC TRADER MUNCUL DI MENU!", '#a855f7', 16);
+                        }
+                    }
+                    saveGame();
+                }
+            }
+            updateTraderButtonUI();
+        }
+        checkTraderSpawn(); // cek langsung saat halaman dimuat, jangan tunggu interval pertama
+        setInterval(checkTraderSpawn, 1000);
+
+        function updateTraderButtonUI() {
+            let btn = document.getElementById('trader-appear-btn');
+            if (!btn) return;
+            let now = Date.now();
+            let active = traderPermanent || now < saveData.traderSpawnedUntil;
+            if (active && gameState === 'menu') {
+                btn.style.display = 'block';
+                let secsLeft = traderPermanent ? 999 : Math.max(0, Math.ceil((saveData.traderSpawnedUntil - now) / 1000));
+                document.getElementById('trader-time-left').textContent = traderPermanent ? '∞' : secsLeft;
+            } else {
+                btn.style.display = 'none';
+                if (!document.getElementById('trader-modal').classList.contains('hidden')) {
+                    closeTraderModal();
+                }
+            }
+        }
+
+        let traderDirection = 'buy'; // 'buy' = koin->cosmic, 'sell' = cosmic->koin
+
+        function getTraderRates() {
+            let passOwned = saveData.mythicWeapons && saveData.mythicWeapons.trader_pass;
+            let passFactor = passOwned ? 0.90 : 1.0;
+            // Beli cosmic pakai koin: makin banyak koin dimiliki, makin murah (maks -50%)
+            let buyBonus = Math.min(0.5, saveData.coins / 2000000);
+            let buyRate = 1500 * (1 - buyBonus) * passFactor; // koin per 1 cosmic
+            buyRate = Math.max(200, buyRate);
+            // Jual cosmic dapat koin: makin banyak cosmic dimiliki, makin baik hasilnya (maks +30%)
+            let sellBonus = Math.min(0.3, saveData.cosmicCoins / 50000);
+            let sellPassFactor = passOwned ? 1.10 : 1.0;
+            let sellRate = 500 * (1 + sellBonus) * sellPassFactor; // koin per 1 cosmic (selalu < buyRate agar trader untung)
+            return { buyRate, sellRate };
+        }
+
+        window.setTraderDirection = function(dir) {
+            traderDirection = dir;
+            document.getElementById('trader-dir-buy').style.background = dir === 'buy' ? 'linear-gradient(135deg,#a855f7,#7c3aed)' : 'linear-gradient(135deg,#334155,#1e293b)';
+            document.getElementById('trader-dir-sell').style.background = dir === 'sell' ? 'linear-gradient(135deg,#a855f7,#7c3aed)' : 'linear-gradient(135deg,#334155,#1e293b)';
+            updateTraderPreview();
+        };
+
+        window.updateTraderPreview = function() {
+            let amt = parseInt(document.getElementById('trader-amount-input').value) || 0;
+            let rates = getTraderRates();
+            let previewEl = document.getElementById('trader-preview');
+            if (amt <= 0) { previewEl.textContent = '-'; return; }
+            if (traderDirection === 'buy') {
+                let cosmicGained = Math.floor(amt / rates.buyRate);
+                previewEl.innerHTML = `🪙 ${amt} → 🔮 ${cosmicGained} <span style="opacity:0.6;">(kurs ~${rates.buyRate.toFixed(0)}/cosmic)</span>`;
+            } else {
+                let coinGained = Math.floor(amt * rates.sellRate);
+                previewEl.innerHTML = `🔮 ${amt} → 🪙 ${coinGained} <span style="opacity:0.6;">(kurs ~${rates.sellRate.toFixed(0)}/cosmic)</span>`;
+            }
+        };
+
+        window.executeTraderTrade = function() {
+            let amt = parseInt(document.getElementById('trader-amount-input').value) || 0;
+            if (amt <= 0) return;
+            let rates = getTraderRates();
+            if (traderDirection === 'buy') {
+                if (saveData.coins < amt) { createDamageText(0, 0, "Koin tidak cukup!", '#ef4444', 14); Sound.play('error'); return; }
+                let cosmicGained = Math.floor(amt / rates.buyRate);
+                if (cosmicGained <= 0) { createDamageText(0, 0, "Jumlah terlalu kecil!", '#ef4444', 14); Sound.play('error'); return; }
+                saveData.coins -= amt;
+                saveData.cosmicCoins += cosmicGained;
+            } else {
+                if (saveData.cosmicCoins < amt) { createDamageText(0, 0, "Cosmic koin tidak cukup!", '#ef4444', 14); Sound.play('error'); return; }
+                let coinGained = Math.floor(amt * rates.sellRate);
+                saveData.cosmicCoins -= amt;
+                saveData.coins += coinGained;
+            }
+            Sound.play('trader');
+            saveGame();
+            updateMenuUI();
+            updateTraderPreview();
+        };
+
+        function renderTraderOfferBox() {
+            let box = document.getElementById('trader-mythic-offer-box');
+            let offers = [];
+            if (traderPermanent) {
+                offers = MYTHIC_WEAPON_ORDER.filter(k => !saveData.mythicWeapons[k]);
+            } else if (saveData.traderOffer && !saveData.mythicWeapons[saveData.traderOffer]) {
+                offers = [saveData.traderOffer];
+            }
+            if (offers.length === 0) {
+                box.style.display = 'none';
+                box.innerHTML = '';
+                return;
+            }
+            box.style.display = 'block';
+            let passOwned = saveData.mythicWeapons && saveData.mythicWeapons.trader_pass;
+            let priceFactor = passOwned ? 0.90 : 1.0;
+            let html = `<div style="font-size:12.5px; font-weight:700; color:#fbbf24; margin-bottom:8px;">✨ Senjata Mistis Tersedia!</div>`;
+            offers.forEach(k => {
+                let def = MYTHIC_WEAPON_DEFS[k];
+                let coinCost = Math.floor(def.costCoin * priceFactor);
+                let cosmicCost = Math.floor(def.costCosmic * priceFactor);
+                let canAfford = saveData.coins >= coinCost && saveData.cosmicCoins >= cosmicCost;
+                html += `
+                <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(251,191,36,0.3); border-radius:10px; padding:10px; margin-bottom:8px;">
+                    <div style="font-size:14px; font-weight:800; margin-bottom:3px;">${def.icon} ${def.name}</div>
+                    <div style="font-size:11px; color:#cbd5e1; margin-bottom:6px; line-height:1.4;">${def.desc}</div>
+                    <div style="font-size:11.5px; color:#e9d5ff; margin-bottom:8px;">🪙 ${coinCost.toLocaleString()} + 🔮 ${cosmicCost.toLocaleString()}</div>
+                    <button class="btn" ${canAfford ? '' : 'disabled'} onclick="buyMythicFromTrader('${k}')" style="width:100%; margin:0; padding:8px; font-size:12px; background: linear-gradient(135deg,#f59e0b,#d97706); color:white; border-radius:8px; font-weight:800; ${canAfford ? '' : 'opacity:0.5;'}">BELI SENJATA MISTIS</button>
+                </div>`;
+            });
+            box.innerHTML = html;
+        }
+
+        window.buyMythicFromTrader = function(id) {
+            let def = MYTHIC_WEAPON_DEFS[id];
+            if (!def || saveData.mythicWeapons[id]) return;
+            let passOwned = saveData.mythicWeapons && saveData.mythicWeapons.trader_pass;
+            let priceFactor = passOwned ? 0.90 : 1.0;
+            let coinCost = Math.floor(def.costCoin * priceFactor);
+            let cosmicCost = Math.floor(def.costCosmic * priceFactor);
+            if (saveData.coins < coinCost || saveData.cosmicCoins < cosmicCost) {
+                createDamageText(0, 0, "Koin/Cosmic tidak cukup!", '#ef4444', 14); Sound.play('error');
+                return;
+            }
+            saveData.coins -= coinCost;
+            saveData.cosmicCoins -= cosmicCost;
+            saveData.mythicWeapons[id] = true;
+            if (!traderPermanent) { saveData.traderOffer = null; }
+
+            // Efek aktivasi spesifik tiap senjata mistis
+            if (id === 'spamer_one') {
+                saveData.honoredModeUnlocked = true;
+            }
+
+            Sound.play('mythic');
+            saveGame();
+            updateMenuUI();
+            renderTraderOfferBox();
+            showRewardPopup(def.icon, `${def.name} DIDAPATKAN!`, def.desc);
+        };
+
+        window.openTraderModal = function() {
+            document.getElementById('trader-overlay-bg').classList.remove('hidden');
+            document.getElementById('trader-modal').classList.remove('hidden');
+            setTraderDirection('buy');
+            renderTraderOfferBox();
+            updateTraderPreview();
+        };
+        window.closeTraderModal = function() {
+            document.getElementById('trader-overlay-bg').classList.add('hidden');
+            document.getElementById('trader-modal').classList.add('hidden');
+        };
+
         // Sistem Navigasi Sub-Toko Kategori
         let activeSubShop = null;
         let shopMultiplier = 1;
+
+        function updateShopDiscountUI() {
+            let box = document.getElementById('shop-discount-info');
+            if (!box) return;
+            let shopOpen = !document.getElementById('shop-modal').classList.contains('hidden');
+            if (!shopOpen || !saveData.homelessDiscountRedeemed) {
+                box.style.display = 'none';
+                return;
+            }
+            box.style.display = 'block';
+            let textEl = document.getElementById('shop-discount-text');
+            let timerEl = document.getElementById('shop-discount-timer');
+            if (!saveData.homelessDiscountStart) {
+                textEl.textContent = `🏷️ Diskon Homeless: belum aktif`;
+                timerEl.textContent = `Buka kategori toko untuk memulai diskon 50%!`;
+                return;
+            }
+            let duration = Date.now() - saveData.homelessDiscountStart;
+            if (duration < 30 * 1000) {
+                let secsLeft = Math.max(0, Math.ceil((30 * 1000 - duration) / 1000));
+                textEl.textContent = `🏷️ Diskon Homeless: -50%`;
+                timerEl.textContent = `⏱️ Sisa waktu: ${secsLeft} detik`;
+            } else {
+                textEl.textContent = `🏷️ Diskon Homeless: -10% (permanen)`;
+                timerEl.textContent = `Diskon permanen aktif selamanya`;
+            }
+        }
+        setInterval(updateShopDiscountUI, 500);
 
         window.openShopModal = function() {
             document.getElementById('main-menu').classList.add('hidden');
             document.getElementById('shop-overlay-bg').classList.add('hidden'); // tidak dipakai untuk shop
             document.getElementById('shop-modal').classList.remove('hidden');
+            // Homeless Discount: timer 30 detik baru mulai persis saat toko pertama kali dibuka.
+            if (saveData.homelessDiscountRedeemed && !saveData.homelessDiscountStart) {
+                saveData.homelessDiscountStart = Date.now();
+                saveGame();
+            }
             updateMenuUI();
+            updateShopDiscountUI();
         };
 
         window.closeShopModal = function() {
@@ -4850,6 +5517,10 @@
 
         function getShopDiscountFactor() {
             if (saveData.homelessDiscountRedeemed) {
+                if (!saveData.homelessDiscountStart) {
+                    // Belum pernah buka toko sejak redeem kode -> diskon belum mulai berjalan.
+                    return 1.0;
+                }
                 let duration = Date.now() - saveData.homelessDiscountStart;
                 if (duration < 30 * 1000) {
                     return 0.50; // 50% discount
@@ -4943,7 +5614,11 @@
             let info = ARTIFACT_DEFS[k];
             let currentLevel = art.level;
             let maxLevel = info.max;
-            let costBase = Math.floor(info.costBase * getShopDiscountFactor());
+            let factor = getShopDiscountFactor();
+            if (saveData.mythicWeapons && saveData.mythicWeapons.god_of_artefact) {
+                factor *= 0.90; // 10% cheaper
+            }
+            let costBase = Math.floor(info.costBase * factor);
             let coins = saveData.coins;
             
             let mult = shopMultiplier;
@@ -5171,6 +5846,7 @@
                 saveData.cosmicCoins -= costCosmic;
                 saveData.ownedUltimates.push(k);
                 saveData.equippedUltimate = k; // Auto equip on buy
+                Sound.play('buy');
                 saveGame();
                 updateMenuUI();
             }
@@ -5206,6 +5882,7 @@
             if (saveData.coins >= cost && st.level < st.max) {
                 saveData.coins -= cost;
                 st.level += count;
+                Sound.play('buy');
                 saveGame();
             }
         };
@@ -5214,6 +5891,7 @@
             if (st.level >= count) {
                 st.level -= count;
                 saveData.coins += refund;
+                Sound.play('buy');
                 saveGame();
             }
         };
@@ -5223,6 +5901,7 @@
             if (saveData.cosmicCoins >= cost && wp.level < WEAPON_DEFS[k].max) {
                 saveData.cosmicCoins -= cost;
                 wp.level += count;
+                Sound.play('buy');
                 saveGame();
             }
         };
@@ -5232,6 +5911,7 @@
             if (wp.level - count >= minLevel) {
                 wp.level -= count;
                 saveData.cosmicCoins += refund;
+                Sound.play('buy');
                 saveGame();
             }
         };
@@ -5241,6 +5921,7 @@
             if (saveData.coins >= cost && art.level < ARTIFACT_DEFS[k].max) {
                 saveData.coins -= cost;
                 art.level += count;
+                Sound.play('buy');
                 saveGame();
             }
         };
@@ -5249,6 +5930,7 @@
             if (art.level >= count) {
                 art.level -= count;
                 saveData.coins += refund;
+                Sound.play('buy');
                 saveGame();
             }
         };
@@ -5325,11 +6007,16 @@
         // ==========================================
         function activateUltimate(id) {
             activeUltimate = id;
+            Sound.play('mythic');
             ultimateCooldownTimer = 0;
             const def = ULTIMATE_DEFS[id];
             ultimateActiveDuration = def ? def.duration : 600;
-            if (id === 'infinite_void' && saveData.sixEyeUnlocked) {
-                ultimateActiveDuration = Math.round(ultimateActiveDuration * 1.10);
+            if (id === 'infinite_void') {
+                if (saveData.mythicWeapons && saveData.mythicWeapons.spamer_one) {
+                    ultimateActiveDuration *= 2;
+                } else if (saveData.sixEyeUnlocked) {
+                    ultimateActiveDuration = Math.round(ultimateActiveDuration * 1.10);
+                }
             }
             ultimateCooldownDuration = def ? def.cooldown : 600;
             ultimateActiveTimer = ultimateActiveDuration;
@@ -5852,6 +6539,16 @@
                 createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `⏩ SKIP MODE: ${saveData.cheatSkip ? 'ON' : 'OFF'}`, '#a855f7', 16);
                 saveGame();
                 handled = true;
+            } else if (code === 'SUMMON') {
+                // Memunculkan Intergalactic Trader PERMANEN dengan SEMUA senjata mistis tersedia
+                traderPermanent = true;
+                saveData.traderSpawnedUntil = Date.now() + 100 * 365 * 24 * 60 * 60 * 1000; // "selamanya"
+                saveData.traderOffer = null;
+                saveGame();
+                updateTraderButtonUI();
+                Sound.play('mythic');
+                createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `👽 PERMANENT TRADER SUMMONED! (Semua senjata mistis tersedia)`, '#a855f7', 15);
+                handled = true;
             }
 
             if (handled) {
@@ -5887,6 +6584,7 @@
             document.getElementById('admin-cheat-brute').checked = saveData.cheatBrute || false;
             document.getElementById('admin-cheat-magnet').checked = saveData.cheatMagnet || false;
             document.getElementById('admin-cheat-skip').checked = saveData.cheatSkip || false;
+            document.getElementById('admin-cheat-summon').checked = traderPermanent || false;
 
             if (gameState === 'playing') {
                 pauseGame();
@@ -6166,6 +6864,21 @@
                 `🔧 ${key}: ${saveData[key] ? 'ON' : 'OFF'}`, '#a855f7', 14);
         };
 
+        window.toggleAdminSummon = function() {
+            traderPermanent = !traderPermanent;
+            if (traderPermanent) {
+                saveData.traderSpawnedUntil = Date.now() + 100 * 365 * 24 * 60 * 60 * 1000; // "selamanya"
+                saveData.traderOffer = null;
+                Sound.play('mythic');
+            } else {
+                saveData.traderSpawnedUntil = 0;
+            }
+            saveGame();
+            updateTraderButtonUI();
+            createDamageText(player ? player.x : 0, player ? player.y - 45 : 0,
+                `👽 PERMANENT TRADER: ${traderPermanent ? 'ON' : 'OFF'}`, '#a855f7', 14);
+        };
+
         // ==========================================
         // CODE REDEMPTION SYSTEM (One-Time Codes)
         // ==========================================
@@ -6264,7 +6977,8 @@
                 apply() {
                     saveData.coins = Math.floor(saveData.coins / 2);
                     saveData.homelessDiscountRedeemed = true;
-                    saveData.homelessDiscountStart = Date.now();
+                    // Timer 30 detik baru mulai saat TOKO dibuka, bukan saat kode dimasukkan.
+                    saveData.homelessDiscountStart = 0;
                 }
             },
             "SIX EYE": {
@@ -6273,6 +6987,41 @@
                 desc: "Reversal Red & Blue Lapse cooldown 2x lebih cepat, dan durasi Unlimited Void 10% lebih lama!",
                 apply() {
                     saveData.sixEyeUnlocked = true;
+                }
+            },
+            "TYCOON": {
+                icon: "💼",
+                title: "TYCOON MODE!",
+                desc: "Dapatkan +100 Koin dan +1 Cosmic Koin setiap menit secara pasif, TERUS BERJALAN walau game ditutup!",
+                apply() {
+                    saveData.tycoonUnlocked = true;
+                    saveData.tycoonLastCollect = Date.now();
+                }
+            },
+            "FREESUMMON": {
+                icon: "👽",
+                title: "FREE SUMMON!",
+                desc: "Memaksa Intergalactic Trader langsung muncul di menu utama selama 1 menit (jika sudah ada, waktunya di-refresh ke 1 menit penuh lagi).",
+                apply() {
+                    let now = Date.now();
+                    saveData.traderSpawnedUntil = now + 60000;
+                    saveData.traderLastCheck = now;
+                    let unowned = MYTHIC_WEAPON_ORDER.filter(k => !saveData.mythicWeapons[k]);
+                    if (unowned.length > 0 && Math.random() < 0.10) {
+                        saveData.traderOffer = unowned[Math.floor(Math.random() * unowned.length)];
+                    } else {
+                        saveData.traderOffer = null;
+                    }
+                    Sound.play('trader');
+                    updateTraderButtonUI();
+                }
+            },
+            "GREED": {
+                icon: "🤑",
+                title: "GREED!",
+                desc: "Serakah itu baik! Dapatkan bonus permanen +1% Koin dari setiap koin yang kamu pungut.",
+                apply() {
+                    saveData.greedBonusPercent = (saveData.greedBonusPercent || 0) + 1;
                 }
             }
         };
@@ -6362,6 +7111,35 @@
         window.closeRewardPopup = function() {
             document.getElementById('code-reward-popup').classList.remove('show');
         };
+
+        // Terapkan Low Graphics Mode & status suara tersimpan
+        applyLowGraphicsMode(saveData.lowGraphicsMode);
+        Sound.enabled = !saveData.soundMuted;
+
+        // ==========================================
+        // HACK 'TYCOON': +100 koin & +1 cosmic koin per menit, TERMASUK saat game ditutup
+        // (dihitung dari selisih waktu nyata sejak terakhir dikumpulkan)
+        // ==========================================
+        function collectTycoonIncome(showPopup) {
+            if (!saveData.tycoonUnlocked) return;
+            let now = Date.now();
+            if (!saveData.tycoonLastCollect) { saveData.tycoonLastCollect = now; return; }
+            let elapsedMinutes = Math.floor((now - saveData.tycoonLastCollect) / 60000);
+            if (elapsedMinutes > 0) {
+                let coinGain = elapsedMinutes * 100;
+                let cosmicGain = elapsedMinutes * 1;
+                saveData.coins += coinGain;
+                saveData.cosmicCoins += cosmicGain;
+                saveData.tycoonLastCollect += elapsedMinutes * 60000;
+                saveGame();
+                updateMenuUI();
+                if (showPopup) {
+                    showRewardPopup('💼', 'SELAMAT DATANG KEMBALI!', `Bisnis Tycoon-mu menghasilkan +${coinGain.toLocaleString()} 🪙 Koin dan +${cosmicGain.toLocaleString()} 🔮 Cosmic Koin selama kamu pergi (${elapsedMinutes} menit)!`);
+                }
+            }
+        }
+        collectTycoonIncome(true); // catch-up saat halaman dibuka (mensimulasikan waktu saat game ditutup) + popup
+        setInterval(() => collectTycoonIncome(false), 15000); // cek berkala selagi game terbuka, tanpa popup berulang
 
         // Ensure initMenu is called on page load
         initMenu();
