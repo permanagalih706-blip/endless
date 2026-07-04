@@ -1065,6 +1065,15 @@
         <!-- Intergalactic Trader appearance button (10% chance/menit, muncul 1 menit) -->
         <button id="trader-appear-btn" style="display:none; position:absolute; top:60px; right:15px; background:linear-gradient(135deg,#7c3aed,#a855f7); color:white; border:none; padding:8px 16px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; z-index:10; box-shadow: 0 2px 10px rgba(124,58,237,0.5); animation: pulse-trader 1.5s infinite;" onclick="openTraderModal()">👽 INTERGALACTIC TRADER (<span id="trader-time-left">60</span>s)</button>
         <button id="honored-mode-toggle" style="display:none; position:absolute; top:105px; right:15px; background:linear-gradient(135deg,#78350f,#b45309); color:white; border:none; padding:6px 14px; border-radius:8px; font-weight:800; font-size:12px; cursor:pointer; z-index:10; box-shadow: 0 2px 8px rgba(180,83,9,0.4);" onclick="toggleHonoredMode()">🎖️ HONORED ONE: OFF</button>
+        <div id="tycoon-income-box" style="display:none; position:absolute; bottom:18px; left:18px; width: 230px; background:rgba(15,23,42,0.85); border:1px solid rgba(217,119,6,0.4); border-radius:12px; padding:12px; z-index:10; backdrop-filter: blur(10px);">
+            <div style="font-size:12.5px; font-weight:800; color:#fbbf24; margin-bottom:4px;">💼 Tycoon Idle Income</div>
+            <div id="tycoon-pending-text" style="font-size:12px; color:#e2e8f0; margin-bottom:6px;">+0 🪙 / +0 🔮</div>
+            <div style="width:100%; height:6px; background:rgba(255,255,255,0.12); border-radius:4px; overflow:hidden; margin-bottom:6px;">
+                <div id="tycoon-cap-bar" style="height:100%; width:0%; background:linear-gradient(90deg,#f59e0b,#d97706); transition: width 0.3s;"></div>
+            </div>
+            <div id="tycoon-cap-text" style="font-size:10.5px; color:#94a3b8; margin-bottom:8px;">Batas: 2 jam</div>
+            <button onclick="claimTycoonIncome()" style="width:100%; margin:0; padding:8px; font-size:12px; background: linear-gradient(135deg,#f59e0b,#d97706); color:white; border:none; border-radius:8px; font-weight:800; cursor:pointer;">KLAIM</button>
+        </div>
         <!-- Low Graphics & Sound toggle buttons -->
         <div style="position:absolute; top:70px; left:18px; display:flex; gap:8px; z-index:10;">
             <button id="lowgfx-toggle-btn" onclick="toggleLowGraphicsMode()" style="background:rgba(100,116,139,0.85); color:white; border:none; padding:6px 12px; border-radius:8px; font-weight:700; font-size:11px; cursor:pointer;">🖥️ Low Graphics: OFF</button>
@@ -1569,6 +1578,7 @@
             overcharge: { name: "Overcharge", max: 10, costBase: 7, desc: "Meningkatkan kecepatan serang dan damage dari semua senjata tipe listrik." },
             icicles: { name: "Icicles", max: 10, costBase: 1, desc: "Membuat player berjalan lebih cepat dan meninggalkan jejak es yang melambatkan musuh dan memberikan damage. Tiap upgrade memperluas area jejak es." }
         };
+        const PISTOL_BASE_MAX = WEAPON_DEFS.pistol.max; // dipakai hack IDKFA untuk menambah batas level Pistol
 
         const ARTIFACT_DEFS = {
             art_eagle_eye: { name: "Eagle eye", max: 18, costBase: 110, desc: "Mata melihat kelemahan. +10% Crit Chance di lv 1, upgrade +5%." },
@@ -1615,7 +1625,7 @@
                 name: "Potential Maxer",
                 icon: "💠",
                 costCoin: 1000000, costCosmic: 100000,
-                desc: "The Divine General menjadi 100x lebih kuat & lebih cepat, tidak lagi memberi damage ke player, HP-nya menjadi 1 MILIAR, dan bisa dipanggil ulang setelah mati (cooldown 10 menit) alih-alih hanya sekali per game."
+                desc: "The Divine General menjadi 10x lebih kuat & 1.5x kecepatan player, tidak lagi memberi damage ke player, HP-nya menjadi 10 JUTA, dan bisa dipanggil ulang setelah mati (cooldown 10 menit) alih-alih hanya sekali per game. Juga memberi Super Beast (jika sudah dimiliki) buff 2x lipat (kecuali kecepatan)."
             }
         };
         const MYTHIC_WEAPON_ORDER = ['trader_pass', 'god_of_artefact', 'spamer_one', 'hollow_purple', 'potential_maxer'];
@@ -1629,7 +1639,8 @@
                 hp: { level: 0, max: 50, costBase: 30, val: 15, name: "Max HP Up" },
                 atk: { level: 0, max: 75, costBase: 20, val: 0.1, name: "All Weapon Damage" },
                 spd: { level: 0, max: 25, costBase: 50, val: 0.2, name: "Movement Speed" },
-                magnet: { level: 0, max: 100, costBase: 10, val: 20, name: "Magnet Range" }
+                magnet: { level: 0, max: 100, costBase: 10, val: 20, name: "Magnet Range" },
+                idleCap: { level: 0, max: 12, costBase: 2000, val: 2, name: "Idle Tycoon - Kapasitas Maks (Jam)" }
             },
             weapons: {},
             artifacts: {},
@@ -1678,7 +1689,14 @@
             tycoonUnlocked: false,
             tycoonLastCollect: 0,
             greedBonusPercent: 0,
-            konamiHpBonus: 0
+            konamiHpBonus: 0,
+            iciclesUnlocked: false,
+            hesoyamUnlocked: false,
+            iddqdUnlocked: false,
+            abacabbHpBonus: 0,
+            superBeastUnlocked: false,
+            leaveMeAloneUnlocked: false,
+            pistolMaxBonus: 0
         };
 
         for (let w in WEAPON_DEFS) {
@@ -1717,6 +1735,13 @@
             }
         }
 
+        // Migrasi: pemain lama yang sudah punya Icicles/redeem SUPERSUIT sebelum fitur kunci ini ada, tetap dianggap unlocked.
+        if (!saveData.iciclesUnlocked) {
+            let alreadyHasIt = (saveData.weapons && saveData.weapons.icicles && saveData.weapons.icicles.level > 0);
+            let alreadyRedeemed = (saveData.redeemedCodes && saveData.redeemedCodes.indexOf('SUPERSUIT') !== -1);
+            if (alreadyHasIt || alreadyRedeemed) saveData.iciclesUnlocked = true;
+        }
+
         if (saveData.codeBonuses) {
             for (let key in BASE_SAVE.codeBonuses) {
                 if (saveData.codeBonuses[key] === undefined) {
@@ -1727,9 +1752,21 @@
             saveData.codeBonuses = JSON.parse(JSON.stringify(BASE_SAVE.codeBonuses));
         }
 
-        // Force all stats max levels to 25
+        // Backfill stat kunci baru (misal idleCap) untuk save lama tanpa reset progress
+        if (saveData.stats) {
+            for (let k in BASE_SAVE.stats) {
+                if (!saveData.stats[k]) {
+                    saveData.stats[k] = JSON.parse(JSON.stringify(BASE_SAVE.stats[k]));
+                }
+            }
+        } else {
+            saveData.stats = JSON.parse(JSON.stringify(BASE_SAVE.stats));
+        }
+
+        // Force all stats max levels to 25 (kecuali idleCap yang dibatasi 12 level / 24 jam)
         if (saveData.stats) {
             for (let k in saveData.stats) {
+                if (k === 'idleCap') { saveData.stats[k].max = 12; continue; }
                 saveData.stats[k].max = 25;
             }
         }
@@ -1896,12 +1933,28 @@
         const MAX_PARTICLES_NORMAL = 50;
         const MAX_PROJECTILES_NORMAL = 80;
         const MAX_DAMAGE_TEXTS_NORMAL = 12;
-        const MAX_PARTICLES_LOW = 12;
-        const MAX_PROJECTILES_LOW = 30;
-        const MAX_DAMAGE_TEXTS_LOW = 4;
+        const MAX_PARTICLES_LOW = 8;
+        const MAX_PROJECTILES_LOW = 20;
+        const MAX_DAMAGE_TEXTS_LOW = 3;
         let MAX_PARTICLES = MAX_PARTICLES_NORMAL;
         let MAX_PROJECTILES = MAX_PROJECTILES_NORMAL;
         let MAX_DAMAGE_TEXTS = MAX_DAMAGE_TEXTS_NORMAL;
+
+        // Global interceptor: matikan SEMUA shadowBlur (efek glow, paling berat di GPU/RAM low-end)
+        // begitu Low Graphics Mode aktif, tanpa perlu mengedit ratusan pemanggilan ctx.shadowBlur di seluruh kode.
+        (function patchShadowBlurForLowGfx() {
+            try {
+                const proto = CanvasRenderingContext2D.prototype;
+                const desc = Object.getOwnPropertyDescriptor(proto, 'shadowBlur');
+                if (desc && desc.configurable) {
+                    Object.defineProperty(proto, 'shadowBlur', {
+                        set(v) { desc.set.call(this, (typeof saveData !== 'undefined' && saveData.lowGraphicsMode) ? 0 : v); },
+                        get() { return desc.get.call(this); },
+                        configurable: true
+                    });
+                }
+            } catch (e) { /* browser lama, abaikan saja */ }
+        })();
 
         // ==========================================
         // SOUND ENGINE (ringan, tanpa file audio eksternal - pakai WebAudio beep)
@@ -2006,6 +2059,104 @@
         window.addEventListener('keydown', e => {
             checkKonamiCode(e.key.toLowerCase());
         });
+
+        // ==========================================
+        // KODE RAHASIA (diketik langsung via keyboard di menu utama/toko, BUKAN lewat Hack Terminal)
+        // ==========================================
+        function doHesoyam() {
+            saveData.hesoyamUnlocked = true;
+            saveData.coins += 2500;
+            Sound.play('mythic');
+            saveGame();
+            updateMenuUI();
+            showRewardPopup('🎮', 'HESOYAM!', 'Kamu mendapat +2500 Koin, dan Auto-Heal (HP & Shield penuh) saat HP di bawah 10% kini AKTIF (sekali per game)!');
+        }
+        function doMotherlode() {
+            saveData.coins += 5000;
+            Sound.play('buy');
+            saveGame();
+            updateMenuUI();
+            showRewardPopup('🎮', 'MOTHERLODE!', 'Kamu mendapat +5000 Koin!');
+        }
+        function doIddqd() {
+            saveData.iddqdUnlocked = true;
+            Sound.play('mythic');
+            saveGame();
+            showRewardPopup('🎮', 'IDDQD!', 'Tekan tombol [I] saat bermain untuk imun total selama 10 detik (sekali per game)!');
+        }
+        function doAbacabb() {
+            saveData.abacabbHpBonus = (saveData.abacabbHpBonus || 0) + 20;
+            Sound.play('mythic');
+            saveGame();
+            updateMenuUI();
+            showRewardPopup('🎮', 'ABACABB!', '+20 Max HP permanen!');
+        }
+        function doProfessionalTools() {
+            let upgraded = 0;
+            for (let wId in saveData.weapons) {
+                if (wId === 'icicles' && !saveData.iciclesUnlocked) continue; // tetap terkunci sampai code misterius lainnya
+                let info = WEAPON_DEFS[wId];
+                let wp = saveData.weapons[wId];
+                if (info && wp && wp.level < info.max) {
+                    wp.level += 1;
+                    upgraded++;
+                }
+            }
+            Sound.play('mythic');
+            saveGame();
+            if (activeSubShop) renderSubShop();
+            showRewardPopup('🎮', 'PROFESSIONALTOOLS!', `+1 Level ke ${upgraded} senjata yang kamu miliki (tidak melebihi batas maksimal)!`);
+        }
+        function doPanzer() {
+            saveData.superBeastUnlocked = true;
+            Sound.play('mythic');
+            saveGame();
+            showRewardPopup('🎮', 'PANZER!', 'Super Beast akan menemanimu setiap kali game dimulai!');
+        }
+        function doLeaveMeAlone() {
+            saveData.leaveMeAloneUnlocked = true;
+            Sound.play('mythic');
+            saveGame();
+            showRewardPopup('🎮', 'LEAVEMEALONE!', 'Tekan tombol [L] saat bermain untuk membunuh semua musuh & menghentikan spawn selama 3 detik (sekali per game)!');
+        }
+        function doIdkfa() {
+            saveData.pistolMaxBonus = (saveData.pistolMaxBonus || 0) + 10;
+            WEAPON_DEFS.pistol.max = PISTOL_BASE_MAX + saveData.pistolMaxBonus;
+            Sound.play('mythic');
+            saveGame();
+            if (activeSubShop) renderSubShop();
+            showRewardPopup('🎮', 'IDKFA!', `Batas level Pistol +10 (sekarang maksimal ${WEAPON_DEFS.pistol.max})!`);
+        }
+
+        const SECRET_TYPED_CODES = {
+            'hesoyam': doHesoyam,
+            'motherlode': doMotherlode,
+            'iddqd': doIddqd,
+            'abacabb': doAbacabb,
+            'professionaltools': doProfessionalTools,
+            'panzer': doPanzer,
+            'leavemealone': doLeaveMeAlone,
+            'idkfa': doIdkfa
+        };
+        const SECRET_TYPED_MAXLEN = Math.max(...Object.keys(SECRET_TYPED_CODES).map(s => s.length));
+        let secretTypedBuffer = '';
+        window.addEventListener('keydown', e => {
+            // Hanya aktif saat di menu utama / toko (bukan saat sedang bermain, bukan lewat Hack Terminal)
+            if (gameState === 'playing') { secretTypedBuffer = ''; return; }
+            let k = e.key.toLowerCase();
+            if (k.length !== 1 || !/[a-z]/.test(k)) return; // hanya huruf tunggal
+            secretTypedBuffer += k;
+            if (secretTypedBuffer.length > SECRET_TYPED_MAXLEN) {
+                secretTypedBuffer = secretTypedBuffer.slice(-SECRET_TYPED_MAXLEN);
+            }
+            for (let code in SECRET_TYPED_CODES) {
+                if (secretTypedBuffer.endsWith(code)) {
+                    SECRET_TYPED_CODES[code]();
+                    secretTypedBuffer = '';
+                    break;
+                }
+            }
+        });
         window.addEventListener('keydown', e => {
             let k = e.key.toLowerCase();
             keys[k] = true;
@@ -2051,6 +2202,27 @@
             }
             if (gameState === 'playing' && k === 'h' && saveData.mythicWeapons && saveData.mythicWeapons.hollow_purple && player.hollowPurpleCd <= 0) {
                 triggerHollowPurple();
+            }
+            if (gameState === 'playing' && k === 'i' && saveData.iddqdUnlocked && !player.iddqdUsedThisGame) {
+                player.iddqdUsedThisGame = true;
+                player.iddqdTimer = 600; // 10 detik @ 60fps
+                createParticles(player.x, player.y, '#38bdf8', 30);
+                createDamageText(player.x, player.y - 50, "🎮 IDDQD! IMUN 10 DETIK!", '#38bdf8', 20);
+                Sound.play('mythic');
+            }
+            if (gameState === 'playing' && k === 'l' && saveData.leaveMeAloneUnlocked && !leaveMeAloneUsedThisGame) {
+                leaveMeAloneUsedThisGame = true;
+                spawnPauseTimer = 180; // 3 detik @ 60fps
+                for (let i = 0; i < entities.enemies.length; i++) {
+                    let e = entities.enemies[i];
+                    if (e && !e.dead) {
+                        createParticles(e.x, e.y, '#ef4444', 8);
+                        e.dead = true;
+                        e.hp = 0;
+                    }
+                }
+                createDamageText(player.x, player.y - 50, "🎮 LEAVE ME ALONE! 💀", '#ef4444', 22);
+                Sound.play('nuke');
             }
             // Pemicuan Ultimate di dalam pertempuran (tombol U)
             if (gameState === 'playing' && k === 'u' && getEffectiveUltimate() && !activeUltimate && ultimateCooldownTimer <= 0) {
@@ -2191,6 +2363,7 @@
         let player, camera;
         let entities = { enemies: [], drops: [], projectiles: [], damageTexts: [], particles: [] };
         let divineGeneralInstance = null, divineGeneralSummonedThisGame = false;
+        let leaveMeAloneUsedThisGame = false, spawnPauseTimer = 0;
         let bossActive = false, ultimateBossActive = false;
         let currentLevel = 1, currentExp = 0, expNeeded = 10, rerollsLeft = 3, currentChoices = [];
         // Scaling difficulty state
@@ -2269,7 +2442,7 @@
                 this.isGod = saveData.cheatGod || false;
                 this.isTripleSpeed = saveData.cheatTriple || false;
                 this.isSpeed = saveData.cheatSpeed || false;
-                this.maxHp = saveData.mode67Active ? 67 : (CONFIG.BASE_PLAYER_HP + (saveData.stats.hp.level * saveData.stats.hp.val) + (saveData.konamiHpBonus || 0));
+                this.maxHp = saveData.mode67Active ? 67 : (CONFIG.BASE_PLAYER_HP + (saveData.stats.hp.level * saveData.stats.hp.val) + (saveData.konamiHpBonus || 0) + (saveData.abacabbHpBonus || 0));
                 this.hp = this.maxHp;
                 this.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (this.isSpeed ? (saveData.cheatBrute ? 5 : 3) : 1);
                 this.baseDmgMulti = 1 + (saveData.stats.atk.level * saveData.stats.atk.val);
@@ -2279,6 +2452,9 @@
                 this.superMagnetTimer = 0;
                 this.reviveInvulnerableTimer = 0;
                 this.hollowPurpleCd = 0; // Mythic Weapon: Hollow Purple (tekan H)
+                this.iddqdTimer = 0; // Hack IDDQD: sisa waktu imun (frame)
+                this.iddqdUsedThisGame = false;
+                this.hesoyamUsedThisGame = false;
 
                 // Status effects (Ultimate Boss mechanics)
                 this.stunTimer = 0;
@@ -2630,6 +2806,7 @@
                     let cdSpeed = (saveData.mythicWeapons && saveData.mythicWeapons.spamer_one) ? 5 : 1;
                     this.hollowPurpleCd -= cdSpeed;
                 }
+                if (this.iddqdTimer > 0) this.iddqdTimer--;
 
                 let flameIncrement = 1;
                 if (saveData.mythicWeapons && saveData.mythicWeapons.spamer_one) {
@@ -2811,6 +2988,7 @@
                 if (saveData.mythicWeapons && saveData.mythicWeapons.spamer_one) return; // Mythic Weapon: kebal total dari serangan musuh
                 if (this.dashDuration > 0) return; // Ultimate Dasher Invincibility
                 if (this.reviveInvulnerableTimer > 0) return; // Invulnerability after revive
+                if (this.iddqdTimer > 0) return; // Hack IDDQD: imunitas sementara
 
                 let dgActive = (divineGeneralInstance !== null);
                 let dgDebuff = dgActive ? 0.10 : 0;
@@ -2834,6 +3012,15 @@
                     }
                     this.hp -= damageToInflict;
                     createDamageText(this.x, this.y, Math.floor(damageToInflict), '#c92a2a');
+                    // Hack HESOYAM: heal penuh HP & Shield sekali per game saat HP < 10%
+                    if (saveData.hesoyamUnlocked && !this.hesoyamUsedThisGame && this.hp > -99999999 && this.hp <= this.maxHp * 0.10) {
+                        this.hesoyamUsedThisGame = true;
+                        this.hp = this.maxHp;
+                        this.shieldHp = this.artMods.maxShield;
+                        createParticles(this.x, this.y, '#fbbf24', 30);
+                        createDamageText(this.x, this.y - 40, "🎮 HESOYAM! FULL HEAL!", '#fbbf24', 18);
+                        Sound.play('mythic');
+                    }
                     if (this.hp <= 0) {
                         if (this.artMods.reviveCount > 0) {
                             this.artMods.reviveCount = 0; // Trigger once
@@ -4432,7 +4619,7 @@
                 this.y = y;
                 this.powered = !!(saveData.mythicWeapons && saveData.mythicWeapons.potential_maxer);
                 this.size = this.powered ? 34 : 25;
-                this.hp = this.powered ? 1000000000 : 1000000;
+                this.hp = this.powered ? 10000000 : 1000000;
                 this.maxHp = this.hp;
                 this.damageReduction = this.powered ? 0.90 : 0.10;
                 this.attackCooldown = 0;
@@ -4505,7 +4692,7 @@
 
                         hitEnemies.forEach(e => {
                             if (e.isBoss) {
-                                e.takeDamage(this.powered ? 500000 : 5000);
+                                e.takeDamage(this.powered ? 50000 : 5000);
                             } else {
                                 e.takeDamage(e.hp + 9999);
                             }
@@ -4585,6 +4772,7 @@
         }
 
         function handleSpawning() {
+            if (spawnPauseTimer > 0) return; // Hack LEAVEMEALONE: spawn dihentikan sementara
             if (entities.enemies.length >= 150) return;
             let rate = Math.max(12, 55 - Math.floor(gameTime / 8));
             if (frameCount % rate === 0) {
@@ -4677,6 +4865,7 @@
                             let checkLapse = player.weapons.find(pw => pw.id === 'blue_lapse');
                             if (!checkLapse) continue;
                         }
+                        if (wId === 'icicles' && !saveData.iciclesUnlocked) continue; // terkunci sampai kode SUPERSUIT diredeem
                         pool.push({ type: 'new_wpn', id: wId, name: `Senjata Baru: ${WEAPON_DEFS[wId].name}`, desc: WEAPON_DEFS[wId].desc });
                     }
                 }
@@ -4895,6 +5084,7 @@
             frameCount++;
 
             handleSpawning();
+            if (spawnPauseTimer > 0) spawnPauseTimer--;
             player.update();
             if (divineGeneralInstance) {
                 divineGeneralInstance.update();
@@ -4907,6 +5097,9 @@
                     }
                     divineGeneralInstance = null;
                 }
+            }
+            if (superBeastInstance) {
+                superBeastInstance.update();
             }
             updateUltimate();
             camera.update(player);
@@ -5011,6 +5204,9 @@
             }
             if (divineGeneralInstance && inViewport(divineGeneralInstance.x, divineGeneralInstance.y, 100)) {
                 divineGeneralInstance.draw(ctx);
+            }
+            if (superBeastInstance && inViewport(superBeastInstance.x, superBeastInstance.y, 100)) {
+                superBeastInstance.draw(ctx);
             }
             player.draw(ctx);
             for (let i = 0; i < entities.damageTexts.length; i++) {
@@ -5179,6 +5375,7 @@
             document.getElementById('levelup-screen').classList.add('hidden');
             updateMenuUI();
             updateTraderButtonUI();
+            updateTycoonIncomeUI();
         }
 
         function updateMenuUI() {
@@ -5729,14 +5926,28 @@
                 titleEl.innerText = "Statistik Utama (Koin)";
                 for (let k in saveData.stats) {
                     let st = saveData.stats[k];
+                    let isLocked = (k === 'idleCap' && !saveData.tycoonUnlocked);
                     let plan = getStatPurchasePlan(k);
                     let sellPlan = getStatSellPlan(k);
                     let costLabel = plan.maxed ? 'MAX' : `${plan.cost} Koin`;
                     let sellDisabled = sellPlan.count === 0;
+                    let extraInfo = (k === 'idleCap') ? `<br><small style="color:#666;">Kapasitas idle saat ini: ${Math.max(2, (st.level || 1) * 2)} jam</small>` : '';
+
+                    if (isLocked) {
+                        listEl.innerHTML += `
+                            <div class="upgrade-item" style="opacity:0.55;"><div class="upgrade-row">
+                                <div class="upgrade-cell-left"><strong>${st.name}</strong> <span style="color:#ef4444; font-weight:700;">[🔒 Terkunci - Code Misterius]</span><br><small>Gunakan Code Misterius untuk membuka fitur ini.</small></div>
+                                <div class="upgrade-cell-right" style="display: flex; gap: 8px; align-items: center;">
+                                    <button class="sell-btn" disabled>Jual</button>
+                                    <button disabled>🔒 Terkunci</button>
+                                </div>
+                            </div></div>`;
+                        continue;
+                    }
 
                     listEl.innerHTML += `
                         <div class="upgrade-item"><div class="upgrade-row">
-                            <div class="upgrade-cell-left"><strong>${st.name}</strong><br><small>Lv ${st.level}/${st.max}</small></div>
+                            <div class="upgrade-cell-left"><strong>${st.name}</strong><br><small>Lv ${st.level}/${st.max}</small>${extraInfo}</div>
                             <div class="upgrade-cell-right" style="display: flex; gap: 8px; align-items: center;">
                                 <button class="sell-btn" ${sellDisabled ? 'disabled' : ''} onclick="sellStat('${k}', ${sellPlan.count}, ${sellPlan.refund}); renderSubShop();">Jual -${sellPlan.count} (+${sellPlan.refund} 🪙)</button>
                                 <button ${plan.maxed || saveData.coins < plan.cost ? 'disabled' : ''} onclick="buyStat('${k}', ${plan.count}, ${plan.cost}); renderSubShop();">Beli +${plan.count} (${costLabel})</button>
@@ -5749,22 +5960,23 @@
                     let wp = saveData.weapons[k];
                     let info = WEAPON_DEFS[k];
                     if (!info) continue;
+                    let isLocked = (k === 'icicles' && !saveData.iciclesUnlocked);
                     let plan = getWeaponPurchasePlan(k);
                     let sellPlan = getWeaponSellPlan(k);
                     let costLabel = plan.maxed ? 'MAX' : `${plan.cost} Cosmic`;
                     let sellDisabled = sellPlan.count === 0;
-                    let statusTag = wp.level > 0 ? `<span style="color:#10b981; font-weight:700;">[Aktif]</span>` : `<span style="color:#8b5cf6;">[Terkunci]</span>`;
+                    let statusTag = isLocked ? `<span style="color:#ef4444; font-weight:700;">[🔒 Terkunci - Code Misterius]</span>` : (wp.level > 0 ? `<span style="color:#10b981; font-weight:700;">[Aktif]</span>` : `<span style="color:#8b5cf6;">[Terkunci]</span>`);
 
                     listEl.innerHTML += `
-                        <div class="upgrade-item"><div class="upgrade-row">
+                        <div class="upgrade-item" style="${isLocked ? 'opacity:0.55;' : ''}"><div class="upgrade-row">
                             <div class="upgrade-cell-left">
                                 <strong>${info.name}</strong> ${statusTag}<br>
-                                <small style="color:#666; display:block; margin: 2px 0;">${info.desc}</small>
+                                <small style="color:#666; display:block; margin: 2px 0;">${isLocked ? 'Senjata rahasia! Gunakan Code Misterius untuk membuka senjata ini.' : info.desc}</small>
                                 <small>Level Mulai: Lv +${wp.level}/${info.max}</small>
                             </div>
                             <div class="upgrade-cell-right" style="display: flex; gap: 8px; align-items: center;">
-                                <button class="sell-btn border-cosmic" ${sellDisabled ? 'disabled' : ''} onclick="sellWeapon('${k}', ${sellPlan.count}, ${sellPlan.refund}); renderSubShop();">Jual -${sellPlan.count} (+${sellPlan.refund} 🔮)</button>
-                                <button class="cosmic-btn" ${plan.maxed || saveData.cosmicCoins < plan.cost ? 'disabled' : ''} onclick="buyWeapon('${k}', ${plan.count}, ${plan.cost}); renderSubShop();">Beli +${plan.count} (${costLabel})</button>
+                                <button class="sell-btn border-cosmic" ${sellDisabled || isLocked ? 'disabled' : ''} onclick="sellWeapon('${k}', ${sellPlan.count}, ${sellPlan.refund}); renderSubShop();">Jual -${sellPlan.count} (+${sellPlan.refund} 🔮)</button>
+                                <button class="cosmic-btn" ${plan.maxed || saveData.cosmicCoins < plan.cost || isLocked ? 'disabled' : ''} onclick="buyWeapon('${k}', ${plan.count}, ${plan.cost}); renderSubShop();">${isLocked ? '🔒 Terkunci' : `Beli +${plan.count} (${costLabel})`}</button>
                             </div>
                         </div></div>`;
                 }
@@ -5878,6 +6090,11 @@
         };
 
         window.buyStat = function (k, count, cost) {
+            if (k === 'idleCap' && !saveData.tycoonUnlocked) {
+                createDamageText(0, 0, "🔒 Terkunci! Gunakan Code Misterius untuk membukanya.", '#ef4444', 14);
+                Sound.play('error');
+                return;
+            }
             let st = saveData.stats[k];
             if (saveData.coins >= cost && st.level < st.max) {
                 saveData.coins -= cost;
@@ -5887,6 +6104,7 @@
             }
         };
         window.sellStat = function (k, count, refund) {
+            if (k === 'idleCap' && !saveData.tycoonUnlocked) return;
             let st = saveData.stats[k];
             if (st.level >= count) {
                 st.level -= count;
@@ -5897,6 +6115,11 @@
         };
 
         window.buyWeapon = function (k, count, cost) {
+            if (k === 'icicles' && !saveData.iciclesUnlocked) {
+                createDamageText(0, 0, "🔒 Senjata terkunci! Gunakan Code Misterius untuk membuka senjata.", '#ef4444', 14);
+                Sound.play('error');
+                return;
+            }
             let wp = saveData.weapons[k];
             if (saveData.cosmicCoins >= cost && wp.level < WEAPON_DEFS[k].max) {
                 saveData.cosmicCoins -= cost;
@@ -5956,6 +6179,8 @@
             frameCount = 0; runCoins = 0; runCosmic = 0; currentLevel = 1; currentExp = 0; expNeeded = 10; rerollsLeft = 3;
             entities = { enemies: [], drops: [], projectiles: [], damageTexts: [], particles: [] }; bossActive = false; ultimateBossActive = false;
             divineGeneralInstance = null; divineGeneralSummonedThisGame = false;
+            superBeastInstance = null;
+            leaveMeAloneUsedThisGame = false; spawnPauseTimer = 0;
             activeUltimate = null;
             ultimateActiveTimer = 0;
             ultimateCooldownTimer = 0;
@@ -5989,6 +6214,9 @@
             lastUltimateBossConsecutive = 0;
 
             player = new Player(); camera = new Camera();
+            if (saveData.superBeastUnlocked) {
+                superBeastInstance = new SuperBeast(player.x, player.y);
+            }
             document.getElementById('main-menu').classList.add('hidden');
             document.getElementById('shop-modal').classList.add('hidden');
             document.getElementById('ui-layer').querySelectorAll('.hud, #exp-container').forEach(el => el.classList.remove('hidden'));
@@ -6005,6 +6233,72 @@
         // ==========================================
         // ULTIMATE WEAPONS LOGIC HANDLERS
         // ==========================================
+        // ==========================================
+        // HACK 'PANZER': Super Beast — pendamping permanen, lebih lemah tapi lebih aman dari Divine General
+        // ==========================================
+        class SuperBeast {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.powered = !!(saveData.mythicWeapons && saveData.mythicWeapons.potential_maxer);
+                this.size = 22;
+                this.maxHp = this.powered ? 2000000 : 1000000;
+                this.hp = this.maxHp;
+                this.attackDmg = this.powered ? 20 : 10; // per detik
+                this.attackTimer = 0;
+            }
+            update() {
+                let speed = player.speed * 2; // kecepatan TIDAK terpengaruh potential_maxer
+                // Cari musuh terdekat
+                let target = null, minDist = Infinity;
+                for (let i = 0; i < entities.enemies.length; i++) {
+                    let e = entities.enemies[i];
+                    if (e && !e.dead) {
+                        let dist = getDistance(this.x, this.y, e.x, e.y);
+                        if (dist < minDist) { minDist = dist; target = e; }
+                    }
+                }
+                if (target) {
+                    let dx = target.x - this.x, dy = target.y - this.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist > 40) {
+                        this.x += (dx / dist) * speed;
+                        this.y += (dy / dist) * speed;
+                    }
+                } else {
+                    let dx = player.x - this.x, dy = player.y - this.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist > 90) {
+                        this.x += (dx / dist) * speed;
+                        this.y += (dy / dist) * speed;
+                    }
+                }
+                // Serangan pasif area kecil, sekali per detik (10 atau 20 dmg/s)
+                if (this.attackTimer > 0) this.attackTimer--;
+                if (this.attackTimer <= 0) {
+                    let range = 90;
+                    let hitAny = false;
+                    for (let i = 0; i < entities.enemies.length; i++) {
+                        let e = entities.enemies[i];
+                        if (e && !e.dead && getDistance(this.x, this.y, e.x, e.y) < range) {
+                            e.takeDamage(this.attackDmg);
+                            hitAny = true;
+                        }
+                    }
+                    if (hitAny) createParticles(this.x, this.y, '#22c55e', 6);
+                    this.attackTimer = 60; // 1 detik
+                }
+            }
+            draw(ctx) {
+                ctx.save();
+                ctx.shadowColor = 'rgba(34, 197, 94, 0.4)';
+                ctx.shadowBlur = 12;
+                drawHexagon(ctx, this.x, this.y, this.size, '#86efac', '#16a34a', 3, frameCount * 0.015);
+                ctx.restore();
+            }
+        }
+        let superBeastInstance = null;
+
         function activateUltimate(id) {
             activeUltimate = id;
             Sound.play('mythic');
@@ -6922,6 +7216,7 @@
                 title: "SUPER SUIT!",
                 desc: "Membuka senjata spesial <strong>Icicles</strong>! Berjalan lebih cepat dan tinggalkan jejak es pelambat musuh.",
                 apply() {
+                    saveData.iciclesUnlocked = true;
                     saveData.weapons['icicles'].level = Math.max(1, saveData.weapons['icicles'].level);
                 }
             },
@@ -6992,10 +7287,11 @@
             "TYCOON": {
                 icon: "💼",
                 title: "TYCOON MODE!",
-                desc: "Dapatkan +100 Koin dan +1 Cosmic Koin setiap menit secara pasif, TERUS BERJALAN walau game ditutup!",
+                desc: "Dapatkan +100 Koin dan +1 Cosmic Koin setiap menit secara pasif, TERUS BERJALAN walau game ditutup! (Maks 2 jam idle, upgrade 'Idle Tycoon - Kapasitas Maks' di toko Statistik untuk memperpanjang sampai 24 jam).",
                 apply() {
                     saveData.tycoonUnlocked = true;
                     saveData.tycoonLastCollect = Date.now();
+                    saveData.stats.idleCap.level = Math.max(1, saveData.stats.idleCap.level);
                 }
             },
             "FREESUMMON": {
@@ -7116,30 +7412,73 @@
         applyLowGraphicsMode(saveData.lowGraphicsMode);
         Sound.enabled = !saveData.soundMuted;
 
+        // Hack IDKFA: terapkan ulang bonus batas level Pistol (WEAPON_DEFS baru dibuat tiap load)
+        WEAPON_DEFS.pistol.max = PISTOL_BASE_MAX + (saveData.pistolMaxBonus || 0);
+
         // ==========================================
         // HACK 'TYCOON': +100 koin & +1 cosmic koin per menit, TERMASUK saat game ditutup
         // (dihitung dari selisih waktu nyata sejak terakhir dikumpulkan)
         // ==========================================
-        function collectTycoonIncome(showPopup) {
-            if (!saveData.tycoonUnlocked) return;
-            let now = Date.now();
-            if (!saveData.tycoonLastCollect) { saveData.tycoonLastCollect = now; return; }
-            let elapsedMinutes = Math.floor((now - saveData.tycoonLastCollect) / 60000);
-            if (elapsedMinutes > 0) {
-                let coinGain = elapsedMinutes * 100;
-                let cosmicGain = elapsedMinutes * 1;
-                saveData.coins += coinGain;
-                saveData.cosmicCoins += cosmicGain;
-                saveData.tycoonLastCollect += elapsedMinutes * 60000;
-                saveGame();
-                updateMenuUI();
-                if (showPopup) {
-                    showRewardPopup('💼', 'SELAMAT DATANG KEMBALI!', `Bisnis Tycoon-mu menghasilkan +${coinGain.toLocaleString()} 🪙 Koin dan +${cosmicGain.toLocaleString()} 🔮 Cosmic Koin selama kamu pergi (${elapsedMinutes} menit)!`);
-                }
-            }
+        function getTycoonCapMinutes() {
+            let hours = Math.max(2, (saveData.stats.idleCap.level || 1) * 2);
+            return hours * 60;
         }
-        collectTycoonIncome(true); // catch-up saat halaman dibuka (mensimulasikan waktu saat game ditutup) + popup
-        setInterval(() => collectTycoonIncome(false), 15000); // cek berkala selagi game terbuka, tanpa popup berulang
+
+        function getTycoonPending() {
+            if (!saveData.tycoonUnlocked) return null;
+            let now = Date.now();
+            if (!saveData.tycoonLastCollect) saveData.tycoonLastCollect = now;
+            let elapsedMinutes = Math.floor((now - saveData.tycoonLastCollect) / 60000);
+            let capMinutes = getTycoonCapMinutes();
+            let paidMinutes = Math.min(elapsedMinutes, capMinutes);
+            return {
+                elapsedMinutes, capMinutes, paidMinutes,
+                coinGain: paidMinutes * 100,
+                cosmicGain: paidMinutes * 1,
+                isFull: elapsedMinutes >= capMinutes
+            };
+        }
+
+        function updateTycoonIncomeUI() {
+            let box = document.getElementById('tycoon-income-box');
+            if (!box) return;
+            let p = getTycoonPending();
+            if (!p || gameState !== 'menu') {
+                box.style.display = 'none';
+                return;
+            }
+            box.style.display = 'block';
+            document.getElementById('tycoon-pending-text').textContent = `+${p.coinGain.toLocaleString()} 🪙 / +${p.cosmicGain.toLocaleString()} 🔮`;
+            let pct = Math.min(100, (p.elapsedMinutes / p.capMinutes) * 100);
+            document.getElementById('tycoon-cap-bar').style.width = pct + '%';
+            let capHours = Math.floor(p.capMinutes / 60);
+            document.getElementById('tycoon-cap-text').textContent = p.isFull ? `PENUH! (Maks ${capHours} jam) — klaim sekarang!` : `Batas: ${capHours} jam (${Math.floor(p.elapsedMinutes / 60)}j ${p.elapsedMinutes % 60}m terkumpul)`;
+        }
+        setInterval(updateTycoonIncomeUI, 1000);
+
+        window.claimTycoonIncome = function() {
+            let p = getTycoonPending();
+            if (!p || p.paidMinutes <= 0) {
+                createDamageText(0, 0, "Belum ada penghasilan untuk diklaim.", '#94a3b8', 13);
+                return;
+            }
+            saveData.coins += p.coinGain;
+            saveData.cosmicCoins += p.cosmicGain;
+            saveData.tycoonLastCollect += p.elapsedMinutes * 60000; // waktu di luar batas kapasitas tetap hangus, tidak menumpuk
+            saveGame();
+            updateMenuUI();
+            updateTycoonIncomeUI();
+            Sound.play('buy');
+            showRewardPopup('💼', 'PENGHASILAN DIKLAIM!', `Kamu mendapat +${p.coinGain.toLocaleString()} 🪙 Koin dan +${p.cosmicGain.toLocaleString()} 🔮 Cosmic Koin dari bisnis Tycoon-mu!`);
+        };
+
+        // Beri tahu (tanpa auto-klaim) jika ada penghasilan Tycoon menunggu saat kembali membuka game
+        (function notifyTycoonOnLoad() {
+            let p = getTycoonPending();
+            if (p && p.paidMinutes > 0) {
+                showRewardPopup('💼', 'SELAMAT DATANG KEMBALI!', `Bisnis Tycoon-mu sudah menghasilkan +${p.coinGain.toLocaleString()} 🪙 Koin dan +${p.cosmicGain.toLocaleString()} 🔮 Cosmic Koin. Klik tombol <strong>KLAIM</strong> di pojok kiri bawah untuk mengambilnya!`);
+            }
+        })();
 
         // Ensure initMenu is called on page load
         initMenu();
