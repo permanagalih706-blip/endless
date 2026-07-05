@@ -1079,6 +1079,9 @@
             <button id="lowgfx-toggle-btn" onclick="toggleLowGraphicsMode()" style="background:rgba(100,116,139,0.85); color:white; border:none; padding:6px 12px; border-radius:8px; font-weight:700; font-size:11px; cursor:pointer;">🖥️ Low Graphics: OFF</button>
             <button id="sound-toggle-btn" onclick="toggleSoundMuted()" style="background:rgba(100,116,139,0.85); color:white; border:none; padding:6px 12px; border-radius:8px; font-weight:700; font-size:11px; cursor:pointer;">🔊 Suara: ON</button>
         </div>
+        <div style="position:absolute; top:110px; left:18px; display:flex; gap:8px; z-index:10;">
+            <button id="magnetcollect-toggle-btn" onclick="toggleMagnetCollectMode()" style="background:rgba(100,116,139,0.85); color:white; border:none; padding:6px 12px; border-radius:8px; font-weight:700; font-size:11px; cursor:pointer;">🧲 Magnet Collect: OFF</button>
+        </div>
         <!-- Code Entry Panel pojok kiri atas -->
         <div id="code-entry-panel">
             <label id="code-toggle-label">📝 Enter Code</label>
@@ -1580,6 +1583,11 @@
         };
         const PISTOL_BASE_MAX = WEAPON_DEFS.pistol.max; // dipakai hack IDKFA untuk menambah batas level Pistol
 
+        // Perbarui harga upgrade senjata jadi jauh lebih mahal (Cosmic Coin sebelumnya terlalu mudah didapat)
+        for (let wId in WEAPON_DEFS) {
+            WEAPON_DEFS[wId].costBase = Math.ceil(WEAPON_DEFS[wId].costBase * 8);
+        }
+
         const ARTIFACT_DEFS = {
             art_eagle_eye: { name: "Eagle eye", max: 18, costBase: 110, desc: "Mata melihat kelemahan. +10% Crit Chance di lv 1, upgrade +5%." },
             art_the_force: { name: "The Force", max: 10, costBase: 130, desc: "Kekuatan supranatural. +2% Magnet Range & +10% knockback/detik di area magnet. Tiap upgrade +1% range, +5% knockback." },
@@ -1696,7 +1704,8 @@
             abacabbHpBonus: 0,
             superBeastUnlocked: false,
             leaveMeAloneUnlocked: false,
-            pistolMaxBonus: 0
+            pistolMaxBonus: 0,
+            magnetCollectMode: false
         };
 
         for (let w in WEAPON_DEFS) {
@@ -2007,11 +2016,14 @@
                 MAX_PARTICLES = MAX_PARTICLES_LOW;
                 MAX_PROJECTILES = MAX_PROJECTILES_LOW;
                 MAX_DAMAGE_TEXTS = MAX_DAMAGE_TEXTS_LOW;
+                saveData.magnetCollectMode = true; // dikunci ON saat Low Graphics aktif (lebih hemat performa)
             } else {
                 MAX_PARTICLES = MAX_PARTICLES_NORMAL;
                 MAX_PROJECTILES = MAX_PROJECTILES_NORMAL;
                 MAX_DAMAGE_TEXTS = MAX_DAMAGE_TEXTS_NORMAL;
+                saveData.magnetCollectMode = false; // default OFF saat Low Graphics tidak aktif
             }
+            if (typeof updateMagnetCollectButtonUI === 'function') updateMagnetCollectButtonUI();
         }
 
         // Counter untuk throttle updateHUD — tidak perlu update DOM setiap frame
@@ -2918,6 +2930,12 @@
                     let distSq = dx * dx + dy * dy;
                     if (distSq < magnetAreaSq) drop.magnetized = true;
                     if (drop.magnetized) {
+                        if (saveData.magnetCollectMode) {
+                            // Magnet Collect Mode: item langsung ke-claim begitu masuk area magnet, tanpa perlu menyentuh player
+                            drop.collect();
+                            entities.drops.splice(i, 1);
+                            continue;
+                        }
                         let dist = Math.sqrt(distSq);
                         if (dist > 0) {
                             drop.x -= (dx / dist) * 9;
@@ -4543,8 +4561,8 @@
                     entities.drops.push(new Drop(x, y, 'magnet', 0));
                 } else {
                     let typeRoll = Math.random();
-                    if (typeRoll < 0.82) entities.drops.push(new Drop(x, y, 'exp', expValue));
-                    else if (typeRoll < 0.96) entities.drops.push(new Drop(x, y, 'coin', 1));
+                    if (typeRoll < 0.85) entities.drops.push(new Drop(x, y, 'exp', expValue));
+                    else if (typeRoll < 0.985) entities.drops.push(new Drop(x, y, 'coin', 1));
                     else entities.drops.push(new Drop(x, y, 'cosmic', 1));
                 }
             }
@@ -5413,6 +5431,7 @@
             if (lgBtn) lgBtn.textContent = `🖥️ Low Graphics: ${saveData.lowGraphicsMode ? 'ON' : 'OFF'}`;
             let sndBtn = document.getElementById('sound-toggle-btn');
             if (sndBtn) sndBtn.textContent = `${Sound.enabled ? '🔊' : '🔇'} Suara: ${Sound.enabled ? 'ON' : 'OFF'}`;
+            updateMagnetCollectButtonUI();
         }
 
         window.toggleHonoredMode = function() {
@@ -5445,6 +5464,22 @@
             btn.textContent = `${Sound.enabled ? '🔊' : '🔇'} Suara: ${Sound.enabled ? 'ON' : 'OFF'}`;
             if (Sound.enabled) Sound.play('buy');
         };
+        window.toggleMagnetCollectMode = function() {
+            if (saveData.lowGraphicsMode) {
+                createDamageText(0, 0, "🔒 Terkunci ON selama Low Graphics Mode aktif.", '#94a3b8', 13);
+                return;
+            }
+            saveData.magnetCollectMode = !saveData.magnetCollectMode;
+            saveGame();
+            updateMagnetCollectButtonUI();
+        };
+        function updateMagnetCollectButtonUI() {
+            let btn = document.getElementById('magnetcollect-toggle-btn');
+            if (!btn) return;
+            btn.textContent = `🧲 Magnet Collect: ${saveData.magnetCollectMode ? 'ON' : 'OFF'}${saveData.lowGraphicsMode ? ' 🔒' : ''}`;
+            btn.style.opacity = saveData.lowGraphicsMode ? '0.7' : '1';
+            btn.style.cursor = saveData.lowGraphicsMode ? 'not-allowed' : 'pointer';
+        }
 
         // ==========================================
         // INTERGALACTIC TRADER SYSTEM
@@ -5504,15 +5539,10 @@
 
         function getTraderRates() {
             let passOwned = saveData.mythicWeapons && saveData.mythicWeapons.trader_pass;
-            let passFactor = passOwned ? 0.90 : 1.0;
-            // Beli cosmic pakai koin: makin banyak koin dimiliki, makin murah (maks -50%)
-            let buyBonus = Math.min(0.5, saveData.coins / 2000000);
-            let buyRate = 1500 * (1 - buyBonus) * passFactor; // koin per 1 cosmic
-            buyRate = Math.max(200, buyRate);
-            // Jual cosmic dapat koin: makin banyak cosmic dimiliki, makin baik hasilnya (maks +30%)
-            let sellBonus = Math.min(0.3, saveData.cosmicCoins / 50000);
-            let sellPassFactor = passOwned ? 1.10 : 1.0;
-            let sellRate = 500 * (1 + sellBonus) * sellPassFactor; // koin per 1 cosmic (selalu < buyRate agar trader untung)
+            // Nilai wajar: 1 cosmic setara 10 koin. Membeli cosmic pakai koin selalu rugi sedikit (12 koin/cosmic)
+            // supaya trader tetap untung. Trader Pass memberi diskon/bonus 10% di kedua arah.
+            let buyRate = passOwned ? 10.8 : 12;   // koin per 1 cosmic saat BELI cosmic (koin -> cosmic)
+            let sellRate = passOwned ? 11 : 10;    // koin per 1 cosmic saat JUAL cosmic (cosmic -> koin)
             return { buyRate, sellRate };
         }
 
@@ -7287,7 +7317,7 @@
             "TYCOON": {
                 icon: "💼",
                 title: "TYCOON MODE!",
-                desc: "Dapatkan +100 Koin dan +1 Cosmic Koin setiap menit secara pasif, TERUS BERJALAN walau game ditutup! (Maks 2 jam idle, upgrade 'Idle Tycoon - Kapasitas Maks' di toko Statistik untuk memperpanjang sampai 24 jam).",
+                desc: "Dapatkan +10 Koin dan +1 Cosmic Koin setiap menit secara pasif, TERUS BERJALAN walau game ditutup! (Maks 2 jam idle, upgrade 'Idle Tycoon - Kapasitas Maks' di toko Statistik untuk memperpanjang sampai 24 jam).",
                 apply() {
                     saveData.tycoonUnlocked = true;
                     saveData.tycoonLastCollect = Date.now();
@@ -7433,7 +7463,7 @@
             let paidMinutes = Math.min(elapsedMinutes, capMinutes);
             return {
                 elapsedMinutes, capMinutes, paidMinutes,
-                coinGain: paidMinutes * 100,
+                coinGain: paidMinutes * 10,
                 cosmicGain: paidMinutes * 1,
                 isFull: elapsedMinutes >= capMinutes
             };
