@@ -1032,6 +1032,10 @@
                 <span style="font-size: 16px;">❤️</span>
                 <span id="hp-text">100/100</span>
             </div>
+            <div id="hesoyam-hud" class="hidden" style="display:none; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 11px; font-weight: 800;">
+                <span>🩹 Auto-Heal:</span>
+                <span id="hesoyam-hud-status" style="color:#22c55e;">Ready</span>
+            </div>
             <div style="display: flex; align-items: center; gap: 8px; color: #64748b;">
                 <span style="font-size: 16px;">⏱️</span>
                 <span id="time-text">00:00</span>
@@ -1595,7 +1599,7 @@
             art_los: { name: "Layer Of Safety (L.O.S)", max: 10, costBase: 180, desc: "Memberikan +1 layer shield setara 100 HP. Tiap upgrade +1 layer." },
             art_aegis_shoes: { name: "Aegis Shoes", max: 8, costBase: 100, desc: "Sepatu dewa lari. +10% Movement Speed awal, tiap upgrade selanjutnya +5%." },
             // 5 NEW UNIQUE ARTIFACTS
-            art_phoenix_feather: { name: "Phoenix Feather", max: 13, costBase: 350, desc: "Menghidupkan kembali player dengan 30% (+10% per lv) HP saat mati (sekali per permainan)." },
+            art_phoenix_feather: { name: "Phoenix Feather", max: 13, costBase: 350, desc: "Menghidupkan kembali player dengan 30% (+10% per lv) HP saat mati (sekali per permainan). Setelah bangkit, mendapat +30% damage permanen sisa game." },
             art_philosopher_stone: { name: "Philosopher Stone", max: 20, costBase: 200, desc: "Peluang 10% (+5% per lv) untuk menggandakan koin/cosmic koin yang dikumpulkan." },
             art_juggernaut_armor: { name: "Juggernaut Armor", max: 15, costBase: 220, desc: "Mengurangi seluruh damage yang diterima sebesar 5% (+3% per lv)." },
             art_vampire_flesh: { name: "Vampire Flesh", max: 7, costBase: 160, desc: "Memulihkan 0.2 (+0.1 per lv) HP setiap berhasil membunuh musuh." },
@@ -1621,7 +1625,7 @@
                 name: "ImThe Spamer One",
                 icon: "⚡",
                 costCoin: 500000, costCosmic: 50000,
-                desc: "Blue Lapse & Reversal Red terisi 5x lebih cepat, durasi ultimate Infinite Void 2x lebih lama, efek knockback dash jauh lebih kuat, kebal total dari serangan musuh, & mendorong balik musuh yang mendekat. Membuka gamemode baru 'Honored One' (semua senjata terbuka kecuali Reversal Red & Blue Lapse, hanya musuh besar/tank & boss ber-HP tinggi, ultimate boss selalu yang terkuat sepanjang sejarah, HP musuh naik 30%/menit)."
+                desc: "Blue Lapse & Reversal Red terisi 5x lebih cepat, durasi ultimate Infinite Void 2x lebih lama, efek knockback dash jauh lebih kuat, kebal dari SEMUA serangan musuh biasa (jarak jauh & kontak) & mendorong balik musuh biasa yang mendekat terus-menerus — namun musuh Boss & Ultimate Boss serta serangan mereka tetap berpengaruh, dan jika kamu dash menabrak musuh biasa tetap kena damage. Membuka gamemode baru 'Honored One' (semua senjata terbuka kecuali Reversal Red & Blue Lapse, hanya musuh besar/tank & boss ber-HP tinggi, ultimate boss selalu yang terkuat sepanjang sejarah, HP musuh naik 30%/menit)."
             },
             hollow_purple: {
                 name: "Hollow Purple",
@@ -1633,7 +1637,7 @@
                 name: "Potential Maxer",
                 icon: "💠",
                 costCoin: 1000000, costCosmic: 100000,
-                desc: "The Divine General menjadi 10x lebih kuat & 1.5x kecepatan player, tidak lagi memberi damage ke player, HP-nya menjadi 10 JUTA, dan bisa dipanggil ulang setelah mati (cooldown 10 menit) alih-alih hanya sekali per game. Juga memberi Super Beast (jika sudah dimiliki) buff 2x lipat (kecuali kecepatan)."
+                desc: "The Divine General: HP menjadi 1 MILIAR & gerak 1.5x kecepatan player (damage TIDAK ikut naik), tidak lagi memberi damage ke player, dan bisa dipanggil ulang setelah mati (cooldown 10 menit) alih-alih hanya sekali per game. Juga memberi Super Beast (jika sudah dimiliki) buff 10x lipat termasuk efek AoE-nya (kecuali kecepatan)."
             }
         };
         const MYTHIC_WEAPON_ORDER = ['trader_pass', 'god_of_artefact', 'spamer_one', 'hollow_purple', 'potential_maxer'];
@@ -2207,6 +2211,12 @@
                     divineGeneralSummonedThisGame = true;
                     createParticles(player.x, player.y, '#eab308', 30);
                     createDamageText(player.x, player.y - 50, "SUMMON: THE DIVINE GENERAL! ⚔️👑", '#eab308', 20);
+                    // Super Beast ikut tersummon bersamaan (jika sudah di-unlock lewat hack PANZER)
+                    if (saveData.superBeastUnlocked && !superBeastInstance) {
+                        superBeastInstance = new SuperBeast(player.x, player.y);
+                        createParticles(player.x, player.y, '#22c55e', 20);
+                        createDamageText(player.x, player.y - 75, "SUPER BEAST IKUT TERSUMMON! 🐉", '#22c55e', 16);
+                    }
                 } else if (isMaxer) {
                     let secsLeft = Math.max(0, Math.ceil(((saveData.divineGeneralReadyAt || 0) - Date.now()) / 1000));
                     createDamageText(player.x, player.y - 50, `Divine General cooldown: ${secsLeft}s`, '#94a3b8', 14);
@@ -2229,8 +2239,7 @@
                     let e = entities.enemies[i];
                     if (e && !e.dead) {
                         createParticles(e.x, e.y, '#ef4444', 8);
-                        e.dead = true;
-                        e.hp = 0;
+                        e.takeDamage(e.hp + 999999); // bunuh lewat jalur damage normal supaya tetap drop exp/koin/cosmic
                     }
                 }
                 createDamageText(player.x, player.y - 50, "🎮 LEAVE ME ALONE! 💀", '#ef4444', 22);
@@ -2439,12 +2448,25 @@
         // GAME OBJECT CLASSES
         // ==========================================
         class Camera {
-            constructor() { this.x = 0; this.y = 0; }
+            constructor() { this.x = 0; this.y = 0; this.shakeTime = 0; this.shakeMag = 0; }
             update(target) {
                 this.x += (target.x - canvas.width / 2 - this.x) * 0.1;
                 this.y += (target.y - canvas.height / 2 - this.y) * 0.1;
+                if (this.shakeTime > 0) this.shakeTime--;
             }
-            apply(ctx) { ctx.save(); ctx.translate(-this.x, -this.y); }
+            shake(magnitude, duration) {
+                this.shakeMag = magnitude;
+                this.shakeTime = duration;
+            }
+            apply(ctx) {
+                ctx.save();
+                let ox = 0, oy = 0;
+                if (this.shakeTime > 0 && !saveData.lowGraphicsMode) {
+                    ox = (Math.random() - 0.5) * this.shakeMag;
+                    oy = (Math.random() - 0.5) * this.shakeMag;
+                }
+                ctx.translate(-this.x + ox, -this.y + oy);
+            }
             reset(ctx) { ctx.restore(); }
         }
 
@@ -2745,7 +2767,7 @@
                     if (this.dismantleTimer === 0 && this.dismantleSource && !this.dismantleSource.dead) {
                         let d = getDistance(this.x, this.y, this.dismantleSource.x, this.dismantleSource.y);
                         if (d < this.dismantleSource.size + this.size + 50) {
-                            this.takeDamage(80);
+                            this.takeDamage(80, true); // efek boss, tetap tembus kebal Spamer One
                             createDamageText(this.x, this.y - 35, 'BURST! 💥', '#dc2626', 20);
                         }
                         this.dismantleSource = null;
@@ -2753,7 +2775,7 @@
                 }
                 if (this.burnTimer > 0) {
                     this.burnTimer--;
-                    if (this.burnTimer % 20 === 0) this.takeDamage(this.burnDmg);
+                    if (this.burnTimer % 20 === 0) this.takeDamage(this.burnDmg, true); // efek boss, tetap tembus kebal Spamer One
                 }
                 if (this.debuffTimer > 0) {
                     this.debuffTimer--;
@@ -2761,11 +2783,11 @@
                 }
                 if (this.auraDotTimer > 0) {
                     this.auraDotTimer--;
-                    if (this.auraDotTimer % 15 === 0) this.takeDamage(this.auraDotDmg);
+                    if (this.auraDotTimer % 15 === 0) this.takeDamage(this.auraDotDmg, true); // efek boss, tetap tembus kebal Spamer One
                 }
                 if (this.deathThroesTimer > 0) {
                     this.deathThroesTimer--;
-                    if (this.deathThroesTimer % 20 === 0) this.takeDamage(this.deathThroesDmg);
+                    if (this.deathThroesTimer % 20 === 0) this.takeDamage(this.deathThroesDmg, true); // ultimate boss, tetap tembus kebal Spamer One
                 }
 
                 let dx = 0, dy = 0;
@@ -3001,9 +3023,9 @@
 
                 this.weapons.forEach(w => w.draw(ctx));
             }
-            takeDamage(amount) {
+            takeDamage(amount, bypassSpamerImmunity) {
                 if (this.isGod || saveData.cheatGod) return; // GOD mode cheat
-                if (saveData.mythicWeapons && saveData.mythicWeapons.spamer_one) return; // Mythic Weapon: kebal total dari serangan musuh
+                if (saveData.mythicWeapons && saveData.mythicWeapons.spamer_one && !bypassSpamerImmunity) return; // Mythic Weapon: kebal dari musuh biasa (boss/ultimate boss & tabrakan saat dash tetap tembus)
                 if (this.dashDuration > 0) return; // Ultimate Dasher Invincibility
                 if (this.reviveInvulnerableTimer > 0) return; // Invulnerability after revive
                 if (this.iddqdTimer > 0) return; // Hack IDDQD: imunitas sementara
@@ -3036,7 +3058,32 @@
                         this.hp = this.maxHp;
                         this.shieldHp = this.artMods.maxShield;
                         createParticles(this.x, this.y, '#fbbf24', 30);
-                        createDamageText(this.x, this.y - 40, "🎮 HESOYAM! FULL HEAL!", '#fbbf24', 18);
+                        createParticles(this.x, this.y, '#fef08a', 20);
+                        createDamageText(this.x, this.y - 40, "🎮 HESOYAM! FULL HEAL HP & SHIELD!", '#fbbf24', 20);
+                        let hx = this.x, hy = this.y;
+                        entities.particles.push({
+                            x: hx, y: hy, radius: 0, maxRadius: 220, life: 30, max: 30,
+                            update() { this.life--; this.radius += this.maxRadius / 30; },
+                            draw(ctx) {
+                                let prog = 1 - this.life / this.max;
+                                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                                ctx.strokeStyle = `rgba(251, 191, 36, ${0.8 * (1 - prog)})`;
+                                ctx.lineWidth = 6; ctx.stroke();
+                            }
+                        });
+                        // Flash layar penuh (hijau) biar jelas ketauan habis full-heal atau tidak
+                        entities.particles.push({
+                            life: 18, max: 18,
+                            update() { this.life--; },
+                            draw(ctx) {
+                                let prog = this.life / this.max;
+                                ctx.save();
+                                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                                ctx.fillStyle = `rgba(34, 197, 94, ${0.35 * prog})`;
+                                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                ctx.restore();
+                            }
+                        });
                         Sound.play('mythic');
                     }
                     if (this.hp <= 0) {
@@ -3078,7 +3125,8 @@
                             createParticles(px, py, '#4dabf7', 20);
                             
                             this.reviveInvulnerableTimer = 180;
-                            createDamageText(this.x, this.y - 40, "BANGKIT KEMBALI! ⚡", '#ffd43b', 20);
+                            this.baseDmgMulti *= 1.30; // Phoenix Feather: bangkit lebih kuat, +30% damage permanen sisa game ini
+                            createDamageText(this.x, this.y - 40, "BANGKIT KEMBALI! ⚡ (+30% DMG!)", '#ffd43b', 20);
                         } else {
                             triggerGameOver();
                         }
@@ -3669,7 +3717,7 @@
                 const bSize = this.size;
 
                 if (this.isEnemy) {
-                    if (saveData.mythicWeapons && saveData.mythicWeapons.spamer_one) {
+                    if (saveData.mythicWeapons && saveData.mythicWeapons.spamer_one && !this.isBossAttack) {
                         this.life = 0;
                         return;
                     }
@@ -3687,7 +3735,7 @@
                                 if (this.hpToOnePercent) {
                                     setPlayerHpToPercent(0.01);
                                 } else {
-                                    player.takeDamage(this.damage);
+                                    player.takeDamage(this.damage, this.isBossAttack);
                                 }
                                 if (this.appliesBurn) player.applyBurn(this.burnDmg, 120);
                                 createParticles(bx, by, this.color, 3);
@@ -3767,6 +3815,7 @@
             if (entities.projectiles.length >= MAX_PROJECTILES) return;
             let b = new Bullet(x, y, angle, damage, speed, color, size, false, opts.pierce || 1, false, false);
             b.isEnemy = true;
+            b.isBossAttack = !!opts.isBoss;
             if (opts.burn) { b.appliesBurn = true; b.burnDmg = opts.burnDmg || 3; }
             if (opts.dashOnlyDodge) b.dashOnlyDodge = true;
             if (opts.hpToOnePercent) b.hpToOnePercent = true;
@@ -3784,9 +3833,9 @@
                             if (this.opts.hpToOnePercent) {
                                 setPlayerHpToPercent(0.01);
                             } else if (this.opts.dashOnlyDodge) {
-                                if (player.dashDuration <= 0) player.takeDamage(this.damage);
+                                if (player.dashDuration <= 0) player.takeDamage(this.damage, true);
                             } else {
-                                player.takeDamage(this.damage);
+                                player.takeDamage(this.damage, true); // efek serangan boss, tetap tembus kebal Spamer One
                             }
                             if (this.opts.burn) player.applyBurn(this.opts.burnDmg || 4, 180);
                             if (this.opts.knockback) {
@@ -3871,7 +3920,7 @@
                         t.barrage = 0;
                         for (let i = 0; i < 6; i++) {
                             let spread = (i - 2.5) * 0.18;
-                            fireEnemyBullet(e.x, e.y, ang + spread, 12 * statMult, 5.5 * statMult, e.stroke, 5);
+                            fireEnemyBullet(e.x, e.y, ang + spread, 12 * statMult, 5.5 * statMult, e.stroke, 5, { isBoss: true });
                         }
                     }
                     break;
@@ -3897,7 +3946,7 @@
                                 let ey = this.y + Math.sin(this.angle) * this.length;
                                 let d = pointToSegmentDistance(player.x, player.y, this.x, this.y, ex, ey);
                                 if (d < this.width + player.size && player.dashDuration <= 0 && this.life % 12 === 0) {
-                                    player.takeDamage(8);
+                                    player.takeDamage(8, true);
                                     player.applyBurn(5, 120);
                                 }
                             },
@@ -3942,7 +3991,7 @@
                             player.applyDebuff(0.55, 120);
                             createDamageText(player.x, player.y - 25, 'WEAKENED! ⬇️', '#7c2d12', 12);
                         } else {
-                            fireEnemyBullet(e.x, e.y, ang + (Math.random() - 0.5) * 0.6, 40 * berserkMult, 7, '#7c2d12', 7);
+                            fireEnemyBullet(e.x, e.y, ang + (Math.random() - 0.5) * 0.6, 40 * berserkMult, 7, '#7c2d12', 7, { isBoss: true });
                             createDamageText(e.x, e.y - 20, 'WILD SPEAR! 🗡️', e.stroke, 12);
                         }
                     }
@@ -3975,7 +4024,7 @@
                                 
                                 let d = pointToSegmentDistance(player.x, player.y, e.x, e.y, endX, endY);
                                 if (d < 30 + player.size && player.dashDuration <= 0) {
-                                    player.takeDamage(45);
+                                    player.takeDamage(45, true);
                                     let ka = getAngle(e.x, e.y, player.x, player.y);
                                     player.x += Math.cos(ka) * 60;
                                     player.y += Math.sin(ka) * 60;
@@ -3991,12 +4040,12 @@
                         createDamageText(player.x, player.y - 30, 'DISMANTLE! 🔒', e.stroke, 16);
                     }
                     if (player.dismantleTimer > 0 && player.dismantleSource === e) {
-                        if (player.dismantleTimer % 15 === 0) player.takeDamage(6);
+                        if (player.dismantleTimer % 15 === 0) player.takeDamage(6, true);
                     }
                     t.heavenly = (t.heavenly || 0) + 1;
                     if (t.heavenly >= 220) {
                         t.heavenly = 0;
-                        fireEnemyBullet(e.x, e.y, ang, 50, 6.5, '#f59e0b', 10);
+                        fireEnemyBullet(e.x, e.y, ang, 50, 6.5, '#f59e0b', 10, { isBoss: true });
                         setTimeout(() => {
                             if (gameState !== 'playing' || e.dead) return;
                             let tx = player.x, ty = player.y;
@@ -4027,7 +4076,7 @@
                                     player.x += Math.cos(da) * 3.8;
                                     player.y += Math.sin(da) * 3.8;
                                     if (this.life % 10 === 0) {
-                                        player.takeDamage(this.dmg * 0.2);
+                                        player.takeDamage(this.dmg * 0.2, true);
                                     }
                                 }
                             },
@@ -4094,7 +4143,7 @@
                                 let dPlayer = getDistance(this.x, this.y, player.x, player.y);
                                 if (dPlayer < this.radius + player.size) {
                                     if (this.life % 10 === 0) {
-                                        player.takeDamage(this.dmg * 0.4);
+                                        player.takeDamage(this.dmg * 0.4, true);
                                     }
                                 }
                                 let radSq = this.radius * this.radius;
@@ -4255,6 +4304,7 @@
                                 let angle = Math.atan2(dy, dx);
                                 let fireball = new Bullet(this.x, this.y, angle, 16, 4.5, '#ea580c', 8, false, 1, false, false);
                                 fireball.isEnemy = true;
+                                fireball.isBossAttack = true;
                                 entities.projectiles.push(fireball);
                                 createParticles(this.x, this.y, '#ea580c', 4);
                             }
@@ -4266,7 +4316,10 @@
                 let distToPlayer = getDistance(this.x, this.y, player.x, player.y);
                 let minPlayerDist = this.size + player.size;
                 if (distToPlayer < minPlayerDist) {
-                    if (saveData.mythicWeapons && saveData.mythicWeapons.spamer_one) {
+                    let isBossEnemy = this.isBoss || this.isUltimateBoss;
+                    let dashingIntoEnemy = player.dashDuration > 0;
+                    if (saveData.mythicWeapons && saveData.mythicWeapons.spamer_one && !isBossEnemy && !dashingIntoEnemy) {
+                        // Musuh biasa & tidak sedang dash: kebal total + knockback kuat terus menerus
                         let pdx = player.x - this.x;
                         let pdy = player.y - this.y;
                         let pdist = Math.sqrt(pdx * pdx + pdy * pdy);
@@ -4275,7 +4328,16 @@
                             this.y -= (pdy / pdist) * 60;
                         }
                     } else {
-                        player.takeDamage(this.damage);
+                        if (dashingIntoEnemy && saveData.mythicWeapons && saveData.mythicWeapons.spamer_one && !isBossEnemy) {
+                            // Dash menabrak musuh biasa: tetap kena damage walau kebal & walau sedang dash
+                            let wasDash = player.dashDuration;
+                            player.dashDuration = 0;
+                            player.takeDamage(this.damage, true);
+                            player.dashDuration = wasDash;
+                        } else {
+                            // Musuh boss/ultimate boss (atau tanpa Spamer One): damage tetap berlaku seperti biasa
+                            player.takeDamage(this.damage, isBossEnemy);
+                        }
                         let pdx = player.x - this.x;
                         let pdy = player.y - this.y;
                         let pdist = Math.sqrt(pdx * pdx + pdy * pdy);
@@ -4637,10 +4699,14 @@
                 this.y = y;
                 this.powered = !!(saveData.mythicWeapons && saveData.mythicWeapons.potential_maxer);
                 this.size = this.powered ? 34 : 25;
-                this.hp = this.powered ? 10000000 : 1000000;
+                this.hp = this.powered ? 1000000000 : 1000000;
                 this.maxHp = this.hp;
                 this.damageReduction = this.powered ? 0.90 : 0.10;
                 this.attackCooldown = 0;
+            }
+            getSynergyMult() {
+                // Bonus +10% jika Divine General & Super Beast aktif bersamaan
+                return (divineGeneralInstance && superBeastInstance) ? 1.10 : 1.0;
             }
             update() {
                 if (this.attackCooldown > 0) this.attackCooldown--;
@@ -4687,7 +4753,7 @@
 
                 // Attack all enemies & player in range
                 if (this.attackCooldown <= 0) {
-                    let attackRange = this.powered ? 220 : 120;
+                    let attackRange = 120; // jarak serang hitbox TIDAK di-buff walau punya Potential Maxer
                     let hitEnemies = [];
                     for (let i = 0; i < entities.enemies.length; i++) {
                         let e = entities.enemies[i];
@@ -4706,11 +4772,12 @@
                     }
 
                     if (hitEnemies.length > 0 || hitPlayer) {
-                        this.attackCooldown = this.powered ? 3 : 30; // Potential Maxer: attack MUCH faster (~100x rate)
+                        this.attackCooldown = 30; // Potential Maxer TIDAK buff kecepatan serang/damage, hanya HP & kecepatan gerak
+                        let synergyMult = this.getSynergyMult();
 
                         hitEnemies.forEach(e => {
                             if (e.isBoss) {
-                                e.takeDamage(this.powered ? 50000 : 5000);
+                                e.takeDamage(5000 * synergyMult); // Potential Maxer TIDAK buff damage, hanya HP & kecepatan
                             } else {
                                 e.takeDamage(e.hp + 9999);
                             }
@@ -5286,6 +5353,22 @@
             document.getElementById('dash-text').style.color = player.dashCooldown <= 0 ? "#10b981" : "#ef4444";
             document.getElementById('exp-bar').style.width = `${(currentExp / expNeeded) * 100}%`;
             document.getElementById('level-text').innerText = `LVL ${currentLevel}`;
+
+            // HESOYAM Auto-Heal status
+            const hesoyamHud = document.getElementById('hesoyam-hud');
+            if (saveData.hesoyamUnlocked) {
+                hesoyamHud.style.display = 'flex';
+                const statusEl = document.getElementById('hesoyam-hud-status');
+                if (player.hesoyamUsedThisGame) {
+                    statusEl.textContent = 'Used';
+                    statusEl.style.color = '#94a3b8';
+                } else {
+                    statusEl.textContent = 'Ready';
+                    statusEl.style.color = '#22c55e';
+                }
+            } else {
+                hesoyamHud.style.display = 'none';
+            }
 
             // Cheat Indicators
             const cheatHud = document.getElementById('cheat-hud-container');
@@ -6272,14 +6355,21 @@
                 this.y = y;
                 this.powered = !!(saveData.mythicWeapons && saveData.mythicWeapons.potential_maxer);
                 this.size = 22;
-                this.maxHp = this.powered ? 2000000 : 1000000;
+                this.maxHp = this.powered ? 10000000 : 1000000; // Potential Maxer: 10x (Divine General kini hanya buff HP & speed)
                 this.hp = this.maxHp;
-                this.attackDmg = this.powered ? 20 : 10; // per detik
-                this.attackTimer = 0;
+                this.attackDmg = this.powered ? 100 : 10; // per 0.5 detik (10x jika powered)
+                this.attackCooldown = 0; // gaya serang sama seperti Divine General: hitbox area, kena semua yang masuk range
+                this.aoeInterval = 600; // 10 detik @60fps, makin sering seiring waktu (turun ke 5 detik / 300 frame)
+                this.aoeTimer = 600;
+            }
+            getSynergyMult() {
+                // Bonus +10% jika Divine General & Super Beast aktif bersamaan
+                return (divineGeneralInstance && superBeastInstance) ? 1.10 : 1.0;
             }
             update() {
-                let speed = player.speed * 2; // kecepatan TIDAK terpengaruh potential_maxer
-                // Cari musuh terdekat
+                let speed = player.speed * 2; // kecepatan TIDAK terpengaruh potential_maxer / synergy
+
+                // Target musuh terdekat (gaya sama seperti Divine General)
                 let target = null, minDist = Infinity;
                 for (let i = 0; i < entities.enemies.length; i++) {
                     let e = entities.enemies[i];
@@ -6291,32 +6381,81 @@
                 if (target) {
                     let dx = target.x - this.x, dy = target.y - this.y;
                     let dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist > 40) {
-                        this.x += (dx / dist) * speed;
-                        this.y += (dy / dist) * speed;
+                    if (dist > 5) {
+                        let step = Math.min(dist, speed);
+                        this.x += (dx / dist) * step;
+                        this.y += (dy / dist) * step;
                     }
                 } else {
                     let dx = player.x - this.x, dy = player.y - this.y;
                     let dist = Math.sqrt(dx * dx + dy * dy);
                     if (dist > 90) {
-                        this.x += (dx / dist) * speed;
-                        this.y += (dy / dist) * speed;
+                        let step = Math.min(dist - 90, speed);
+                        this.x += (dx / dist) * step;
+                        this.y += (dy / dist) * step;
                     }
                 }
-                // Serangan pasif area kecil, sekali per detik (10 atau 20 dmg/s)
-                if (this.attackTimer > 0) this.attackTimer--;
-                if (this.attackTimer <= 0) {
-                    let range = 90;
+
+                // Serangan hitbox area — gaya identik Divine General: kena semua musuh yang masuk range, tiap 0.5 detik
+                if (this.attackCooldown > 0) this.attackCooldown--;
+                if (this.attackCooldown <= 0) {
+                    let range = 100;
                     let hitAny = false;
+                    let synergyMult = this.getSynergyMult();
                     for (let i = 0; i < entities.enemies.length; i++) {
                         let e = entities.enemies[i];
                         if (e && !e.dead && getDistance(this.x, this.y, e.x, e.y) < range) {
-                            e.takeDamage(this.attackDmg);
+                            e.takeDamage(this.attackDmg * synergyMult);
                             hitAny = true;
                         }
                     }
+                    // Super Beast tidak pernah memberi damage ke player, bahkan sebelum Potential Maxer (selalu aman)
                     if (hitAny) createParticles(this.x, this.y, '#22c55e', 6);
-                    this.attackTimer = 60; // 1 detik
+                    this.attackCooldown = 30; // 0.5 detik
+                }
+
+                // Ledakan AoE berkala — radius setara magnet level 1 (65 + 1*20 = 85), damage 500% dari damage dasar, knockback kuat
+                if (this.aoeTimer > 0) this.aoeTimer--;
+                if (this.aoeTimer <= 0) {
+                    let synergyMult = this.getSynergyMult();
+                    let aoeRadius = CONFIG.MAGNET_BASE_RANGE + (1 * saveData.stats.magnet.val); // = magnet level 1
+                    let aoeDmg = this.attackDmg * 5 * synergyMult;
+                    let hitCount = 0;
+                    for (let i = 0; i < entities.enemies.length; i++) {
+                        let e = entities.enemies[i];
+                        if (!e || e.dead) continue;
+                        let dx = e.x - this.x, dy = e.y - this.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < aoeRadius) {
+                            e.takeDamage(aoeDmg);
+                            hitCount++;
+                            // Knockback kuat
+                            if (dist > 0) {
+                                e.x += (dx / dist) * 220;
+                                e.y += (dy / dist) * 220;
+                            } else {
+                                e.x += (Math.random() - 0.5) * 220;
+                                e.y += (Math.random() - 0.5) * 220;
+                            }
+                        }
+                    }
+                    // Super Beast tidak pernah memberi damage ke player, bahkan sebelum Potential Maxer (selalu aman)
+                    createParticles(this.x, this.y, '#22c55e', 30);
+                    createDamageText(this.x, this.y - 40, hitCount > 0 ? `SUPER BEAST AOE! 💥 KNOCKBACK!` : `SUPER BEAST AOE! 💥`, '#22c55e', 16);
+                    if (hitCount > 0) camera.shake(14, 18); // getar layar biar knockback-nya terasa jelas
+                    entities.particles.push({
+                        x: this.x, y: this.y, radius: 0, maxRadius: aoeRadius, life: 20, max: 20,
+                        update() { this.life--; this.radius += this.maxRadius / 20; },
+                        draw(ctx) {
+                            let prog = 1 - this.life / this.max;
+                            ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                            ctx.strokeStyle = `rgba(34, 197, 94, ${0.7 * (1 - prog)})`;
+                            ctx.lineWidth = 6; ctx.stroke();
+                        }
+                    });
+                    // Interval AoE berikutnya makin cepat, minimal 5 detik (300 frame)
+                    this.aoeInterval = Math.max(300, this.aoeInterval - 60);
+                    this.aoeTimer = this.aoeInterval;
                 }
             }
             draw(ctx) {
