@@ -20,7 +20,7 @@ Dokumen ini merangkum semua fitur, kode rahasia, hack, dan sistem yang ada di da
 | Tombol | Fungsi |
 |---|---|
 | WASD / Panah | Gerak |
-| Klik / Spasi | Dash |
+| Klik (Kiri dan kanan) / 'J' dan 'K' | Dash |
 | **P** | Panggil The Divine General (butuh kode `HELP ME`) |
 | **H** | Aktifkan Hollow Purple (butuh Mythic Weapon Hollow Purple) |
 | **U** | Aktifkan Ultimate |
