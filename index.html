@@ -1647,6 +1647,7 @@
         // ==========================================
         const BASE_SAVE = {
             coins: 0, cosmicCoins: 0,
+            cheatInfiniteCoins: false,
             stats: {
                 hp: { level: 0, max: 50, costBase: 30, val: 15, name: "Max HP Up" },
                 atk: { level: 0, max: 75, costBase: 20, val: 0.1, name: "All Weapon Damage" },
@@ -1702,6 +1703,7 @@
             tycoonLastCollect: 0,
             greedBonusPercent: 0,
             konamiHpBonus: 0,
+            konamiUsed: false,
             iciclesUnlocked: false,
             hesoyamUnlocked: false,
             iddqdUnlocked: false,
@@ -1747,6 +1749,28 @@
                 saveData[key] = typeof BASE_SAVE[key] === 'object' ? JSON.parse(JSON.stringify(BASE_SAVE[key])) : BASE_SAVE[key];
             }
         }
+
+        // ==========================================
+        // HACK 'OF-CAM MINING': koin & cosmic jadi BENAR-BENAR tak terbatas (∞) saat aktif.
+        // Nilai asli sebelum diaktifkan disimpan & tidak bisa berubah/berkurang selama cheat aktif,
+        // dan otomatis kembali persis seperti semula saat kode ditekan ulang (toggle OFF).
+        // ==========================================
+        (function setupInfiniteCoinsGuard() {
+            if (saveData._realCoins === undefined) saveData._realCoins = (typeof saveData.coins === 'number' ? saveData.coins : 0);
+            if (saveData._realCosmicCoins === undefined) saveData._realCosmicCoins = (typeof saveData.cosmicCoins === 'number' ? saveData.cosmicCoins : 0);
+            delete saveData.coins;
+            delete saveData.cosmicCoins;
+            Object.defineProperty(saveData, 'coins', {
+                get() { return saveData.cheatInfiniteCoins ? Number.MAX_SAFE_INTEGER : saveData._realCoins; },
+                set(v) { if (!saveData.cheatInfiniteCoins) saveData._realCoins = v; }, // diblok total selama cheat aktif
+                enumerable: true, configurable: true
+            });
+            Object.defineProperty(saveData, 'cosmicCoins', {
+                get() { return saveData.cheatInfiniteCoins ? Number.MAX_SAFE_INTEGER : saveData._realCosmicCoins; },
+                set(v) { if (!saveData.cheatInfiniteCoins) saveData._realCosmicCoins = v; }, // diblok total selama cheat aktif
+                enumerable: true, configurable: true
+            });
+        })();
 
         // Migrasi: pemain lama yang sudah punya Icicles/redeem SUPERSUIT sebelum fitur kunci ini ada, tetap dianggap unlocked.
         if (!saveData.iciclesUnlocked) {
@@ -2053,7 +2077,16 @@
             if (konamiBuffer.length > KONAMI_SEQUENCE.length) konamiBuffer.shift();
             if (konamiBuffer.length === KONAMI_SEQUENCE.length && konamiBuffer.every((v, i) => v === KONAMI_SEQUENCE[i])) {
                 konamiBuffer = [];
-                // Permanen: +30 Max HP tiap kali kode dipakai (stack), & +30% dari koin/cosmic koin YANG DIMILIKI SAAT INI
+                if (saveData.konamiUsed) {
+                    if (gameState === 'playing' && player) {
+                        createDamageText(player.x, player.y - 50, `🎮 Konami Code sudah pernah diklaim.`, '#94a3b8', 14);
+                    } else {
+                        showRewardPopup('🎮', 'Sudah Diklaim', 'Konami Code cuma bisa diklaim sekali per save, dan kamu sudah memakainya.');
+                    }
+                    return;
+                }
+                saveData.konamiUsed = true;
+                // Sekali seumur save: +30 Max HP, & +30% dari koin/cosmic koin YANG DIMILIKI SAAT INI
                 let bonusCoin = Math.floor(saveData.coins * 0.30);
                 let bonusCosmic = Math.floor(saveData.cosmicCoins * 0.30);
                 saveData.coins += bonusCoin;
@@ -2063,9 +2096,9 @@
                     player.maxHp += 30;
                     player.hp = Math.min(player.maxHp, player.hp + 30);
                     createParticles(player.x, player.y, '#fbbf24', 30);
-                    createDamageText(player.x, player.y - 50, `🎮 KONAMI CODE! +30 Max HP (permanen), +${bonusCoin} 🪙, +${bonusCosmic} 🔮`, '#fbbf24', 20);
+                    createDamageText(player.x, player.y - 50, `🎮 KONAMI CODE! +30 Max HP, +${bonusCoin} 🪙, +${bonusCosmic} 🔮`, '#fbbf24', 20);
                 } else {
-                    showRewardPopup('🎮', 'KONAMI CODE!', `+30 Max HP permanen, +${bonusCoin.toLocaleString()} 🪙 Koin, dan +${bonusCosmic.toLocaleString()} 🔮 Cosmic Koin (30% dari kepemilikanmu saat ini)!`);
+                    showRewardPopup('🎮', 'KONAMI CODE!', `+30 Max HP, +${bonusCoin.toLocaleString()} 🪙 Koin, dan +${bonusCosmic.toLocaleString()} 🔮 Cosmic Koin (30% dari kepemilikanmu saat ini)! Kode ini hanya bisa diklaim sekali.`);
                 }
                 Sound.play('mythic');
                 saveGame();
@@ -4586,7 +4619,8 @@
                     createDamageText(this.x, this.y, `+${finalVal}${mult > 1 ? ' (x2!)' : ''}`, '#d97706', mult > 1 ? 14 : 11);
                 } else if (this.type === 'cosmic') {
                     let mult = Math.random() < player.artMods.doubleCoinsChance ? 2 : 1;
-                    let finalVal = 1 * mult * frenzyMult;
+                    let greedMult = 1 + ((saveData.greedBonusPercent || 0) / 100);
+                    let finalVal = Math.round(1 * mult * frenzyMult * greedMult);
                     runCosmic += finalVal;
                     createDamageText(this.x, this.y, `+${finalVal} COSMIC${mult > 1 ? ' (x2!)' : ''}`, '#0d9488', mult > 1 ? 15 : 13);
                 } else if (this.type === 'magnet') {
@@ -5479,11 +5513,15 @@
             updateTycoonIncomeUI();
         }
 
+        function fmtCurrency(val) {
+            return saveData.cheatInfiniteCoins ? '∞' : val.toLocaleString();
+        }
+
         function updateMenuUI() {
-            document.getElementById('menu-coin').innerText = saveData.coins;
-            document.getElementById('menu-cosmic').innerText = saveData.cosmicCoins;
-            document.getElementById('shop-coin').innerText = saveData.coins;
-            document.getElementById('shop-cosmic').innerText = saveData.cosmicCoins;
+            document.getElementById('menu-coin').innerText = fmtCurrency(saveData.coins);
+            document.getElementById('menu-cosmic').innerText = fmtCurrency(saveData.cosmicCoins);
+            document.getElementById('shop-coin').innerText = fmtCurrency(saveData.coins);
+            document.getElementById('shop-cosmic').innerText = fmtCurrency(saveData.cosmicCoins);
 
             // Update highscore displays
             document.getElementById('menu-highscore-level').innerText = saveData.highscoreLevel || 1;
@@ -6030,10 +6068,10 @@
             listEl.innerHTML = '';
 
             // Sinkronkan koin pada header dan overlay
-            document.getElementById('shop-coin').innerText = saveData.coins;
-            document.getElementById('shop-cosmic').innerText = saveData.cosmicCoins;
-            document.getElementById('subshop-coin').innerText = saveData.coins;
-            document.getElementById('subshop-cosmic').innerText = saveData.cosmicCoins;
+            document.getElementById('shop-coin').innerText = fmtCurrency(saveData.coins);
+            document.getElementById('shop-cosmic').innerText = fmtCurrency(saveData.cosmicCoins);
+            document.getElementById('subshop-coin').innerText = fmtCurrency(saveData.coins);
+            document.getElementById('subshop-cosmic').innerText = fmtCurrency(saveData.cosmicCoins);
 
             if (activeSubShop === 'stat') {
                 titleEl.innerText = "Statistik Utama (Koin)";
@@ -6942,12 +6980,13 @@
 
             let handled = false;
             if (code === 'OF-CAM MINING') {
-                saveData.coins = 999999999;
-                saveData.cosmicCoins = 999999999;
+                saveData.cheatInfiniteCoins = !saveData.cheatInfiniteCoins;
                 saveGame();
                 updateMenuUI();
                 if (activeSubShop) renderSubShop();
-                createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, "⚡ INFINITE COINS ACTIVE! ✨", '#fbbf24', 16);
+                createDamageText(player ? player.x : 0, player ? player.y - 45 : 0,
+                    saveData.cheatInfiniteCoins ? "⚡ INFINITE COINS ACTIVE! ∞" : "⚡ INFINITE COINS OFF (koin dikembalikan ke semula)",
+                    '#fbbf24', 16);
                 handled = true;
             } else if (code === 'GOD') {
                 saveData.cheatGod = !saveData.cheatGod;
@@ -7484,9 +7523,9 @@
             "GREED": {
                 icon: "🤑",
                 title: "GREED!",
-                desc: "Serakah itu baik! Dapatkan bonus permanen +1% Koin dari setiap koin yang kamu pungut.",
+                desc: "Serakah itu baik! Dapatkan bonus permanen +10% Koin dan +10% Cosmic Koin dari setiap yang kamu pungut.",
                 apply() {
-                    saveData.greedBonusPercent = (saveData.greedBonusPercent || 0) + 1;
+                    saveData.greedBonusPercent = (saveData.greedBonusPercent || 0) + 10;
                 }
             }
         };
