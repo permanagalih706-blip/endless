@@ -1069,6 +1069,7 @@
         <!-- Intergalactic Trader appearance button (10% chance/menit, muncul 1 menit) -->
         <button id="trader-appear-btn" style="display:none; position:absolute; top:60px; right:15px; background:linear-gradient(135deg,#7c3aed,#a855f7); color:white; border:none; padding:8px 16px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; z-index:10; box-shadow: 0 2px 10px rgba(124,58,237,0.5); animation: pulse-trader 1.5s infinite;" onclick="openTraderModal()">👽 INTERGALACTIC TRADER (<span id="trader-time-left">60</span>s)</button>
         <button id="honored-mode-toggle" style="display:none; position:absolute; top:105px; right:15px; background:linear-gradient(135deg,#78350f,#b45309); color:white; border:none; padding:6px 14px; border-radius:8px; font-weight:800; font-size:12px; cursor:pointer; z-index:10; box-shadow: 0 2px 8px rgba(180,83,9,0.4);" onclick="toggleHonoredMode()">🎖️ HONORED ONE: OFF</button>
+        <button id="campaign-mode-toggle" style="display:none; position:absolute; top:145px; right:15px; background:linear-gradient(135deg,#0e7490,#0891b2); color:white; border:none; padding:6px 14px; border-radius:8px; font-weight:800; font-size:12px; cursor:pointer; z-index:10; box-shadow: 0 2px 8px rgba(8,145,178,0.4);" onclick="toggleCampaignMode()">🗺️ CAMPAIGN: OFF</button>
         <div id="tycoon-income-box" style="display:none; position:absolute; bottom:18px; left:18px; width: 230px; background:rgba(15,23,42,0.85); border:1px solid rgba(217,119,6,0.4); border-radius:12px; padding:12px; z-index:10; backdrop-filter: blur(10px);">
             <div style="font-size:12.5px; font-weight:800; color:#fbbf24; margin-bottom:4px;">💼 Tycoon Idle Income</div>
             <div id="tycoon-pending-text" style="font-size:12px; color:#e2e8f0; margin-bottom:6px;">+0 🪙 / +0 🔮</div>
@@ -1240,6 +1241,7 @@
                 <span class="coin-text">🪙 +<span id="earned-coin">0</span></span>
                 <span class="cosmic-text">🔮 +<span id="earned-cosmic">0</span></span>
             </div>
+            <div id="campaign-bonus-note" style="display:none; margin-top:12px; font-size:12px; color:#0e7490; font-weight:700; background:rgba(8,145,178,0.1); padding:6px 12px; border-radius:10px;"></div>
         </div>
 
         <button class="btn" id="btn-back-menu">Kembali ke Menu Utama</button>
@@ -1588,22 +1590,29 @@
         const PISTOL_BASE_MAX = WEAPON_DEFS.pistol.max; // dipakai hack IDKFA untuk menambah batas level Pistol
 
         // Perbarui harga upgrade senjata jadi jauh lebih mahal (Cosmic Coin sebelumnya terlalu mudah didapat)
+        // Dinaikkan lagi (8x -> 24x) supaya progres upgrade senjata lebih seimbang & tidak terlalu cepat max.
         for (let wId in WEAPON_DEFS) {
-            WEAPON_DEFS[wId].costBase = Math.ceil(WEAPON_DEFS[wId].costBase * 8);
+            WEAPON_DEFS[wId].costBase = Math.ceil(WEAPON_DEFS[wId].costBase * 24);
         }
 
         const ARTIFACT_DEFS = {
-            art_eagle_eye: { name: "Eagle eye", max: 18, costBase: 110, desc: "Mata melihat kelemahan. +10% Crit Chance di lv 1, upgrade +5%." },
-            art_the_force: { name: "The Force", max: 10, costBase: 130, desc: "Kekuatan supranatural. +2% Magnet Range & +10% knockback/detik di area magnet. Tiap upgrade +1% range, +5% knockback." },
-            art_ultimate_dasher: { name: "Ultimate Dasher", max: 8, costBase: 200, desc: "+10% jarak dash, -10% cooldown, & kebal permanen saat dash (bisa menembus musuh)." },
-            art_los: { name: "Layer Of Safety (L.O.S)", max: 10, costBase: 180, desc: "Memberikan +1 layer shield setara 100 HP. Tiap upgrade +1 layer." },
-            art_aegis_shoes: { name: "Aegis Shoes", max: 8, costBase: 100, desc: "Sepatu dewa lari. +10% Movement Speed awal, tiap upgrade selanjutnya +5%." },
+            art_eagle_eye: { name: "Eagle eye", max: 18, costBase: 140, desc: "Mata melihat kelemahan. +10% Crit Chance di lv 1, upgrade +5%." },
+            art_the_force: { name: "The Force", max: 10, costBase: 165, desc: "Kekuatan supranatural. +2% Magnet Range & +10% knockback/detik di area magnet. Tiap upgrade +1% range, +5% knockback." },
+            art_ultimate_dasher: { name: "Ultimate Dasher", max: 8, costBase: 250, desc: "+10% jarak dash, -10% cooldown, & kebal permanen saat dash (bisa menembus musuh)." },
+            art_los: { name: "Layer Of Safety (L.O.S)", max: 10, costBase: 225, desc: "Memberikan +1 layer shield setara 100 HP. Tiap upgrade +1 layer." },
+            art_aegis_shoes: { name: "Aegis Shoes", max: 8, costBase: 125, desc: "Sepatu dewa lari. +10% Movement Speed awal, tiap upgrade selanjutnya +5%." },
             // 5 NEW UNIQUE ARTIFACTS
-            art_phoenix_feather: { name: "Phoenix Feather", max: 13, costBase: 350, desc: "Menghidupkan kembali player dengan 30% (+10% per lv) HP saat mati (sekali per permainan). Setelah bangkit, mendapat +30% damage permanen sisa game." },
-            art_philosopher_stone: { name: "Philosopher Stone", max: 20, costBase: 200, desc: "Peluang 10% (+5% per lv) untuk menggandakan koin/cosmic koin yang dikumpulkan." },
-            art_juggernaut_armor: { name: "Juggernaut Armor", max: 15, costBase: 220, desc: "Mengurangi seluruh damage yang diterima sebesar 5% (+3% per lv)." },
-            art_vampire_flesh: { name: "Vampire Flesh", max: 7, costBase: 160, desc: "Memulihkan 0.2 (+0.1 per lv) HP setiap berhasil membunuh musuh." },
-            art_chronos_watch: { name: "Chronos Watch", max: 5, costBase: 300, desc: "Mengurangi cooldown semua senjata aktif sebesar 4% (+3% per lv)." }
+            art_phoenix_feather: { name: "Phoenix Feather", max: 13, costBase: 450, desc: "Menghidupkan kembali player dengan 30% (+10% per lv) HP saat mati (sekali per permainan). Setelah bangkit, mendapat +30% damage permanen sisa game." },
+            art_philosopher_stone: { name: "Philosopher Stone", max: 20, costBase: 260, desc: "Peluang 10% (+5% per lv) untuk menggandakan koin/cosmic koin yang dikumpulkan." },
+            art_juggernaut_armor: { name: "Juggernaut Armor", max: 15, costBase: 280, desc: "Mengurangi seluruh damage yang diterima sebesar 5% (+3% per lv)." },
+            art_vampire_flesh: { name: "Vampire Flesh", max: 7, costBase: 200, desc: "Memulihkan 0.2 (+0.1 per lv) HP setiap berhasil membunuh musuh." },
+            art_chronos_watch: { name: "Chronos Watch", max: 5, costBase: 380, desc: "Mengurangi cooldown semua senjata aktif sebesar 4% (+3% per lv)." },
+            // 5 ARTEFAK BARU TAMBAHAN
+            art_space_trader: { name: "Space Trader", max: 10, costBase: 300, desc: "Interdimensional Trader jadi lebih sering & lebih lama muncul. Tiap upgrade +1% kesempatan muncul tiap menit, dan menambah lama Trader menetap." },
+            art_beast_gen: { name: "Beast Gen", max: 10, costBase: 260, desc: "Membangkitkan kekuatan dalam diri player. Tiap upgrade +10% Damage & +10% Max HP Player." },
+            art_campaign: { name: "Campaign", max: 10, costBase: 280, desc: "Membuka mode CAMPAIGN (bisa diaktifkan di menu utama). Hanya bertahan 20 menit (bukan endless) dan HANYA Pistol Lv.1 yang bisa dipakai (senjata lain walau sudah dibeli tetap terkunci) — namun Artefak, Senjata Ultimate, Statistik, dan senjata mistis dari Intergalactic Trader tetap berfungsi normal. Tiap upgrade memperbesar bonus hadiah di akhir permainan." },
+            art_enemy_buffer: { name: "Enemy Buffer", max: 8, costBase: 320, desc: "Memperkuat musuh sebesar 10% (dari awal game) per upgrade, namun sebagai gantinya koin, cosmic koin, dan EXP yang didapat naik 5% per upgrade." },
+            art_evasionist: { name: "Evasionist", max: 10, costBase: 220, desc: "+10% peluang evasion (menghindar sepenuhnya dari damage, dengan efek visual) di lv 1, tiap upgrade selanjutnya +5% peluang." }
         };
 
         // 5 Mythic Weapons — hanya bisa didapat dari Intergalactic Trader (10% peluang tampil per kemunculan trader).
@@ -1642,6 +1651,17 @@
         };
         const MYTHIC_WEAPON_ORDER = ['trader_pass', 'god_of_artefact', 'spamer_one', 'hollow_purple', 'potential_maxer'];
 
+        // Artefak Enemy Buffer: helper untuk multiplier statistik musuh & reward (coin/cosmic/exp)
+        function getEnemyBufferLevel() {
+            return (saveData.artifacts.art_enemy_buffer && saveData.artifacts.art_enemy_buffer.level) || 0;
+        }
+        function getEnemyBufferStatMult() {
+            return 1 + (getEnemyBufferLevel() * 0.10);
+        }
+        function getEnemyBufferRewardMult() {
+            return 1 + (getEnemyBufferLevel() * 0.05);
+        }
+
         // ==========================================
         // 3. SAVE DATA STRUCTURE
         // ==========================================
@@ -1649,11 +1669,12 @@
             coins: 0, cosmicCoins: 0,
             cheatInfiniteCoins: false,
             stats: {
-                hp: { level: 0, max: 50, costBase: 30, val: 15, name: "Max HP Up" },
-                atk: { level: 0, max: 75, costBase: 20, val: 0.1, name: "All Weapon Damage" },
-                spd: { level: 0, max: 25, costBase: 50, val: 0.2, name: "Movement Speed" },
-                magnet: { level: 0, max: 100, costBase: 10, val: 20, name: "Magnet Range" },
-                idleCap: { level: 0, max: 12, costBase: 2000, val: 2, name: "Idle Tycoon - Kapasitas Maks (Jam)" }
+                hp: { level: 0, max: 50, costBase: 42, val: 15, name: "Max HP Up" },
+                atk: { level: 0, max: 75, costBase: 28, val: 0.1, name: "All Weapon Damage" },
+                spd: { level: 0, max: 25, costBase: 70, val: 0.2, name: "Movement Speed" },
+                magnet: { level: 0, max: 100, costBase: 14, val: 20, name: "Magnet Range" },
+                // Idle Tycoon - dinaikkan jauh lebih mahal (2000 -> 7000) karena penghasilan pasifnya sangat kuat (terus berjalan walau game ditutup)
+                idleCap: { level: 0, max: 12, costBase: 7000, val: 2, name: "Idle Tycoon - Kapasitas Maks (Jam)" }
             },
             weapons: {},
             artifacts: {},
@@ -1711,7 +1732,11 @@
             superBeastUnlocked: false,
             leaveMeAloneUnlocked: false,
             pistolMaxBonus: 0,
-            magnetCollectMode: false
+            magnetCollectMode: false,
+            // Kode rahasia keyboard (SECRET_TYPED_CODES) kini hanya bisa diklaim SEKALI per save, seperti Konami Code.
+            secretCodesUsed: {},
+            // Campaign Mode (dibuka lewat artefak Campaign)
+            campaignModeActive: false
         };
 
         for (let w in WEAPON_DEFS) {
@@ -2189,6 +2214,8 @@
         };
         const SECRET_TYPED_MAXLEN = Math.max(...Object.keys(SECRET_TYPED_CODES).map(s => s.length));
         let secretTypedBuffer = '';
+        // Kode-kode ini kini HANYA BISA DIKLAIM SEKALI per save (sama seperti Konami Code),
+        // supaya tidak bisa dispam berulang-ulang kapanpun untuk reward tak terbatas.
         window.addEventListener('keydown', e => {
             // Hanya aktif saat di menu utama / toko (bukan saat sedang bermain, bukan lewat Hack Terminal)
             if (gameState === 'playing') { secretTypedBuffer = ''; return; }
@@ -2200,7 +2227,13 @@
             }
             for (let code in SECRET_TYPED_CODES) {
                 if (secretTypedBuffer.endsWith(code)) {
-                    SECRET_TYPED_CODES[code]();
+                    if (!saveData.secretCodesUsed) saveData.secretCodesUsed = {};
+                    if (saveData.secretCodesUsed[code]) {
+                        showRewardPopup('🔒', 'Sudah Diklaim', `Kode "${code.toUpperCase()}" hanya bisa diklaim sekali per save, dan kamu sudah memakainya.`);
+                    } else {
+                        saveData.secretCodesUsed[code] = true;
+                        SECRET_TYPED_CODES[code]();
+                    }
                     secretTypedBuffer = '';
                     break;
                 }
@@ -2414,6 +2447,8 @@
         }
 
         let gameState = 'menu', gameTime = 0, frameCount = 0, runCoins = 0, runCosmic = 0;
+        let campaignRunActive = false; // true jika sesi permainan ini adalah sesi Campaign Mode (dibatasi 20 menit)
+        const CAMPAIGN_TIME_LIMIT = 1200; // 20 menit dalam detik
         let player, camera;
         let entities = { enemies: [], drops: [], projectiles: [], damageTexts: [], particles: [] };
         let divineGeneralInstance = null, divineGeneralSummonedThisGame = false;
@@ -2509,10 +2544,13 @@
                 this.isGod = saveData.cheatGod || false;
                 this.isTripleSpeed = saveData.cheatTriple || false;
                 this.isSpeed = saveData.cheatSpeed || false;
-                this.maxHp = saveData.mode67Active ? 67 : (CONFIG.BASE_PLAYER_HP + (saveData.stats.hp.level * saveData.stats.hp.val) + (saveData.konamiHpBonus || 0) + (saveData.abacabbHpBonus || 0));
+                // Artefak Beast Gen: +10% Max HP & +10% Damage player per level
+                let bgLevel = (saveData.artifacts.art_beast_gen && saveData.artifacts.art_beast_gen.level) || 0;
+                let bgMult = 1 + (bgLevel * 0.10);
+                this.maxHp = (saveData.mode67Active ? 67 : (CONFIG.BASE_PLAYER_HP + (saveData.stats.hp.level * saveData.stats.hp.val) + (saveData.konamiHpBonus || 0) + (saveData.abacabbHpBonus || 0))) * bgMult;
                 this.hp = this.maxHp;
                 this.speed = (CONFIG.BASE_PLAYER_SPEED + (saveData.stats.spd.level * saveData.stats.spd.val)) * (this.isSpeed ? (saveData.cheatBrute ? 5 : 3) : 1);
-                this.baseDmgMulti = 1 + (saveData.stats.atk.level * saveData.stats.atk.val);
+                this.baseDmgMulti = (1 + (saveData.stats.atk.level * saveData.stats.atk.val)) * bgMult;
                 this.magnetArea = CONFIG.MAGNET_BASE_RANGE + (saveData.stats.magnet.level * saveData.stats.magnet.val);
 
                 this.dashCooldownMax = 180; this.dashCooldown = 0; this.dashDuration = 0; this.dashSpeed = 11;
@@ -2546,7 +2584,8 @@
                 // Process Modifiers dari Artefak Baru
                 this.artMods = {
                     crit: 0, forceKnockback: 0, dashCdRed: 0, dashDistMod: 1, maxShield: 0,
-                    reviveCount: 0, reviveHpPercent: 0, doubleCoinsChance: 0, dmgReduction: 0, healPerKill: 0, cooldownReduction: 0
+                    reviveCount: 0, reviveHpPercent: 0, doubleCoinsChance: 0, dmgReduction: 0, healPerKill: 0, cooldownReduction: 0,
+                    dodgeChance: 0
                 };
                 this.shieldHp = 0;
 
@@ -2589,6 +2628,9 @@
                     if (key === 'art_chronos_watch') {
                         this.artMods.cooldownReduction = lv * 0.03;
                     }
+                    if (key === 'art_evasionist') {
+                        this.artMods.dodgeChance = 0.10 + (lv - 1) * 0.05;
+                    }
                 }
 
                 if (saveData.mythicWeapons && saveData.mythicWeapons.god_of_artefact) {
@@ -2604,7 +2646,10 @@
                 this.shieldHp = this.artMods.maxShield;
 
                 this.weapons = [];
-                if (saveData.honoredModeActive) {
+                if (campaignRunActive) {
+                    // Campaign Mode: HANYA Pistol level 1 yang bisa dipakai, senjata lain (walau sudah dibeli di toko) TIDAK bisa dipakai.
+                    this.weapons.push(new WeaponInstance('pistol', 1));
+                } else if (saveData.honoredModeActive) {
                     // Honored One: HANYA Reversal Red & Blue Lapse yang dipakai.
                     let savedRR = saveData.weapons['reversal_red'];
                     let savedBL = saveData.weapons['blue_lapse'];
@@ -2622,7 +2667,7 @@
                     }
                 }
 
-                if (saveData.codeBonuses && saveData.codeBonuses.twinMinionUpgrade) {
+                if (!campaignRunActive && saveData.codeBonuses && saveData.codeBonuses.twinMinionUpgrade) {
                     let minionW = this.weapons.find(w => w.id === 'minion');
                     if (minionW) {
                         minionW.level = Math.min(8, minionW.level + 1);
@@ -3062,6 +3107,13 @@
                 if (this.dashDuration > 0) return; // Ultimate Dasher Invincibility
                 if (this.reviveInvulnerableTimer > 0) return; // Invulnerability after revive
                 if (this.iddqdTimer > 0) return; // Hack IDDQD: imunitas sementara
+
+                // Artefak Evasionist: peluang menghindar sepenuhnya dari damage
+                if (this.artMods.dodgeChance > 0 && Math.random() < this.artMods.dodgeChance) {
+                    createDamageText(this.x, this.y - 14, 'DODGE! 💨', '#38bdf8', 14);
+                    createParticles(this.x, this.y, '#38bdf8', 12);
+                    return;
+                }
 
                 let dgActive = (divineGeneralInstance !== null);
                 let dgDebuff = dgActive ? 0.10 : 0;
@@ -4267,6 +4319,12 @@
                     this.initialSpeed = 1.4; this.hp = 22 * hpMulti; this.size = 14; this.stroke = '#475569'; this.damage = 7;
                 }
                 this.speed = this.initialSpeed;
+                // Artefak Enemy Buffer: perkuat musuh sebesar 10% per level (dari awal game, flat, tidak menumpuk seiring waktu)
+                let ebMult = getEnemyBufferStatMult();
+                if (ebMult !== 1) {
+                    this.hp *= ebMult;
+                    this.damage *= ebMult;
+                }
                 this.maxHp = saveData.mode67Active ? 67 : this.hp;
                 this.hp = this.maxHp;
 
@@ -4614,13 +4672,15 @@
                 } else if (this.type === 'coin') {
                     let mult = Math.random() < player.artMods.doubleCoinsChance ? 2 : 1;
                     let greedMult = 1 + ((saveData.greedBonusPercent || 0) / 100);
-                    let finalVal = Math.round(this.value * mult * frenzyMult * greedMult);
+                    let ebMult = getEnemyBufferRewardMult();
+                    let finalVal = Math.round(this.value * mult * frenzyMult * greedMult * ebMult);
                     runCoins += finalVal;
                     createDamageText(this.x, this.y, `+${finalVal}${mult > 1 ? ' (x2!)' : ''}`, '#d97706', mult > 1 ? 14 : 11);
                 } else if (this.type === 'cosmic') {
                     let mult = Math.random() < player.artMods.doubleCoinsChance ? 2 : 1;
                     let greedMult = 1 + ((saveData.greedBonusPercent || 0) / 100);
-                    let finalVal = Math.round(1 * mult * frenzyMult * greedMult);
+                    let ebMult = getEnemyBufferRewardMult();
+                    let finalVal = Math.round(1 * mult * frenzyMult * greedMult * ebMult);
                     runCosmic += finalVal;
                     createDamageText(this.x, this.y, `+${finalVal} COSMIC${mult > 1 ? ' (x2!)' : ''}`, '#0d9488', mult > 1 ? 15 : 13);
                 } else if (this.type === 'magnet') {
@@ -4647,7 +4707,7 @@
                 createDamageText(x, y - 30, "FRENZY DOUBLE DROP! 🎁🔥", '#fb5607', 16);
             }
 
-            let expValue = Math.floor(1 + Math.pow(gameTime / 25, 1.4));
+            let expValue = Math.floor((1 + Math.pow(gameTime / 25, 1.4)) * getEnemyBufferRewardMult());
 
             for (let i = 0; i < numDrops; i++) {
                 let magnetRoll = Math.random();
@@ -5202,6 +5262,12 @@
             if (timestamp - prevTimestamp >= 1000) { gameTime++; prevTimestamp = timestamp; updateDifficultyScaling(); }
             frameCount++;
 
+            // Campaign Mode: sesi dipaksa berakhir setelah 20 menit (bukan endless)
+            if (campaignRunActive && gameTime >= CAMPAIGN_TIME_LIMIT) {
+                triggerGameOver();
+                return;
+            }
+
             handleSpawning();
             if (spawnPauseTimer > 0) spawnPauseTimer--;
             player.update();
@@ -5380,7 +5446,13 @@
             let shieldIndicator = player.shieldHp > 0 ? ` (+${Math.floor(player.shieldHp)} S)` : '';
             document.getElementById('hp-text').innerText = `${Math.floor(Math.max(0, player.hp))}/${player.maxHp}${shieldIndicator}`;
             let m = Math.floor(gameTime / 60).toString().padStart(2, '0'), s = (gameTime % 60).toString().padStart(2, '0');
-            document.getElementById('time-text').innerText = `${m}:${s}`;
+            if (campaignRunActive) {
+                let remain = Math.max(0, CAMPAIGN_TIME_LIMIT - gameTime);
+                let rm = Math.floor(remain / 60).toString().padStart(2, '0'), rs = (remain % 60).toString().padStart(2, '0');
+                document.getElementById('time-text').innerText = `${m}:${s} 🗺️ (-${rm}:${rs})`;
+            } else {
+                document.getElementById('time-text').innerText = `${m}:${s}`;
+            }
             document.getElementById('run-coin').innerText = runCoins;
             document.getElementById('run-cosmic').innerText = runCosmic;
             document.getElementById('dash-text').innerText = player.dashCooldown <= 0 ? "Siap" : "Cooldown";
@@ -5470,6 +5542,19 @@
                 document.getElementById('new-highscore-alert').style.display = 'none';
             }
 
+            // Campaign Mode: bonus hadiah tambahan di akhir permainan, besarnya naik tiap level artefak Campaign
+            let campaignBonusText = '';
+            if (campaignRunActive) {
+                let campaignLevel = (saveData.artifacts.art_campaign && saveData.artifacts.art_campaign.level) || 0;
+                let bonusMult = campaignLevel * 0.15; // tiap level +15% bonus dari hadiah yang didapat selama run
+                let bonusCoin = Math.floor(runCoins * bonusMult);
+                let bonusCosmic = Math.floor(runCosmic * bonusMult);
+                runCoins += bonusCoin;
+                runCosmic += bonusCosmic;
+                campaignBonusText = ` (termasuk bonus Campaign +${bonusCoin.toLocaleString()} 🪙 & +${bonusCosmic.toLocaleString()} 🔮)`;
+                campaignRunActive = false;
+            }
+
             saveData.coins += runCoins; saveData.cosmicCoins += runCosmic;
             saveGame();
 
@@ -5478,6 +5563,13 @@
             document.getElementById('final-level').innerText = currentLevel;
             document.getElementById('earned-coin').innerText = runCoins;
             document.getElementById('earned-cosmic').innerText = runCosmic;
+            let bonusNote = document.getElementById('campaign-bonus-note');
+            if (campaignBonusText) {
+                bonusNote.style.display = 'block';
+                bonusNote.innerText = `🗺️ Campaign selesai (20 menit)!${campaignBonusText}`;
+            } else {
+                bonusNote.style.display = 'none';
+            }
         }
 
         // ==========================================
@@ -5485,6 +5577,7 @@
         // ==========================================
         function initMenu() {
             gameState = 'menu';
+            campaignRunActive = false;
             
             // Clear entities from memory for low-RAM laptops
             entities = { enemies: [], drops: [], projectiles: [], damageTexts: [], particles: [] };
@@ -5547,6 +5640,16 @@
             } else {
                 hmBtn.style.display = 'none';
             }
+            // Campaign Mode toggle (dibuka lewat artefak Campaign, level >= 1)
+            let cmBtn = document.getElementById('campaign-mode-toggle');
+            let campaignLevel = (saveData.artifacts.art_campaign && saveData.artifacts.art_campaign.level) || 0;
+            if (campaignLevel >= 1) {
+                cmBtn.style.display = 'block';
+                cmBtn.textContent = saveData.campaignModeActive ? '🗺️ CAMPAIGN: ON' : '🗺️ CAMPAIGN: OFF';
+                cmBtn.style.background = saveData.campaignModeActive ? 'linear-gradient(135deg,#0891b2,#0e7490)' : 'linear-gradient(135deg,#64748b,#475569)';
+            } else {
+                cmBtn.style.display = 'none';
+            }
             // Sinkronkan tombol Low Graphics & Suara dengan status tersimpan
             let lgBtn = document.getElementById('lowgfx-toggle-btn');
             if (lgBtn) lgBtn.textContent = `🖥️ Low Graphics: ${saveData.lowGraphicsMode ? 'ON' : 'OFF'}`;
@@ -5563,6 +5666,12 @@
 
         window.toggleMode67 = function() {
             saveData.mode67Active = !saveData.mode67Active;
+            saveGame();
+            updateMenuUI();
+        };
+
+        window.toggleCampaignMode = function() {
+            saveData.campaignModeActive = !saveData.campaignModeActive;
             saveGame();
             updateMenuUI();
         };
@@ -5615,8 +5724,12 @@
             if (!isActive) {
                 if (now - (saveData.traderLastCheck || 0) >= 60000) {
                     saveData.traderLastCheck = now;
-                    if (Math.random() < 0.20) {
-                        saveData.traderSpawnedUntil = now + 60000;
+                    // Artefak Space Trader: +1% kesempatan muncul per level, & durasi menetap lebih lama per level
+                    let stLevel = (saveData.artifacts.art_space_trader && saveData.artifacts.art_space_trader.level) || 0;
+                    let spawnChance = 0.20 + (stLevel * 0.01);
+                    let spawnDuration = 60000 * (1 + stLevel * 0.10);
+                    if (Math.random() < spawnChance) {
+                        saveData.traderSpawnedUntil = now + spawnDuration;
                         saveData.traderPurchasedOfferRun = false;
                         // 10% peluang membawa 1 senjata mistis yang belum dimiliki
                         let unowned = MYTHIC_WEAPON_ORDER.filter(k => !saveData.mythicWeapons[k]);
@@ -6319,12 +6432,19 @@
         };
 
         document.getElementById('btn-start').onclick = () => {
+            // Campaign Mode: hanya aktif jika artefak Campaign sudah level >= 1 DAN toggle-nya ON
+            let campaignLevelAtStart = (saveData.artifacts.art_campaign && saveData.artifacts.art_campaign.level) || 0;
+            campaignRunActive = !!(saveData.campaignModeActive && campaignLevelAtStart >= 1);
+
             // Tentukan detik/menit awal: hack SKIP pakai highscoreTime (detik), code fasterStart pakai 60 detik (menit 1)
+            // Campaign Mode SELALU mulai di detik 0 — tidak terpengaruh cheat SKIP maupun code FASTER START.
             let skipSeconds = 0;
-            if (saveData.cheatSkip) {
-                skipSeconds = saveData.highscoreTime || 0;
-            } else if (saveData.codeBonuses && saveData.codeBonuses.fasterStart) {
-                skipSeconds = 60;
+            if (!campaignRunActive) {
+                if (saveData.cheatSkip) {
+                    skipSeconds = saveData.highscoreTime || 0;
+                } else if (saveData.codeBonuses && saveData.codeBonuses.fasterStart) {
+                    skipSeconds = 60;
+                }
             }
             gameTime = skipSeconds;
             frameCount = 0; runCoins = 0; runCosmic = 0; currentLevel = 1; currentExp = 0; expNeeded = 10; rerollsLeft = 3;
@@ -6335,6 +6455,7 @@
             activeUltimate = null;
             ultimateActiveTimer = 0;
             ultimateCooldownTimer = 0;
+
 
             // Hitung difficulty scaling sesuai menit yang dilewati (stepwise per menit)
             let skipMinutes = Math.floor(skipSeconds / 60);
@@ -6667,7 +6788,8 @@
 
                     let tempMods = {
                         crit: 0, forceKnockback: 0, dashCdRed: 0, dashDistMod: 1, maxShield: 0,
-                        reviveCount: 0, reviveHpPercent: 0, doubleCoinsChance: 0, dmgReduction: 0, healPerKill: 0, cooldownReduction: 0
+                        reviveCount: 0, reviveHpPercent: 0, doubleCoinsChance: 0, dmgReduction: 0, healPerKill: 0, cooldownReduction: 0,
+                        dodgeChance: 0
                     };
                     let tempSpeedBoost = 0;
                     let tempMagnetArea = CONFIG.MAGNET_BASE_RANGE + (saveData.stats.magnet.level * saveData.stats.magnet.val);
@@ -6709,6 +6831,9 @@
                         }
                         if (key === 'art_chronos_watch') {
                             tempMods.cooldownReduction = (activeLv * 0.03) * factor;
+                        }
+                        if (key === 'art_evasionist') {
+                            tempMods.dodgeChance = (0.10 + (activeLv - 1) * 0.05) * factor;
                         }
                     }
 
