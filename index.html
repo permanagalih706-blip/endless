@@ -890,6 +890,14 @@
             animation: hackShake 0.4s ease;
         }
 
+        /* Simbol infinity (∞) hack OF-CAM MINING diperbesar 1.25x supaya lebih menonjol */
+        .infinity-symbol {
+            display: inline-block;
+            font-size: 1.25em;
+            line-height: 1;
+            vertical-align: middle;
+        }
+
         /* Code Entry Panel - pojok kiri atas menu */
         #code-entry-panel {
             position: absolute;
@@ -1061,13 +1069,23 @@
             </div>
             <div id="cheat-hud-container" style="margin-top: 6px; font-size: 11px; color: #dc2626; font-weight: 800; display: none;"></div>
         </div>
+        <!-- Notifikasi Intergalactic Trader saat sedang bermain: memberi tahu pemain trader muncul,
+             bisa diklik untuk jeda & cek, ditutup (✕) untuk lanjut main tanpa diganggu,
+             atau dibiarkan & lanjut main (berisiko melewatkan penawaran). -->
+        <div id="ingame-trader-notif" style="display:none; position:absolute; bottom:18px; left:18px; pointer-events:auto; max-width:230px; background:linear-gradient(135deg,#7c3aed,#a855f7); color:white; border-radius:12px; font-weight:800; font-size:12.5px; z-index:15; box-shadow: 0 4px 14px rgba(124,58,237,0.55); animation: pulse-trader 1.5s infinite;">
+            <button onclick="dismissIngameTraderNotif(event)" title="Tutup notifikasi & lanjut main" style="position:absolute; top:2px; right:2px; background:transparent; border:none; color:white; font-size:15px; font-weight:800; cursor:pointer; padding:3px 8px; line-height:1; opacity:0.85;">✕</button>
+            <div onclick="handleIngameTraderNotifClick()" style="cursor:pointer; text-align:left; line-height:1.4; padding:10px 26px 10px 14px;">
+                👽 Intergalactic Trader Muncul!<br>
+                <span style="font-weight:600; font-size:11px; opacity:0.9;">Klik untuk jeda &amp; cek (sisa <span id="ingame-trader-time">60</span>s)</span>
+            </div>
+        </div>
     </div>
 
     <div id="main-menu" class="menu-screen">
         <!-- 67 Gamemode toggle top-right -->
         <button id="mode67-toggle" style="display:none; position:absolute; top:15px; right:15px; background:linear-gradient(135deg,#ef4444,#dc2626); color:white; border:none; padding:6px 14px; border-radius:8px; font-weight:800; font-size:12px; cursor:pointer; z-index:10; box-shadow: 0 2px 8px rgba(239,68,68,0.3);" onclick="toggleMode67()">🚨 67 MODE: ON</button>
         <!-- Intergalactic Trader appearance button (10% chance/menit, muncul 1 menit) -->
-        <button id="trader-appear-btn" style="display:none; position:absolute; top:60px; right:15px; background:linear-gradient(135deg,#7c3aed,#a855f7); color:white; border:none; padding:8px 16px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; z-index:10; box-shadow: 0 2px 10px rgba(124,58,237,0.5); animation: pulse-trader 1.5s infinite;" onclick="openTraderModal()">👽 INTERGALACTIC TRADER (<span id="trader-time-left">60</span>s)</button>
+        <button id="trader-appear-btn" style="display:none; position:absolute; bottom:200px; left:18px; background:linear-gradient(135deg,#7c3aed,#a855f7); color:white; border:none; padding:8px 16px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; z-index:10; box-shadow: 0 2px 10px rgba(124,58,237,0.5); animation: pulse-trader 1.5s infinite;" onclick="openTraderModal()">👽 INTERGALACTIC TRADER (<span id="trader-time-left">60</span>s)</button>
         <button id="honored-mode-toggle" style="display:none; position:absolute; top:105px; right:15px; background:linear-gradient(135deg,#78350f,#b45309); color:white; border:none; padding:6px 14px; border-radius:8px; font-weight:800; font-size:12px; cursor:pointer; z-index:10; box-shadow: 0 2px 8px rgba(180,83,9,0.4);" onclick="toggleHonoredMode()">🎖️ HONORED ONE: OFF</button>
         <button id="campaign-mode-toggle" style="display:none; position:absolute; top:145px; right:15px; background:linear-gradient(135deg,#0e7490,#0891b2); color:white; border:none; padding:6px 14px; border-radius:8px; font-weight:800; font-size:12px; cursor:pointer; z-index:10; box-shadow: 0 2px 8px rgba(8,145,178,0.4);" onclick="toggleCampaignMode()">🗺️ CAMPAIGN: OFF</button>
         <div id="tycoon-income-box" style="display:none; position:absolute; bottom:18px; left:18px; width: 230px; background:rgba(15,23,42,0.85); border:1px solid rgba(217,119,6,0.4); border-radius:12px; padding:12px; z-index:10; backdrop-filter: blur(10px);">
@@ -5607,14 +5625,15 @@
         }
 
         function fmtCurrency(val) {
-            return saveData.cheatInfiniteCoins ? '∞' : val.toLocaleString();
+            // Simbol ∞ diperbesar 1.25x agar lebih terlihat jelas dibanding angka biasa
+            return saveData.cheatInfiniteCoins ? '<span class="infinity-symbol">∞</span>' : val.toLocaleString();
         }
 
         function updateMenuUI() {
-            document.getElementById('menu-coin').innerText = fmtCurrency(saveData.coins);
-            document.getElementById('menu-cosmic').innerText = fmtCurrency(saveData.cosmicCoins);
-            document.getElementById('shop-coin').innerText = fmtCurrency(saveData.coins);
-            document.getElementById('shop-cosmic').innerText = fmtCurrency(saveData.cosmicCoins);
+            document.getElementById('menu-coin').innerHTML = fmtCurrency(saveData.coins);
+            document.getElementById('menu-cosmic').innerHTML = fmtCurrency(saveData.cosmicCoins);
+            document.getElementById('shop-coin').innerHTML = fmtCurrency(saveData.coins);
+            document.getElementById('shop-cosmic').innerHTML = fmtCurrency(saveData.cosmicCoins);
 
             // Update highscore displays
             document.getElementById('menu-highscore-level').innerText = saveData.highscoreLevel || 1;
@@ -5717,6 +5736,9 @@
         // 10% dari kemunculannya membawa 1 senjata mistis untuk dijual.
         // ==========================================
         let traderPermanent = false; // diaktifkan lewat hack 'SUMMON'
+        // Menyimpan traderSpawnedUntil yang notifikasinya sudah ditutup pemain (klik ✕), supaya
+        // notifikasi tidak muncul lagi untuk kemunculan trader yang sama — pemain bisa lanjut main tanpa diganggu.
+        let traderNotifDismissedUntil = 0;
 
         function checkTraderSpawn() {
             let now = Date.now();
@@ -5754,20 +5776,58 @@
 
         function updateTraderButtonUI() {
             let btn = document.getElementById('trader-appear-btn');
-            if (!btn) return;
             let now = Date.now();
             let active = traderPermanent || now < saveData.traderSpawnedUntil;
-            if (active && gameState === 'menu') {
-                btn.style.display = 'block';
-                let secsLeft = traderPermanent ? 999 : Math.max(0, Math.ceil((saveData.traderSpawnedUntil - now) / 1000));
-                document.getElementById('trader-time-left').textContent = traderPermanent ? '∞' : secsLeft;
-            } else {
-                btn.style.display = 'none';
-                if (!document.getElementById('trader-modal').classList.contains('hidden')) {
-                    closeTraderModal();
+            let secsLeft = traderPermanent ? 999 : Math.max(0, Math.ceil((saveData.traderSpawnedUntil - now) / 1000));
+
+            if (btn) {
+                if (active && gameState === 'menu') {
+                    btn.style.display = 'block';
+                    document.getElementById('trader-time-left').textContent = traderPermanent ? '∞' : secsLeft;
+                } else {
+                    btn.style.display = 'none';
+                }
+            }
+
+            // PENTING: modal Trader HANYA dipaksa tertutup saat waktu kemunculan trader BENAR-BENAR habis (active === false).
+            // Sebelumnya modal ikut tertutup hanya karena gameState bukan 'menu' (misal saat game di-pause untuk cek trader),
+            // padahal sisa waktu trader belum habis — itu bug yang sekarang diperbaiki.
+            if (!active && !document.getElementById('trader-modal').classList.contains('hidden')) {
+                closeTraderModal();
+            }
+
+            // Notifikasi Intergalactic Trader saat sedang bermain, supaya pemain tahu trader muncul
+            // walau tidak sedang di menu utama. Bisa diklik untuk jeda & cek trader, ditutup (✕) untuk
+            // lanjut main tanpa diganggu, atau diabaikan sepenuhnya (namun berisiko melewatkan penawaran trader).
+            let ingameNotif = document.getElementById('ingame-trader-notif');
+            if (ingameNotif) {
+                let alreadyDismissed = (saveData.traderSpawnedUntil === traderNotifDismissedUntil);
+                if (active && gameState === 'playing' && !alreadyDismissed) {
+                    ingameNotif.style.display = 'block';
+                    let timeEl = document.getElementById('ingame-trader-time');
+                    if (timeEl) timeEl.textContent = traderPermanent ? '∞' : secsLeft;
+                } else {
+                    ingameNotif.style.display = 'none';
                 }
             }
         }
+
+        // Klik notifikasi trader saat sedang bermain: jeda game (jika masih 'playing') lalu langsung buka modal trader.
+        window.handleIngameTraderNotifClick = function() {
+            if (gameState === 'playing') {
+                pauseGame();
+            }
+            openTraderModal();
+        };
+
+        // Menyimpan traderSpawnedUntil yang notifikasinya sudah ditutup pemain (klik ✕), supaya
+        // notifikasi tidak muncul lagi untuk kemunculan trader yang sama — pemain bisa lanjut main tanpa diganggu.
+        window.dismissIngameTraderNotif = function(e) {
+            if (e) e.stopPropagation();
+            traderNotifDismissedUntil = saveData.traderSpawnedUntil;
+            let el = document.getElementById('ingame-trader-notif');
+            if (el) el.style.display = 'none';
+        };
 
         let traderDirection = 'buy'; // 'buy' = koin->cosmic, 'sell' = cosmic->koin
 
@@ -6114,10 +6174,14 @@
         }
 
         // Sell Plan Calculators
+        // CATATAN ANTI-EXPLOIT (Hack OF-CAM MINING): level yang didapat GRATIS saat hack aktif
+        // ditandai lewat cheatFreeLevels. Level teratas (paling baru dibeli) yang berasal dari
+        // hack tidak menghasilkan coin sama sekali saat dijual, walaupun hack sudah dinonaktifkan.
         function getStatSellPlan(k) {
             let st = saveData.stats[k];
             let currentLevel = st.level;
             let costBase = st.costBase;
+            let freeLevels = st.cheatFreeLevels || 0;
             
             let mult = shopMultiplier;
             let maxPossible = currentLevel;
@@ -6127,7 +6191,9 @@
             let refund = 0;
             for (let i = 0; i < targetCount; i++) {
                 let levelCost = costBase * (currentLevel - i);
-                refund += Math.floor(levelCost * 0.7);
+                if (i >= freeLevels) { // hanya level yang bukan hasil hack yang dihitung refund-nya
+                    refund += Math.floor(levelCost * 0.7);
+                }
                 count++;
             }
             return { count, refund };
@@ -6138,6 +6204,7 @@
             let minLevel = (k === 'pistol') ? 1 : 0;
             let currentLevel = wp.level;
             let costBase = wp.costBase;
+            let freeLevels = wp.cheatFreeLevels || 0;
             
             let mult = shopMultiplier;
             let maxPossible = Math.max(0, currentLevel - minLevel);
@@ -6147,7 +6214,9 @@
             let refund = 0;
             for (let i = 0; i < targetCount; i++) {
                 let levelCost = costBase * (currentLevel - i);
-                refund += Math.floor(levelCost * 0.7);
+                if (i >= freeLevels) { // hanya level yang bukan hasil hack yang dihitung refund-nya
+                    refund += Math.floor(levelCost * 0.7);
+                }
                 count++;
             }
             return { count, refund };
@@ -6158,6 +6227,7 @@
             let currentLevel = art.level;
             let info = ARTIFACT_DEFS[k];
             let costBase = info.costBase;
+            let freeLevels = art.cheatFreeLevels || 0;
             
             let mult = shopMultiplier;
             let maxPossible = currentLevel;
@@ -6167,7 +6237,9 @@
             let refund = 0;
             for (let i = 0; i < targetCount; i++) {
                 let levelCost = costBase * (currentLevel - i);
-                refund += Math.floor(levelCost * 0.7);
+                if (i >= freeLevels) { // hanya level yang bukan hasil hack yang dihitung refund-nya
+                    refund += Math.floor(levelCost * 0.7);
+                }
                 count++;
             }
             return { count, refund };
@@ -6181,10 +6253,10 @@
             listEl.innerHTML = '';
 
             // Sinkronkan koin pada header dan overlay
-            document.getElementById('shop-coin').innerText = fmtCurrency(saveData.coins);
-            document.getElementById('shop-cosmic').innerText = fmtCurrency(saveData.cosmicCoins);
-            document.getElementById('subshop-coin').innerText = fmtCurrency(saveData.coins);
-            document.getElementById('subshop-cosmic').innerText = fmtCurrency(saveData.cosmicCoins);
+            document.getElementById('shop-coin').innerHTML = fmtCurrency(saveData.coins);
+            document.getElementById('shop-cosmic').innerHTML = fmtCurrency(saveData.cosmicCoins);
+            document.getElementById('subshop-coin').innerHTML = fmtCurrency(saveData.coins);
+            document.getElementById('subshop-cosmic').innerHTML = fmtCurrency(saveData.cosmicCoins);
 
             if (activeSubShop === 'stat') {
                 titleEl.innerText = "Statistik Utama (Koin)";
@@ -6363,6 +6435,10 @@
             if (saveData.coins >= cost && st.level < st.max) {
                 saveData.coins -= cost;
                 st.level += count;
+                // Hack OF-CAM MINING aktif: tandai level ini sebagai "gratis" agar tidak bisa dijual demi coin
+                if (saveData.cheatInfiniteCoins) {
+                    st.cheatFreeLevels = (st.cheatFreeLevels || 0) + count;
+                }
                 Sound.play('buy');
                 saveGame();
             }
@@ -6371,6 +6447,8 @@
             if (k === 'idleCap' && !saveData.tycoonUnlocked) return;
             let st = saveData.stats[k];
             if (st.level >= count) {
+                let freeLevels = st.cheatFreeLevels || 0;
+                st.cheatFreeLevels = Math.max(0, freeLevels - count); // kurangi penanda level gratis yang ikut terjual
                 st.level -= count;
                 saveData.coins += refund;
                 Sound.play('buy');
@@ -6388,6 +6466,10 @@
             if (saveData.cosmicCoins >= cost && wp.level < WEAPON_DEFS[k].max) {
                 saveData.cosmicCoins -= cost;
                 wp.level += count;
+                // Hack OF-CAM MINING aktif: tandai level ini sebagai "gratis" agar tidak bisa dijual demi coin
+                if (saveData.cheatInfiniteCoins) {
+                    wp.cheatFreeLevels = (wp.cheatFreeLevels || 0) + count;
+                }
                 Sound.play('buy');
                 saveGame();
             }
@@ -6396,6 +6478,8 @@
             let wp = saveData.weapons[k];
             let minLevel = (k === 'pistol') ? 1 : 0;
             if (wp.level - count >= minLevel) {
+                let freeLevels = wp.cheatFreeLevels || 0;
+                wp.cheatFreeLevels = Math.max(0, freeLevels - count); // kurangi penanda level gratis yang ikut terjual
                 wp.level -= count;
                 saveData.cosmicCoins += refund;
                 Sound.play('buy');
@@ -6408,6 +6492,10 @@
             if (saveData.coins >= cost && art.level < ARTIFACT_DEFS[k].max) {
                 saveData.coins -= cost;
                 art.level += count;
+                // Hack OF-CAM MINING aktif: tandai level ini sebagai "gratis" agar tidak bisa dijual demi coin
+                if (saveData.cheatInfiniteCoins) {
+                    art.cheatFreeLevels = (art.cheatFreeLevels || 0) + count;
+                }
                 Sound.play('buy');
                 saveGame();
             }
@@ -6415,6 +6503,8 @@
         window.sellArtifact = function (k, count, refund) {
             let art = saveData.artifacts[k];
             if (art.level >= count) {
+                let freeLevels = art.cheatFreeLevels || 0;
+                art.cheatFreeLevels = Math.max(0, freeLevels - count); // kurangi penanda level gratis yang ikut terjual
                 art.level -= count;
                 saveData.coins += refund;
                 Sound.play('buy');
