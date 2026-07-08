@@ -1843,11 +1843,16 @@
             saveData.stats = JSON.parse(JSON.stringify(BASE_SAVE.stats));
         }
 
-        // Force all stats max levels to 25 (kecuali idleCap yang dibatasi 12 level / 24 jam)
+        // Sinkronkan batas max tiap statistik dengan definisi resmi di BASE_SAVE (bukan disamaratakan ke 1 angka).
+        // PERBAIKAN BUG: sebelumnya kode ini memaksa SEMUA stat (kecuali idleCap) jadi max 25,
+        // padahal seharusnya: Max HP = 50, All Weapon Damage = 75, Movement Speed = 25, Magnet Range = 100.
+        // Akibatnya, tiap kali reset/reload, max HP/ATK/Magnet ikut turun jadi 25 secara tidak sengaja.
+        // Sekarang max tiap stat SELALU disamakan dengan BASE_SAVE.stats[k].max, jadi tidak berubah-ubah lagi.
         if (saveData.stats) {
             for (let k in saveData.stats) {
-                if (k === 'idleCap') { saveData.stats[k].max = 12; continue; }
-                saveData.stats[k].max = 25;
+                if (BASE_SAVE.stats[k]) {
+                    saveData.stats[k].max = BASE_SAVE.stats[k].max;
+                }
             }
         }
 
