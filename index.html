@@ -1615,14 +1615,14 @@
             scatter_shot: { name: "Scatter Shot", max: 10, costBase: 4, desc: "Menembakan serpihan peluru ke 8 arah mata angin secara berkala." },
             combustion: { name: "Combustion", max: 10, costBase: 5, desc: "Menyebabkan musuh yang terbakar/teracuni meledak dan memicu AOE damage." },
             overcharge: { name: "Overcharge", max: 10, costBase: 7, desc: "Meningkatkan kecepatan serang dan damage dari semua senjata tipe listrik." },
-            icicles: { name: "Icicles", max: 10, costBase: 1, desc: "Membuat player berjalan lebih cepat dan meninggalkan jejak es yang melambatkan musuh dan memberikan damage. Tiap upgrade memperluas area jejak es." }
+            icicles: { name: "Icicles", max: 10, costBase: 2, desc: "Membuat player berjalan lebih cepat dan meninggalkan jejak es yang melambatkan musuh dan memberikan damage. Tiap upgrade memperluas area jejak es." }
         };
         const PISTOL_BASE_MAX = WEAPON_DEFS.pistol.max; // dipakai hack IDKFA untuk menambah batas level Pistol
 
-        // Perbarui harga upgrade senjata jadi jauh lebih mahal (Cosmic Coin sebelumnya terlalu mudah didapat)
-        // Dinaikkan lagi (8x -> 24x) supaya progres upgrade senjata lebih seimbang & tidak terlalu cepat max.
+        // Harga upgrade senjata: puluhan (bukan ratusan) untuk semua senjata kecuali Pistol (tetap paling murah).
+        // Sebelumnya dikali 24x (terlalu mahal, masuk ratusan/ribuan). Sekarang dikali 6x supaya costBase akhir ~10-90.
         for (let wId in WEAPON_DEFS) {
-            WEAPON_DEFS[wId].costBase = Math.ceil(WEAPON_DEFS[wId].costBase * 24);
+            WEAPON_DEFS[wId].costBase = Math.ceil(WEAPON_DEFS[wId].costBase * 6);
         }
 
         const ARTIFACT_DEFS = {
@@ -1822,6 +1822,14 @@
             for (let w in BASE_SAVE.weapons) {
                 if (!saveData.weapons[w]) {
                     saveData.weapons[w] = JSON.parse(JSON.stringify(BASE_SAVE.weapons[w]));
+                }
+            }
+            // Sinkronkan costBase & max tiap senjata dengan WEAPON_DEFS terbaru (sumber kebenaran),
+            // supaya perubahan harga/level max selalu berlaku juga untuk save lama, bukan cuma save baru.
+            for (let w in saveData.weapons) {
+                if (WEAPON_DEFS[w]) {
+                    saveData.weapons[w].costBase = WEAPON_DEFS[w].costBase;
+                    saveData.weapons[w].max = WEAPON_DEFS[w].max;
                 }
             }
         } else {
