@@ -1590,7 +1590,7 @@
         // ==========================================
         const WEAPON_DEFS = {
             pistol: { name: "Pistol", max: 10, costBase: 1, desc: "Menembakan peluru, tiap upgrade menambah 1 peluru." },
-            boomerang: { name: "Boomerang", max: 24, costBase: 2, desc: "Menembakan 8 boomerang menyebar ke 8 arah mata angin, tiap boomerang melengkung ke KANAN membentuk huruf U (jarak lempar agak jauh) lalu kembali ke player. Mulai level 9, tiap upgrade menambah 1 stack boomerang ke salah satu arah (bergilir merata), sampai di level max (24) totalnya jadi 24 boomerang yang tetap menyebar ke 8 arah." },
+            boomerang: { name: "Boomerang", max: 24, costBase: 2, desc: "Level 1 menembakan 1 boomerang, tiap upgrade menambah 1 boomerang ke arah baru sampai level 8 menyebar penuh ke 8 arah mata angin. Tiap boomerang melengkung ke KANAN membentuk huruf U (jarak lempar agak jauh) lalu kembali ke player. Mulai level 9, tiap upgrade menambah 1 stack boomerang ke salah satu arah (bergilir merata), sampai di level max (24) totalnya jadi 24 boomerang yang tetap menyebar ke 8 arah." },
             missile: { name: "Missile", max: 10, costBase: 4, desc: "Menembakan missile lambat namun kuat dan AOE tinggi. Level 1-3 menambah jumlah missile, 4-10 menambah AOE." },
             poison: { name: "Poison bottle", max: 15, costBase: 2, desc: "Melempar botol berisi kabut beracun. Level 1-5 tambah botol, 6-10 tambah DoT, 11-15 tambah AOE." },
             thunder: { name: "Thunder", max: 30, costBase: 5, desc: "Mensummon petir kemusuh acak. Upgrade menambah jumlah petir." },
@@ -2032,6 +2032,16 @@
                 cooldown: 1680,  // 28 detik
                 desc: "Aktifkan: Tekan [U]. Durasi 8s, Cooldown 28s. Efek: Tebasan bertubi-tubi (15x ATK) ke seluruh musuh di map setiap 0.2s. Durasi singkat tapi damage brutal."
             },
+            hells_wrath: {
+                id: "hells_wrath",
+                name: "Hell's Wrath",
+                cost: 11500,       // Koin — di antara Malevolent Shrine (10000) dan MaxedOut Weapon (13000)
+                costCosmic: 350,  // Cosmic Coin — di antara Malevolent Shrine (300) dan MaxedOut Weapon (400)
+                key: "u",
+                duration: 900,   // 15 detik — bertahan jauh lebih lama dari Rampage (5 detik)
+                cooldown: 1500,  // 25 detik
+                desc: "Aktifkan: Tekan [U]. Durasi 15s (jauh lebih lama dari Rampage!), Cooldown 25s. Efek: SEMUA senjata menembak 5x lebih cepat (firing rate 5x lipat) DAN damage 1.3x lipat! Cooldown Blue Lapse & Reversal Red juga 5x lebih cepat terisi. Murka neraka yang bertahan lama!"
+            },
             maxed_out_weapon: {
                 id: "maxed_out_weapon",
                 name: "MaxedOut Weapon",
@@ -2052,16 +2062,6 @@
                 cooldown: 1320,  // 22 detik
                 desc: "Aktifkan: Tekan [U]. Durasi 14s, Cooldown 22s. Efek: Stun semua musuh di layar selama durasi aktif dan memberikan damage kecil (2x ATK) setiap 0.1s. Berguna sebagai pelindung diri."
             },
-            hells_wrath: {
-                id: "hells_wrath",
-                name: "Hell's Wrath",
-                cost: 10000,       // Koin — dibuat lebih murah
-                costCosmic: 280,  // Cosmic Coin — dibuat lebih murah
-                key: "u",
-                duration: 900,   // 15 detik — bertahan jauh lebih lama dari Rampage (5 detik)
-                cooldown: 1500,  // 25 detik
-                desc: "Aktifkan: Tekan [U]. Durasi 15s (jauh lebih lama dari Rampage!), Cooldown 25s. Efek: SEMUA senjata menembak 5x lebih cepat (firing rate 5x lipat)! Cooldown Blue Lapse & Reversal Red juga 5x lebih cepat terisi. Murka neraka yang bertahan lama!"
-            },
             true_heavenly_judgment: {
                 id: "true_heavenly_judgment",
                 name: "True Heavenly Judgment",
@@ -2070,7 +2070,7 @@
                 key: "u",
                 duration: 10800, // 3 menit
                 cooldown: 600,   // 10 detik (namun Divine General & Super Beast baru bisa disummon ulang setelah cooldown resummon)
-                desc: "🔒 ULTIMATE RAHASIA & TERMAHAL! Terkunci di balik kode-kode rahasia yang tersembunyi di dalam game (baru bisa dibeli setelah semua kode ditemukan), dan The Divine General & Super Beast harus sedang tersummon untuk diaktifkan. Aktifkan: Tekan [U]. Keduanya menghilang & masuk cooldown resummon, digantikan HEAVEN JUDGEMENTER selama 3 menit: HP 10x Divine General, kecepatan 2x player, SELALU berada dekat player, sesekali memanggil petir ke musuh acak dengan damage lumayan, dan musuh yang ia bunuh meledak dengan knockback 2x lebih kuat dari Super Beast. Seluruh peta berubah warna merah-oranye selama efek ini aktif. Cooldown ultimate ini sendiri hanya 10 detik, tapi butuh Divine General & Super Beast disummon ulang (tekan [P]) untuk bisa dipakai lagi."
+                desc: "🔒 ULTIMATE RAHASIA & TERMAHAL! Terkunci di balik kode-kode rahasia yang tersembunyi di dalam game (baru bisa dibeli setelah semua kode ditemukan), dan The Divine General & Super Beast harus sedang tersummon untuk diaktifkan. Aktifkan: Tekan [U]. Keduanya menghilang & masuk cooldown resummon, digantikan HEAVEN JUDGEMENTER selama 3 menit: HP 10x Divine General, kecepatan 2x player, jarak jangkau setara Magnet level 15, sesekali memanggil petir ke musuh acak dengan damage lumayan, dan musuh yang ia bunuh meledak dengan knockback 2x lebih kuat dari Super Beast. Punya 2 MODE yang bisa diganti kapan saja: tekan [C] untuk Mode Dekat (selalu berada dekat player, jarak biasa), tekan [V] untuk Mode Pembunuh (menjauh dari player, berkeliaran bebas memburu musuh terdekat & terkuat). Seluruh peta berubah warna merah-oranye selama efek ini aktif. Cooldown ultimate ini sendiri hanya 10 detik, tapi butuh Divine General & Super Beast disummon ulang (tekan [P]) untuk bisa dipakai lagi."
             }
         };
 
@@ -2432,6 +2432,18 @@
                 saveGame();
                 createDamageText(player.x, player.y - 50, "SUMMON DIHENTIKAN PAKSA! 💀", '#ef4444', 18);
                 Sound.play('error');
+            }
+            // Heaven Judgementer (True Heavenly Judgment) — ganti mode: [C] mode dekat, [V] mode pembunuh
+            if (gameState === 'playing' && heavenJudgementerInstance) {
+                if (k === 'c' && heavenJudgementerInstance.mode !== 'close') {
+                    heavenJudgementerInstance.mode = 'close';
+                    createDamageText(heavenJudgementerInstance.x, heavenJudgementerInstance.y - 60, "MODE DEKAT 🛡️", '#fbbf24', 16);
+                    Sound.play('buy');
+                } else if (k === 'v' && heavenJudgementerInstance.mode !== 'hunter') {
+                    heavenJudgementerInstance.mode = 'hunter';
+                    createDamageText(heavenJudgementerInstance.x, heavenJudgementerInstance.y - 60, "MODE PEMBUNUH ⚔️", '#ef4444', 16);
+                    Sound.play('buy');
+                }
             }
             if (gameState === 'playing' && k === 'h' && saveData.mythicWeapons && saveData.mythicWeapons.hollow_purple && player.hollowPurpleCd <= 0) {
                 triggerHollowPurple();
@@ -3410,6 +3422,7 @@
                     let cdRed = player.artMods.cooldownReduction || 0;
                     let cdSub = 1 + cdRed;
                     if (player.isTripleSpeed || saveData.cheatTriple) cdSub *= getHackMult(3);
+                    if (activeUltimate === 'hells_wrath') cdSub *= 5; // Hell's Wrath: firing rate 5x lipat, langsung di titik cooldown-nya biar tidak pernah "miss"
                     this.cooldown -= cdSub;
                     if (this.cooldown > 0) return;
                 }
@@ -3448,14 +3461,15 @@
                         break;
 
                     case 'boomerang': {
-                        // Selalu menyebar ke 8 arah mata angin (base), tiap boomerang melengkung ke KANAN membentuk huruf U lalu kembali ke player.
+                        // Level 1 = 1 boomerang saja. Tiap upgrade menambah 1 boomerang lagi ke arah baru,
+                        // sampai level 8 baru genap menyebar penuh ke 8 arah mata angin.
                         // Mulai level 9, tiap naik 1 level menambah 1 STACK boomerang tambahan ke salah satu dari 8 arah (bergilir merata),
-                        // jadi di level max (24) totalnya ada 24 boomerang (8 arah x 3 stack) yang tetap menyebar ke 8 arah.
+                        // jadi di level max (24) totalnya ada 24 boomerang (8 arah x 3 stack) yang menyebar ke 8 arah.
+                        // Tiap boomerang melengkung ke KANAN membentuk huruf U lalu kembali ke player.
                         let maxPierce = 3 + (this.level - 1);
-                        let extraStacks = Math.max(0, this.level - 8);
-                        let totalBoomerangs = 8 + extraStacks;
+                        let totalBoomerangs = Math.min(this.level, 8) + Math.max(0, this.level - 8);
                         for (let i = 0; i < totalBoomerangs; i++) {
-                            let dir = i % 8; // bergilir ke 8 arah supaya stack tambahan tersebar rata
+                            let dir = i % 8; // bergilir ke 8 arah, mengisi satu-satu dulu sebelum mulai stacking
                             let ang = (Math.PI / 4) * dir;
                             let bmr = fireBullet(player.x, player.y, ang, finalDmg, 7.5, '#22b8cf', 6, isCrit, maxPierce, true);
                             if (bmr) {
@@ -5165,11 +5179,9 @@
             }
         }
 
-        // Musuh TIDAK PERNAH boleh muncul dekat player — pakai jarak aman tetap yang cukup jauh (di luar layar),
-        // dan tetap mengikuti Magnet Range asli player kalau itu lebih jauh lagi (supaya makin kuat magnet, makin jauh juga spawn-nya).
+        // Musuh TIDAK PERNAH boleh muncul dekat player — jaraknya dipatok setara Magnet level 15.
         function getMinEnemySpawnDist() {
-            let magnetBased = CONFIG.MAGNET_BASE_RANGE + (saveData.stats.magnet.level * saveData.stats.magnet.val);
-            return Math.max(700, magnetBased);
+            return CONFIG.MAGNET_BASE_RANGE + (15 * saveData.stats.magnet.val); // = 65 + 15*20 = 365
         }
 
         function handleSpawning() {
@@ -7016,38 +7028,61 @@
                 this.hp = this.maxHp;
                 this.attackCooldown = 0;
                 this.attackRange = 365; // setara jarak Magnet level 15 (65 + 15*20)
-                this.leashRadius = 365; // selalu berada dekat player, jarak maksimal setara Magnet level 15
+                this.leashRadius = 365; // dipakai di mode DEKAT saja
                 this.lightningTimer = 90; // petir pertama datang lebih cepat (1.5 detik)
+                this.mode = 'close'; // 'close' = mode dekat (tekan [C]), 'hunter' = mode pembunuh (tekan [V])
             }
             getSpeed() {
                 return (player.speed || 3) * 2; // 2x kecepatan player
             }
             update() {
-                // Selalu berada DEKAT PLAYER — jika keluar dari leash radius, langsung ditarik kembali ke player
-                let distFromPlayer = getDistance(this.x, this.y, player.x, player.y);
-                if (distFromPlayer > this.leashRadius) {
-                    let ang = getAngle(this.x, this.y, player.x, player.y);
-                    let spd = this.getSpeed();
-                    let step = Math.min(distFromPlayer - this.leashRadius * 0.6, spd);
-                    this.x += Math.cos(ang) * step;
-                    this.y += Math.sin(ang) * step;
-                } else {
-                    // Cari musuh terdekat lalu bergerak ke arahnya selama masih dalam leash radius dari player
-                    let target = null, minDist = Infinity;
+                if (this.mode === 'hunter') {
+                    // MODE PEMBUNUH: menjauh dari player, bebas berkeliaran memburu musuh TERKUAT & terdekat di seluruh peta
+                    let target = null, bestScore = -Infinity;
                     for (let i = 0; i < entities.enemies.length; i++) {
                         let e = entities.enemies[i];
                         if (!e || e.dead) continue;
                         let d = getDistance(this.x, this.y, e.x, e.y);
-                        if (d < minDist && getDistance(player.x, player.y, e.x, e.y) < this.leashRadius + this.attackRange) {
-                            minDist = d; target = e;
-                        }
+                        let strength = e.maxHp || e.hp || 1;
+                        let score = strength - d * 3; // prioritaskan musuh kuat yang juga relatif dekat
+                        if (score > bestScore) { bestScore = score; target = e; }
                     }
                     if (target) {
+                        let dist = getDistance(this.x, this.y, target.x, target.y);
                         let ang = getAngle(this.x, this.y, target.x, target.y);
                         let spd = this.getSpeed();
-                        if (minDist > this.attackRange * 0.6) {
+                        if (dist > this.attackRange * 0.6) {
                             this.x += Math.cos(ang) * spd;
                             this.y += Math.sin(ang) * spd;
+                        }
+                    }
+                } else {
+                    // MODE DEKAT: selalu berada DEKAT PLAYER — jika keluar dari leash radius, langsung ditarik kembali ke player
+                    let distFromPlayer = getDistance(this.x, this.y, player.x, player.y);
+                    if (distFromPlayer > this.leashRadius) {
+                        let ang = getAngle(this.x, this.y, player.x, player.y);
+                        let spd = this.getSpeed();
+                        let step = Math.min(distFromPlayer - this.leashRadius * 0.6, spd);
+                        this.x += Math.cos(ang) * step;
+                        this.y += Math.sin(ang) * step;
+                    } else {
+                        // Cari musuh terdekat lalu bergerak ke arahnya selama masih dalam leash radius dari player
+                        let target = null, minDist = Infinity;
+                        for (let i = 0; i < entities.enemies.length; i++) {
+                            let e = entities.enemies[i];
+                            if (!e || e.dead) continue;
+                            let d = getDistance(this.x, this.y, e.x, e.y);
+                            if (d < minDist && getDistance(player.x, player.y, e.x, e.y) < this.leashRadius + this.attackRange) {
+                                minDist = d; target = e;
+                            }
+                        }
+                        if (target) {
+                            let ang = getAngle(this.x, this.y, target.x, target.y);
+                            let spd = this.getSpeed();
+                            if (minDist > this.attackRange * 0.6) {
+                                this.x += Math.cos(ang) * spd;
+                                this.y += Math.sin(ang) * spd;
+                            }
                         }
                     }
                 }
@@ -7218,9 +7253,10 @@
                     });
                     break;
                 case 'hells_wrath':
-                    // Hell's Wrath: semua weapon cooldown dikurangi 5x lebih cepat (firing rate 5x), bertahan jauh lebih lama dari Rampage
+                    // Hell's Wrath: semua weapon cooldown dikurangi jadi 5x lebih cepat (firing rate 5x), PLUS damage 1.3x lipat, bertahan jauh lebih lama dari Rampage
                     createParticles(player.x, player.y, '#7c0a02', 35);
                     createParticles(player.x, player.y, '#ff2200', 25);
+                    player.baseDmgMulti *= 1.3;
                     entities.particles.push({
                         id: 'hells_wrath_visual',
                         life: ultimateActiveDuration, maxLife: ultimateActiveDuration,
@@ -7240,6 +7276,26 @@
                             ctx.beginPath();
                             ctx.arc(player.x, player.y, player.size + 40 + 8 * Math.cos(t), 0, Math.PI * 2);
                             ctx.stroke();
+                            ctx.restore();
+                        }
+                    });
+                    // Peta berubah warna MERAH selama Hell's Wrath aktif (screen-space overlay, tidak terpengaruh kamera)
+                    entities.particles.push({
+                        id: 'hells_wrath_tint_overlay',
+                        life: ultimateActiveDuration, max: ultimateActiveDuration,
+                        update() { this.life--; },
+                        draw(ctx) {
+                            let pulse = 0.14 + 0.06 * Math.sin(frameCount * 0.1);
+                            ctx.save();
+                            ctx.setTransform(1, 0, 0, 1, 0, 0); // reset ke koordinat layar penuh
+                            let grad = ctx.createRadialGradient(
+                                canvas.width / 2, canvas.height / 2, 0,
+                                canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height) * 0.75
+                            );
+                            grad.addColorStop(0, `rgba(220, 20, 20, ${pulse * 0.5})`);
+                            grad.addColorStop(1, `rgba(120, 0, 0, ${pulse})`);
+                            ctx.fillStyle = grad;
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
                             ctx.restore();
                         }
                     });
@@ -7297,6 +7353,26 @@
                             ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                             ctx.fillStyle = 'rgba(10, 10, 25, 0.08)'; ctx.fill();
                             ctx.strokeStyle = 'rgba(72, 12, 168, 0.4)'; ctx.lineWidth = 3; ctx.stroke();
+                        }
+                    });
+                    // Peta berubah warna UNGU GELAP selama Infinite Void aktif (screen-space overlay, tidak terpengaruh kamera)
+                    entities.particles.push({
+                        id: 'infinite_void_tint_overlay',
+                        life: voidDuration, max: voidDuration,
+                        update() { this.life--; },
+                        draw(ctx) {
+                            let pulse = 0.18 + 0.07 * Math.sin(frameCount * 0.05);
+                            ctx.save();
+                            ctx.setTransform(1, 0, 0, 1, 0, 0); // reset ke koordinat layar penuh
+                            let grad = ctx.createRadialGradient(
+                                canvas.width / 2, canvas.height / 2, 0,
+                                canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height) * 0.75
+                            );
+                            grad.addColorStop(0, `rgba(76, 29, 149, ${pulse * 0.5})`);
+                            grad.addColorStop(1, `rgba(15, 5, 40, ${pulse})`);
+                            ctx.fillStyle = grad;
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            ctx.restore();
                         }
                     });
                     break;
@@ -7627,16 +7703,8 @@
                     break;
                 }
                 case 'hells_wrath': {
-                    // Hell's Wrath: setiap frame, kurangi cooldown SEMUA senjata 4 kali ekstra
-                    // (sudah dikurangi 1 di WeaponInstance.update(), jadi total = 5x lebih cepat!)
-                    for (let i = 0; i < player.weapons.length; i++) {
-                        let w = player.weapons[i];
-                        if (w.cooldown > 0) {
-                            w.cooldown -= 4; // ekstra -4 per frame (total -5 per frame = 5x speed)
-                            if (w.cooldown < 0) w.cooldown = 0;
-                        }
-                    }
-                    // Blue Lapse (purpleTimer) & Reversal Red (_redTimer) juga terisi 5x lebih cepat
+                    // Kecepatan tembak 5x sudah diterapkan langsung di WeaponInstance.update() (lihat cdSub *= 5),
+                    // supaya tidak pernah "miss"/tidak berefek. Di sini cukup percepat timer Blue Lapse & Reversal Red.
                     if (player.weapons.find(w => w.id === 'blue_lapse')) {
                         player.purpleTimer += 4;
                     }
@@ -7671,6 +7739,9 @@
                 case 'rampage':
                     // Rampage tidak memiliki stat yang perlu dikembalikan — efeknya hanya mempercepat cooldown per-frame
                     // Otomatis berhenti saat activeUltimate di-null-kan
+                    break;
+                case 'hells_wrath':
+                    player.baseDmgMulti /= 1.3; // kembalikan damage buff 1.3x setelah efek berakhir
                     break;
                 case 'frenzy_time':
                     player.maxHp /= 2;
