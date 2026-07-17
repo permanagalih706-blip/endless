@@ -1058,6 +1058,16 @@
                     <div id="ult-hud-bar" class="ultimate-bar active" style="width: 100%;"></div>
                 </div>
             </div>
+            <div id="dg-hud" class="hidden" style="margin-top: 6px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 6px; display: flex; flex-direction: column; gap: 2px;">
+                <div class="ultimate-title">👑 DIVINE GENERAL [P]</div>
+                <div class="ultimate-status-row">
+                    <span id="dg-hud-name" class="ultimate-name">The Divine General</span>
+                    <span id="dg-hud-badge" class="ultimate-badge ready">READY</span>
+                </div>
+                <div class="ultimate-bar-container">
+                    <div id="dg-hud-bar" class="ultimate-bar active" style="width: 100%;"></div>
+                </div>
+            </div>
         </div>
         <div id="top-right" class="hud hidden">
             <div style="margin-bottom: 6px;">
@@ -1555,6 +1565,8 @@
         // =========================================================================
         // 1. BALANCING CONFIGURATION
         // =========================================================================
+        // Cooldown resummon Divine General (& Super Beast yang ikut ter-refresh) — 5 menit
+        const DIVINE_GENERAL_COOLDOWN_MS = 5 * 60 * 1000;
         const CONFIG = {
             LIFESTEAL_PER_KILL: 0.8,
             BASE_PLAYER_HP: 100,
@@ -1578,15 +1590,15 @@
         // ==========================================
         const WEAPON_DEFS = {
             pistol: { name: "Pistol", max: 10, costBase: 1, desc: "Menembakan peluru, tiap upgrade menambah 1 peluru." },
-            boomerang: { name: "Boomerang", max: 24, costBase: 2, desc: "Menembakan boomerang pierce max 3. Tiap upgrade +1 boomerang +1 pierce. Max level menembak ke 8 arah mata angin." },
+            boomerang: { name: "Boomerang", max: 24, costBase: 2, desc: "Menembakan 8 boomerang menyebar ke 8 arah mata angin, tiap boomerang melengkung ke KANAN membentuk huruf U (jarak lempar agak jauh) lalu kembali ke player. Mulai level 9, tiap upgrade menambah 1 stack boomerang ke salah satu arah (bergilir merata), sampai di level max (24) totalnya jadi 24 boomerang yang tetap menyebar ke 8 arah." },
             missile: { name: "Missile", max: 10, costBase: 4, desc: "Menembakan missile lambat namun kuat dan AOE tinggi. Level 1-3 menambah jumlah missile, 4-10 menambah AOE." },
             poison: { name: "Poison bottle", max: 15, costBase: 2, desc: "Melempar botol berisi kabut beracun. Level 1-5 tambah botol, 6-10 tambah DoT, 11-15 tambah AOE." },
             thunder: { name: "Thunder", max: 30, costBase: 5, desc: "Mensummon petir kemusuh acak. Upgrade menambah jumlah petir." },
             chain: { name: "Chain lightning", max: 15, costBase: 3, desc: "Menembakan listrik menyebar ke max 5 orang. Level 1-5 menambah damage, 6-10 menambah rantai pantulan." },
             pulse: { name: "Heavy pulse", max: 5, costBase: 6, desc: "Menciptakan dorongan energi kuat berkala dengan damage dan knockback ke sekitar." },
             minion: { name: "Minion", max: 8, costBase: 8, desc: "Summon minion mengelilingi player yang menyerang acak 1 level di bawah senjata Anda." },
-            blue_lapse: { name: "Blue Lapse", max: 1, costBase: 12, desc: "Setiap 10 detik memicu Blue Flame. Saat dash klik kanan, memicu Blue Lapse yang bergerak lurus secara lambat selama 5 detik." },
-            reversal_red: { name: "Reversal Red", max: 1, costBase: 15, desc: "Setiap 10 detik memicu Red Flame. Saat dash klik kiri, memicu Reversal Red cepat yang bergerak lurus, damage tinggi, knockback tinggi, & meledak setelah 3 detik." },
+            blue_lapse: { name: "Blue Lapse", max: 10, costBase: 12, desc: "Setiap 10 detik memicu Blue Flame. Saat dash klik kanan, memicu Blue Lapse yang bergerak lurus secara lambat selama 5 detik, menghisap musuh sekuat Singularity. Tiap level menambah damage." },
+            reversal_red: { name: "Reversal Red", max: 10, costBase: 15, desc: "Setiap 10 detik memicu Red Flame. Saat dash klik kiri, memicu Reversal Red cepat yang bergerak lurus, menciptakan ledakan knockback (dorong menjauh, setara knockback Super Beast) setiap 0.2 detik di area sekitarnya, lalu meledak besar setelah 3 detik dengan AoE setara Hollow Nuke. Tiap level menambah damage." },
             // 15 NEW WEAPONS
             laser: { name: "Sinar Laser", max: 10, costBase: 5, desc: "Menembakan sinar laser penembus tebal ke arah musuh terdekat secara periodik." },
             meteor: { name: "Hujan Meteor", max: 10, costBase: 7, desc: "Memanggil meteor dari langit jatuh ke posisi musuh acak, membakar tanah." },
@@ -1630,7 +1642,7 @@
             art_beast_gen: { name: "Beast Gen", max: 10, costBase: 260, desc: "Membangkitkan kekuatan dalam diri player. Tiap upgrade +10% Damage & +10% Max HP Player." },
             art_campaign: { name: "Campaign", max: 10, costBase: 280, desc: "Membuka mode CAMPAIGN (bisa diaktifkan di menu utama). Hanya bertahan 20 menit (bukan endless) dan HANYA Pistol Lv.1 yang bisa dipakai (senjata lain walau sudah dibeli tetap terkunci) — namun Artefak, Senjata Ultimate, Statistik, dan senjata mistis dari Intergalactic Trader tetap berfungsi normal. Tiap upgrade memperbesar bonus hadiah di akhir permainan." },
             art_enemy_buffer: { name: "Enemy Buffer", max: 8, costBase: 320, desc: "Memperkuat musuh sebesar 10% (dari awal game) per upgrade, namun sebagai gantinya koin, cosmic koin, dan EXP yang didapat naik 5% per upgrade." },
-            art_evasionist: { name: "Evasionist", max: 10, costBase: 220, desc: "+10% peluang evasion (menghindar sepenuhnya dari damage, dengan efek visual) di lv 1, tiap upgrade selanjutnya +5% peluang." }
+            art_evasionist: { name: "Evasionist", max: 8, costBase: 220, desc: "+10% peluang evasion (menghindar sepenuhnya dari damage, dengan efek visual) per level. Max level 8 (maksimal 80% peluang evasion, tidak bisa 100%)." }
         };
 
         // 5 Mythic Weapons — hanya bisa didapat dari Intergalactic Trader (10% peluang tampil per kemunculan trader).
@@ -1658,13 +1670,13 @@
                 name: "Hollow Purple",
                 icon: "🟣",
                 costCoin: 750000, costCosmic: 75000,
-                desc: "Tekan [H] untuk melontarkan bola energi ungu (bergerak seperti Reversal Red) berdamage 80% dari Hollow Nuke. Setelah 5 detik, bola meledak ke SELURUH PETA memberi damage 10% dari HP maksimum tiap musuh (termasuk Ultimate Boss)."
+                desc: "Tekan [H] untuk melontarkan bola energi ungu (bergerak seperti Reversal Red) berdamage langsung max 800.000 (80% dari Hollow Nuke, kini max 1 juta damage). Setelah 5 detik, bola meledak ke SELURUH PETA memberi damage max 500.000 di titik pusat ledakan, melemah sampai minimum 300.000 di titik terjauh (termasuk Ultimate Boss)."
             },
             potential_maxer: {
                 name: "Potential Maxer",
                 icon: "💠",
                 costCoin: 1000000, costCosmic: 100000,
-                desc: "The Divine General: HP menjadi 1 MILIAR & gerak 1.5x kecepatan player (damage TIDAK ikut naik), tidak lagi memberi damage ke player, dan bisa dipanggil ulang setelah mati (cooldown 10 menit) alih-alih hanya sekali per game. Juga memberi Super Beast (jika sudah dimiliki) buff 10x lipat termasuk efek AoE-nya (kecuali kecepatan)."
+                desc: "The Divine General: HP menjadi 1 MILIAR & gerak 1.5x kecepatan player (damage TIDAK ikut naik), dan tidak lagi memberi damage ke player. Juga memberi Super Beast (jika sudah dimiliki) buff 10x lipat termasuk efek AoE-nya (kecuali kecepatan)."
             }
         };
         const MYTHIC_WEAPON_ORDER = ['trader_pass', 'god_of_artefact', 'spamer_one', 'hollow_purple', 'potential_maxer'];
@@ -1680,6 +1692,30 @@
             return 1 + (getEnemyBufferLevel() * 0.05);
         }
 
+        // Stat "More Coin" & "More Cosmic Coin" — tiap level +5% koin/cosmic koin yang dipungut, max level 30.
+        function getMoreCoinMult() {
+            let lv = (saveData.stats.moreCoin && saveData.stats.moreCoin.level) || 0;
+            return 1 + (lv * (saveData.stats.moreCoin ? saveData.stats.moreCoin.val : 0.05));
+        }
+        function getMoreCosmicMult() {
+            let lv = (saveData.stats.moreCosmicCoin && saveData.stats.moreCosmicCoin.level) || 0;
+            return 1 + (lv * (saveData.stats.moreCosmicCoin ? saveData.stats.moreCosmicCoin.val : 0.05));
+        }
+        // SECRET STAT: Superbeast Gene Buff — terkunci sampai kode PANZER dipakai. Tiap level melipatgandakan damage Super Beast.
+        function getSuperbeastGeneMult() {
+            if (!saveData.superBeastUnlocked) return 1;
+            let lv = (saveData.stats.superbeast_gene && saveData.stats.superbeast_gene.level) || 0;
+            let per = (saveData.stats.superbeast_gene ? saveData.stats.superbeast_gene.val : 1.5);
+            return 1 + (lv * per);
+        }
+        // SECRET STAT: Divine General Gene Buff — terkunci sampai Divine General di-CLAIM (disummon minimal sekali). Tiap level melipatgandakan damage The Divine General.
+        function getDivineGeneMult() {
+            if (!saveData.divineGeneralClaimed) return 1;
+            let lv = (saveData.stats.divine_gene && saveData.stats.divine_gene.level) || 0;
+            let per = (saveData.stats.divine_gene ? saveData.stats.divine_gene.val : 1.5);
+            return 1 + (lv * per);
+        }
+
         // ==========================================
         // 3. SAVE DATA STRUCTURE
         // ==========================================
@@ -1692,7 +1728,16 @@
                 spd: { level: 0, max: 25, costBase: 70, val: 0.2, name: "Movement Speed" },
                 magnet: { level: 0, max: 100, costBase: 14, val: 20, name: "Magnet Range" },
                 // Idle Tycoon - dinaikkan jauh lebih mahal (2000 -> 7000) karena penghasilan pasifnya sangat kuat (terus berjalan walau game ditutup)
-                idleCap: { level: 0, max: 12, costBase: 7000, val: 2, name: "Idle Tycoon - Kapasitas Maks (Jam)" }
+                idleCap: { level: 0, max: 12, costBase: 7000, val: 2, name: "Idle Tycoon - Kapasitas Maks (Jam)" },
+                // More Coin & More Cosmic Coin - meningkatkan koin/cosmic koin yang didapat tiap dipungut. Max level 30.
+                moreCoin: { level: 0, max: 30, costBase: 60, val: 0.05, name: "More Coin (+5% Koin per Level)" },
+                moreCosmicCoin: { level: 0, max: 30, costBase: 500, val: 0.05, name: "More Cosmic Coin (+5% Cosmic Koin per Level)" },
+                // SECRET STAT — terkunci di balik Code Misterius. Setelah dipakai, stat ini terbuka:
+                // tiap level melipatgandakan damage Super Beast secara signifikan. Max level 30.
+                superbeast_gene: { level: 0, max: 30, costBase: 4000, val: 1.5, name: "Superbeast Gene Buff" },
+                // SECRET STAT — terkunci sampai Divine General di-CLAIM (disummon minimal sekali dengan tombol [P]).
+                // Tiap level melipatgandakan damage The Divine General secara signifikan. Max level 15.
+                divine_gene: { level: 0, max: 15, costBase: 4000, val: 1.5, name: "Divine General Gene Buff" }
             },
             weapons: {},
             artifacts: {},
@@ -1748,6 +1793,12 @@
             iddqdUnlocked: false,
             abacabbHpBonus: 0,
             superBeastUnlocked: false,
+            // "Claim" Divine General: jadi true saat pertama kali disummon dengan tombol [P]. Membuka secret stat Divine General Gene Buff.
+            divineGeneralClaimed: false,
+            // Cooldown resummon Super Beast (dipakai True Heavenly Judgment)
+            superBeastReadyAt: 0,
+            // Sudah pernah dapat notifikasi unlock ultimate rahasia True Heavenly Judgment?
+            trueHeavenlyJudgmentGranted: false,
             leaveMeAloneUnlocked: false,
             pistolMaxBonus: 0,
             magnetCollectMode: false,
@@ -1843,11 +1894,8 @@
             saveData.stats = JSON.parse(JSON.stringify(BASE_SAVE.stats));
         }
 
-        // Sinkronkan batas max tiap statistik dengan definisi resmi di BASE_SAVE (bukan disamaratakan ke 1 angka).
-        // PERBAIKAN BUG: sebelumnya kode ini memaksa SEMUA stat (kecuali idleCap) jadi max 25,
-        // padahal seharusnya: Max HP = 50, All Weapon Damage = 75, Movement Speed = 25, Magnet Range = 100.
-        // Akibatnya, tiap kali reset/reload, max HP/ATK/Magnet ikut turun jadi 25 secara tidak sengaja.
-        // Sekarang max tiap stat SELALU disamakan dengan BASE_SAVE.stats[k].max, jadi tidak berubah-ubah lagi.
+        // Sinkronkan max level tiap stat dengan definisi BASE_SAVE (sumber kebenaran satu-satunya),
+        // supaya tidak ada lagi kasus max ke-reset balik ke 25 untuk stat yang seharusnya beda (hp:50, atk:75, spd:25, magnet:100, dst).
         if (saveData.stats) {
             for (let k in saveData.stats) {
                 if (BASE_SAVE.stats[k]) {
@@ -1995,6 +2043,26 @@
                 duration: 840,   // 14 detik
                 cooldown: 1320,  // 22 detik
                 desc: "Aktifkan: Tekan [U]. Durasi 14s, Cooldown 22s. Efek: Stun semua musuh di layar selama durasi aktif dan memberikan damage kecil (2x ATK) setiap 0.1s. Berguna sebagai pelindung diri."
+            },
+            hells_wrath: {
+                id: "hells_wrath",
+                name: "Hell's Wrath",
+                cost: 10000,       // Koin — dibuat lebih murah
+                costCosmic: 280,  // Cosmic Coin — dibuat lebih murah
+                key: "u",
+                duration: 900,   // 15 detik — bertahan jauh lebih lama dari Rampage (5 detik)
+                cooldown: 1500,  // 25 detik
+                desc: "Aktifkan: Tekan [U]. Durasi 15s (jauh lebih lama dari Rampage!), Cooldown 25s. Efek: SEMUA senjata menembak 5x lebih cepat (firing rate 5x lipat)! Cooldown Blue Lapse & Reversal Red juga 5x lebih cepat terisi. Murka neraka yang bertahan lama!"
+            },
+            true_heavenly_judgment: {
+                id: "true_heavenly_judgment",
+                name: "True Heavenly Judgment",
+                cost: 60000, costCosmic: 2500, // Ultimate TERMAHAL, dan hanya bisa dibeli setelah kode-kode rahasia lengkap
+                secret: true,
+                key: "u",
+                duration: 10800, // 3 menit
+                cooldown: 600,   // 10 detik (namun Divine General & Super Beast baru bisa disummon ulang setelah cooldown resummon)
+                desc: "🔒 ULTIMATE RAHASIA & TERMAHAL! Terkunci di balik kode-kode rahasia yang tersembunyi di dalam game (baru bisa dibeli setelah semua kode ditemukan), dan The Divine General & Super Beast harus sedang tersummon untuk diaktifkan. Aktifkan: Tekan [U]. Keduanya menghilang & masuk cooldown resummon, digantikan HEAVEN JUDGEMENTER selama 3 menit: HP 10x Divine General, kecepatan 2x player, SELALU berada dekat player, sesekali memanggil petir ke musuh acak dengan damage lumayan, dan musuh yang ia bunuh meledak dengan knockback 2x lebih kuat dari Super Beast. Seluruh peta berubah warna merah-oranye selama efek ini aktif. Cooldown ultimate ini sendiri hanya 10 detik, tapi butuh Divine General & Super Beast disummon ulang (tekan [P]) untuk bisa dipakai lagi."
             }
         };
 
@@ -2204,11 +2272,24 @@
             if (activeSubShop) renderSubShop();
             showRewardPopup('🎮', 'PROFESSIONALTOOLS!', `+1 Level ke ${upgraded} senjata yang kamu miliki (tidak melebihi batas maksimal)!`);
         }
+        // Ultimate rahasia True Heavenly Judgment hanya jadi bisa DIBELI (ultimate termahal) jika KEDUA kode rahasia sudah dipakai.
+        function checkTrueHeavenlyJudgmentUnlock() {
+            if (saveData.superBeastUnlocked && saveData.divineGeneralUnlocked) {
+                if (!saveData.trueHeavenlyJudgmentGranted) {
+                    saveData.trueHeavenlyJudgmentGranted = true;
+                    saveGame();
+                    showRewardPopup('⚖️', 'ULTIMATE RAHASIA TERBUKA!', 'Semua kode rahasia yang dibutuhkan telah lengkap... True Heavenly Judgment kini bisa DIBELI di Toko Ultimate (ultimate termahal)!');
+                } else {
+                    saveGame();
+                }
+            }
+        }
         function doPanzer() {
             saveData.superBeastUnlocked = true;
             Sound.play('mythic');
             saveGame();
             showRewardPopup('🎮', 'PANZER!', 'Super Beast akan menemanimu setiap kali game dimulai!');
+            checkTrueHeavenlyJudgmentUnlock();
         }
         function doLeaveMeAlone() {
             saveData.leaveMeAloneUnlocked = true;
@@ -2293,23 +2374,56 @@
                 }
             }
             if (gameState === 'playing' && k === 'p' && saveData.divineGeneralUnlocked && !divineGeneralInstance) {
-                let isMaxer = saveData.mythicWeapons && saveData.mythicWeapons.potential_maxer;
-                let canSummon = !divineGeneralSummonedThisGame || (isMaxer && Date.now() >= (saveData.divineGeneralReadyAt || 0));
+                let isFirstSummon = !divineGeneralSummonedThisGame;
+                let canSummon = isFirstSummon || Date.now() >= (saveData.divineGeneralReadyAt || 0);
                 if (canSummon) {
                     divineGeneralInstance = new DivineGeneral(player.x, player.y);
                     divineGeneralSummonedThisGame = true;
                     createParticles(player.x, player.y, '#eab308', 30);
                     createDamageText(player.x, player.y - 50, "SUMMON: THE DIVINE GENERAL! ⚔️👑", '#eab308', 20);
-                    // Super Beast ikut tersummon bersamaan (jika sudah di-unlock lewat hack PANZER)
-                    if (saveData.superBeastUnlocked && !superBeastInstance) {
-                        superBeastInstance = new SuperBeast(player.x, player.y);
-                        createParticles(player.x, player.y, '#22c55e', 20);
-                        createDamageText(player.x, player.y - 75, "SUPER BEAST IKUT TERSUMMON! 🐉", '#22c55e', 16);
+                    // CLAIM: kali pertama Divine General disummon, membuka secret stat Divine General Gene Buff
+                    if (!saveData.divineGeneralClaimed) {
+                        saveData.divineGeneralClaimed = true;
+                        saveGame();
+                        showRewardPopup('👑', 'DIVINE GENERAL DI-CLAIM!', 'Secret stat "Divine General Gene Buff" terbuka di Statistik Utama!');
                     }
-                } else if (isMaxer) {
+                    // Super Beast (jika sudah di-unlock lewat Code Misterius):
+                    // - Summon pertama: hanya muncul jika belum ada.
+                    // - RESUMMON (Divine General baru saja mati/hilang lalu dipanggil lagi): Super Beast PASTI ikut ter-refresh
+                    //   ke full HP, walaupun instance-nya masih ada / belum mati sama sekali.
+                    if (saveData.superBeastUnlocked) {
+                        if (!isFirstSummon) {
+                            superBeastInstance = new SuperBeast(player.x, player.y); // full HP, dipaksa refresh
+                            createParticles(player.x, player.y, '#22c55e', 25);
+                            createDamageText(player.x, player.y - 75, "SUPER BEAST IKUT DI-RESUMMON (FULL HP)! 🐉", '#22c55e', 16);
+                        } else if (!superBeastInstance) {
+                            superBeastInstance = new SuperBeast(player.x, player.y);
+                            createParticles(player.x, player.y, '#22c55e', 20);
+                            createDamageText(player.x, player.y - 75, "SUPER BEAST IKUT TERSUMMON! 🐉", '#22c55e', 16);
+                        }
+                    }
+                } else {
                     let secsLeft = Math.max(0, Math.ceil(((saveData.divineGeneralReadyAt || 0) - Date.now()) / 1000));
-                    createDamageText(player.x, player.y - 50, `Divine General cooldown: ${secsLeft}s`, '#94a3b8', 14);
+                    let mm = Math.floor(secsLeft / 60), ss = secsLeft % 60;
+                    createDamageText(player.x, player.y - 50, `Divine General cooldown: ${mm}:${ss.toString().padStart(2,'0')}`, '#94a3b8', 14);
                 }
+            }
+            // Tombol [O]: paksa bunuh/hilangkan semua summon (Divine General & Super Beast) sekaligus — langsung masuk cooldown.
+            // Berguna untuk memulai cooldown lebih cepat, atau menambah tantangan kalau terasa terlalu mudah.
+            if (gameState === 'playing' && k === 'o' && (divineGeneralInstance || superBeastInstance)) {
+                if (divineGeneralInstance) {
+                    createParticles(divineGeneralInstance.x, divineGeneralInstance.y, '#ef4444', 25);
+                    divineGeneralInstance = null;
+                    saveData.divineGeneralReadyAt = Date.now() + DIVINE_GENERAL_COOLDOWN_MS;
+                }
+                if (superBeastInstance) {
+                    createParticles(superBeastInstance.x, superBeastInstance.y, '#ef4444', 20);
+                    superBeastInstance = null;
+                    saveData.superBeastReadyAt = Date.now() + DIVINE_GENERAL_COOLDOWN_MS;
+                }
+                saveGame();
+                createDamageText(player.x, player.y - 50, "SUMMON DIHENTIKAN PAKSA! 💀", '#ef4444', 18);
+                Sound.play('error');
             }
             if (gameState === 'playing' && k === 'h' && saveData.mythicWeapons && saveData.mythicWeapons.hollow_purple && player.hollowPurpleCd <= 0) {
                 triggerHollowPurple();
@@ -2336,7 +2450,17 @@
             }
             // Pemicuan Ultimate di dalam pertempuran (tombol U)
             if (gameState === 'playing' && k === 'u' && getEffectiveUltimate() && !activeUltimate && ultimateCooldownTimer <= 0) {
-                activateUltimate(getEffectiveUltimate());
+                let effId = getEffectiveUltimate();
+                if (effId === 'true_heavenly_judgment') {
+                    if (!divineGeneralInstance || !superBeastInstance) {
+                        createDamageText(player.x, player.y - 50, "BOTH BEAST ARE AT REST!", '#94a3b8', 20);
+                        Sound.play('error');
+                    } else {
+                        activateUltimate(effId);
+                    }
+                } else {
+                    activateUltimate(effId);
+                }
             }
             // Navigasi cepat kategori Shop (tombol 1-4)
             if (gameState === 'menu' && !document.getElementById('shop-modal').classList.contains('hidden') && !activeSubShop) {
@@ -2475,6 +2599,7 @@
         let player, camera;
         let entities = { enemies: [], drops: [], projectiles: [], damageTexts: [], particles: [] };
         let divineGeneralInstance = null, divineGeneralSummonedThisGame = false;
+        let heavenJudgementerInstance = null;
         let leaveMeAloneUsedThisGame = false, spawnPauseTimer = 0;
         let bossActive = false, ultimateBossActive = false;
         let currentLevel = 1, currentExp = 0, expNeeded = 10, rerollsLeft = 3, currentChoices = [];
@@ -2652,7 +2777,7 @@
                         this.artMods.cooldownReduction = lv * 0.03;
                     }
                     if (key === 'art_evasionist') {
-                        this.artMods.dodgeChance = 0.10 + (lv - 1) * 0.05;
+                        this.artMods.dodgeChance = Math.min(0.8, lv * 0.10); // max 8 level = 80%, tidak bisa 100%
                     }
                 }
 
@@ -2731,15 +2856,15 @@
                             this.life--;
                             this.x += this.vx;
                             this.y += this.vy;
-                            // Hisap dan damage musuh (setiap 4 frame untuk performa)
-                            if (this.life % 4 === 0) {
+                            // Hisap musuh SETIAP FRAME, sekuat Singularity (Blue Lapse setara efek black hole)
+                            {
                                 for (let i = entities.enemies.length - 1; i >= 0; i--) {
                                     let e = entities.enemies[i];
                                     if (!e || e.dead) continue;
                                     let d = getDistance(this.x, this.y, e.x, e.y);
                                     if (d < this.radius) {
                                         let da = getAngle(e.x, e.y, this.x, this.y);
-                                        let force = 4 * (e.knockbackResist ? 0.1 : 1);
+                                        let force = 6 * (e.knockbackResist ? 0.1 : 1); // setara/sedikit lebih kuat dari Singularity (force 5)
                                         e.x += Math.cos(da) * force;
                                         e.y += Math.sin(da) * force;
                                     }
@@ -2784,26 +2909,46 @@
                             this.life--;
                             this.x += this.vx;
                             this.y += this.vy;
-                            // Tolak dan damage musuh (setiap 4 frame)
-                            if (this.life % 4 === 0) {
+                            // Ledakan knockback BERKALA setiap 0.2 detik (12 frame) — bukan tarikan/dorongan terus-menerus ala Singularity!
+                            // Knockback tiap ledakan setara knockback AoE Super Beast (220)
+                            if (this.life % 12 === 0) {
+                                let burstKb = 220;
+                                let hitAny = false;
                                 for (let i = entities.enemies.length - 1; i >= 0; i--) {
                                     let e = entities.enemies[i];
                                     if (!e || e.dead) continue;
                                     let d = getDistance(this.x, this.y, e.x, e.y);
                                     if (d < this.radius) {
-                                        let da = getAngle(e.x, e.y, this.x, this.y);
-                                        e.x += Math.cos(da) * 8;
-                                        e.y += Math.sin(da) * 8;
+                                        let da = getAngle(this.x, this.y, e.x, e.y);
+                                        let force = burstKb * (e.knockbackResist ? 0.1 : 1);
+                                        e.x += Math.cos(da) * force;
+                                        e.y += Math.sin(da) * force;
+                                        hitAny = true;
                                     }
-                                    if (d < this.radius * 0.5 && this.life % 12 === 0) {
+                                    if (d < this.radius * 0.5) {
                                         e.takeDamage(this.dmg * 0.3);
                                     }
                                 }
+                                if (hitAny) {
+                                    createParticles(this.x, this.y, '#dc2626', 8);
+                                    let burstX = this.x, burstY = this.y, burstR = this.radius;
+                                    entities.particles.push({
+                                        x: burstX, y: burstY, radius: 0, maxRadius: burstR, life: 10, max: 10,
+                                        update() { this.life--; this.radius += this.maxRadius / 10; },
+                                        draw(ctx) {
+                                            let prog = 1 - this.life / this.max;
+                                            ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                                            ctx.strokeStyle = `rgba(220, 38, 38, ${0.6 * (1 - prog)})`;
+                                            ctx.lineWidth = 4; ctx.stroke();
+                                        }
+                                    });
+                                }
                             }
-                            // Meledak setelah 3 detik
+                            // Meledak setelah 3 detik — AoE ledakan Reversal Red kini SETARA Hollow Nuke
                             if (this.life <= 0) {
-                                let explodeDmg = (100 + this.level * 50) * this.baseDmgMulti;
-                                let explodeRadius = 250;
+                                let nukeMatchRadius = 365; // sama seperti radius Hollow Nuke (magnet lv 15: 65 + 15*20)
+                                let explodeDmg = Math.min(1000000, 100000 * this.level) * this.baseDmgMulti; // scaling ke max 1 juta di level 10, setara Hollow Nuke
+                                let explodeRadius = nukeMatchRadius;
                                 let explodeKb = 70;
 
                                 createDamageText(this.x, this.y, "RED EXPLOSION! 💥", '#dc2626', 22);
@@ -3294,24 +3439,24 @@
                         this.cooldown = 35;
                         break;
 
-                    case 'boomerang':
+                    case 'boomerang': {
+                        // Selalu menyebar ke 8 arah mata angin (base), tiap boomerang melengkung ke KANAN membentuk huruf U lalu kembali ke player.
+                        // Mulai level 9, tiap naik 1 level menambah 1 STACK boomerang tambahan ke salah satu dari 8 arah (bergilir merata),
+                        // jadi di level max (24) totalnya ada 24 boomerang (8 arah x 3 stack) yang tetap menyebar ke 8 arah.
                         let maxPierce = 3 + (this.level - 1);
-                        if (this.level >= 8) {
-                            // Tembak 8 Arah Mata Angin Konstan di level max
-                            for (let i = 0; i < 8; i++) {
-                                let ang = (Math.PI / 4) * i;
-                                fireBullet(player.x, player.y, ang, finalDmg, 7, '#22b8cf', 6, isCrit, maxPierce, true);
-                            }
-                        } else {
-                            let bCount = this.level;
-                            let targetAng = near ? getAngle(player.x, player.y, near.x, near.y) : 0;
-                            for (let i = 0; i < bCount; i++) {
-                                let spread = (i - (bCount - 1) / 2) * 0.2;
-                                fireBullet(player.x, player.y, targetAng + spread, finalDmg, 7, '#22b8cf', 6, isCrit, maxPierce, true);
+                        let extraStacks = Math.max(0, this.level - 8);
+                        let totalBoomerangs = 8 + extraStacks;
+                        for (let i = 0; i < totalBoomerangs; i++) {
+                            let dir = i % 8; // bergilir ke 8 arah supaya stack tambahan tersebar rata
+                            let ang = (Math.PI / 4) * dir;
+                            let bmr = fireBullet(player.x, player.y, ang, finalDmg, 7.5, '#22b8cf', 6, isCrit, maxPierce, true);
+                            if (bmr) {
+                                bmr.totalLife = 170; bmr.life = 170; // jarak lempar lebih jauh sebelum melengkung balik
                             }
                         }
                         this.cooldown = 55;
                         break;
+                    }
 
                     case 'missile':
                         let mCount = Math.min(3, this.level);
@@ -3804,20 +3949,32 @@
                 this.x = x; this.y = y; this.angle = angle; this.damage = damage; this.speed = speed;
                 this.color = color; this.size = size; this.isCrit = isCrit;
                 this.pierce = pierce; this.boom = boom; this.isMissileAoe = isMissileAoe;
-                this.life = 140; this.vX = Math.cos(angle) * speed; this.vY = Math.sin(angle) * speed;
+                this.life = 140; this.totalLife = this.life; this.vX = Math.cos(angle) * speed; this.vY = Math.sin(angle) * speed;
+                this._hitEnemies = null; // dibuat lazy, dipakai supaya musuh berhitbox besar (boss) tidak "memakan" seluruh pierce sendirian
+                if (boom) this.curveDir = 1; // selalu melengkung ke KANAN (searah jarum jam)
             }
             update() {
                 this.x += this.vX; this.y += this.vY; this.life--;
 
-                if (this.boom && this.life < 75) {
-                    let dx = player.x - this.x;
-                    let dy = player.y - this.y;
-                    let dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist > 0) {
-                        this.vX = (dx / dist) * this.speed;
-                        this.vY = (dy / dist) * this.speed;
+                if (this.boom) {
+                    if (this.life < this.totalLife * 0.4) {
+                        // FASE KEMBALI: melesat balik ke arah player, benar-benar seperti boomerang yang kembali
+                        let dx = player.x - this.x;
+                        let dy = player.y - this.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist > 0) {
+                            this.vX = (dx / dist) * this.speed;
+                            this.vY = (dy / dist) * this.speed;
+                        }
+                        if (dist < player.size + this.size) { this.life = 0; return; }
+                    } else {
+                        // FASE PERGI: melengkung ke KANAN membentuk kurva U/V asli (bukan lurus, bukan lengkung acak)
+                        let curveAngle = 0.032 * this.curveDir;
+                        let cosA = Math.cos(curveAngle), sinA = Math.sin(curveAngle);
+                        let nvx = this.vX * cosA - this.vY * sinA;
+                        let nvy = this.vX * sinA + this.vY * cosA;
+                        this.vX = nvx; this.vY = nvy;
                     }
-                    if (dist < player.size + this.size) { this.life = 0; return; }
                 }
 
                 const bx = this.x;
@@ -3855,6 +4012,11 @@
                     for (let i = entities.enemies.length - 1; i >= 0; i--) {
                         let e = entities.enemies[i];
                         if (e.dead) continue;
+                        // PENTING: musuh berhitbox besar (boss) bisa "ditempuh" bullet selama beberapa frame sekaligus.
+                        // Tanpa pengecekan ini, satu boss bisa menghabiskan SELURUH pierce sendirian dalam beberapa frame,
+                        // membuat bullet seakan tidak bisa menembus boss ke musuh lain di baliknya. Jadi tiap bullet
+                        // hanya boleh mendamage 1 musuh yang SAMA sekali saja (termasuk boss).
+                        if (this._hitEnemies && this._hitEnemies.has(e)) continue;
                         let minDist = e.size + bSize;
                         let dx = Math.abs(bx - e.x);
                         if (dx > minDist) continue;
@@ -3869,6 +4031,8 @@
                             }
 
                             e.takeDamage(this.damage);
+                            if (!this._hitEnemies) this._hitEnemies = new Set();
+                            this._hitEnemies.add(e);
                             createParticles(bx, by, this.color, 3);
                             this.pierce--;
                             if (this.pierce <= 0) { this.life = 0; break; }
@@ -3883,13 +4047,30 @@
                 ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fillStyle = this.color; ctx.fill();
                 if (this.isCrit) { ctx.strokeStyle = '#c92a2a'; ctx.lineWidth = 1.5; ctx.stroke(); }
+                // Visual "stack" boomerang — tetap 1 objek, tapi cincin berputar makin banyak/terang makin tinggi stack-nya
+                if (this.stacks && this.stacks > 1) {
+                    let ringCount = Math.min(4, Math.ceil(this.stacks / 6));
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.rotate(frameCount * 0.15);
+                    for (let r = 0; r < ringCount; r++) {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, this.size + 4 + r * 5, 0, Math.PI * 2);
+                        ctx.strokeStyle = `rgba(34, 184, 207, ${0.55 - r * 0.12})`;
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
+                    ctx.restore();
+                }
             }
         }
 
         function fireBullet(x, y, angle, dmg, spd, col, sz, cr = false, pr = 1, bm = false, sl = false, mAs = 0) {
             // Batasi jumlah proyektil aktif agar tidak membebani low-end
-            if (entities.projectiles.length >= MAX_PROJECTILES) return;
-            entities.projectiles.push(new Bullet(x, y, angle, dmg, spd, col, sz, cr, pr, bm, mAs));
+            if (entities.projectiles.length >= MAX_PROJECTILES) return null;
+            let b = new Bullet(x, y, angle, dmg, spd, col, sz, cr, pr, bm, mAs);
+            entities.projectiles.push(b);
+            return b;
         }
 
         // ==========================================
@@ -3977,8 +4158,9 @@
             }
             let hpMult = getUltimateBossHpMultiplier(variant.id);
             let spawnAngle = Math.random() * Math.PI * 2;
-            let sx = player.x + Math.cos(spawnAngle) * 450;
-            let sy = player.y + Math.sin(spawnAngle) * 450;
+            let spawnDist = Math.max(450, getMinEnemySpawnDist());
+            let sx = player.x + Math.cos(spawnAngle) * spawnDist;
+            let sy = player.y + Math.sin(spawnAngle) * spawnDist;
             let boss = new Enemy(sx, sy, 'ultimate_boss', gameTime, variant, hpMult);
             entities.enemies.push(boss);
             ultimateBossActive = true;
@@ -4696,14 +4878,16 @@
                     let mult = Math.random() < player.artMods.doubleCoinsChance ? 2 : 1;
                     let greedMult = 1 + ((saveData.greedBonusPercent || 0) / 100);
                     let ebMult = getEnemyBufferRewardMult();
-                    let finalVal = Math.round(this.value * mult * frenzyMult * greedMult * ebMult);
+                    let moreCoinMult = getMoreCoinMult();
+                    let finalVal = Math.round(this.value * mult * frenzyMult * greedMult * ebMult * moreCoinMult);
                     runCoins += finalVal;
                     createDamageText(this.x, this.y, `+${finalVal}${mult > 1 ? ' (x2!)' : ''}`, '#d97706', mult > 1 ? 14 : 11);
                 } else if (this.type === 'cosmic') {
                     let mult = Math.random() < player.artMods.doubleCoinsChance ? 2 : 1;
                     let greedMult = 1 + ((saveData.greedBonusPercent || 0) / 100);
                     let ebMult = getEnemyBufferRewardMult();
-                    let finalVal = Math.round(1 * mult * frenzyMult * greedMult * ebMult);
+                    let moreCosmicMult = getMoreCosmicMult();
+                    let finalVal = Math.round(1 * mult * frenzyMult * greedMult * ebMult * moreCosmicMult);
                     runCosmic += finalVal;
                     createDamageText(this.x, this.y, `+${finalVal} COSMIC${mult > 1 ? ' (x2!)' : ''}`, '#0d9488', mult > 1 ? 15 : 13);
                 } else if (this.type === 'magnet') {
@@ -4894,7 +5078,7 @@
 
                         hitEnemies.forEach(e => {
                             if (e.isBoss) {
-                                e.takeDamage(5000 * synergyMult); // Potential Maxer TIDAK buff damage, hanya HP & kecepatan
+                                e.takeDamage(5000 * synergyMult * getDivineGeneMult()); // Potential Maxer TIDAK buff damage, hanya HP & kecepatan (Divine Gene Buff tetap berlaku)
                             } else {
                                 e.takeDamage(e.hp + 9999);
                             }
@@ -4973,16 +5157,25 @@
             }
         }
 
+        // Musuh TIDAK PERNAH boleh muncul dekat player — pakai jarak aman tetap yang cukup jauh (di luar layar),
+        // dan tetap mengikuti Magnet Range asli player kalau itu lebih jauh lagi (supaya makin kuat magnet, makin jauh juga spawn-nya).
+        function getMinEnemySpawnDist() {
+            let magnetBased = CONFIG.MAGNET_BASE_RANGE + (saveData.stats.magnet.level * saveData.stats.magnet.val);
+            return Math.max(700, magnetBased);
+        }
+
         function handleSpawning() {
             if (spawnPauseTimer > 0) return; // Hack LEAVEMEALONE: spawn dihentikan sementara
             if (entities.enemies.length >= 150) return;
             let rate = Math.max(12, 55 - Math.floor(gameTime / 8));
             if (frameCount % rate === 0) {
                 let batch = 1 + Math.floor(gameTime / 24);
+                let minSpawnDist = getMinEnemySpawnDist();
+                let spawnDist = Math.max(canvas.width / 1.4, minSpawnDist);
                 for (let i = 0; i < batch; i++) {
                     let a = Math.random() * Math.PI * 2;
-                    let px = player.x + Math.cos(a) * (canvas.width / 1.4);
-                    let py = player.y + Math.sin(a) * (canvas.width / 1.4);
+                    let px = player.x + Math.cos(a) * spawnDist;
+                    let py = player.y + Math.sin(a) * spawnDist;
 
                     let variant = 'normal';
                     if (saveData.honoredModeActive) {
@@ -4999,7 +5192,9 @@
 
             // Spawn boss menggunakan interval dinamis
             if (gameTime >= nextBossAt && !bossActive) {
-                let boss = new Enemy(player.x + 400, player.y + 400, 'boss', gameTime);
+                let bossAngle = Math.random() * Math.PI * 2;
+                let bossDist = Math.max(400 * Math.SQRT2, getMinEnemySpawnDist());
+                let boss = new Enemy(player.x + Math.cos(bossAngle) * bossDist, player.y + Math.sin(bossAngle) * bossDist, 'boss', gameTime);
                 entities.enemies.push(boss);
                 bossActive = true;
                 // Kurangi interval boss untuk boss berikutnya
@@ -5173,7 +5368,7 @@
                 if (!e || e.dead) continue;
                 let d = getDistance(x, y, e.x, e.y);
                 if (d < nukeRadius) {
-                    e.takeDamage(100000);
+                    e.takeDamage(1000000);
                 }
             }
 
@@ -5199,8 +5394,8 @@
 
         // ==========================================
         // MYTHIC WEAPON: HOLLOW PURPLE (tekan H)
-        // Bola energi ungu bergerak seperti Reversal Red, damage 80% dari Hollow Nuke.
-        // Setelah 5 detik meledak ke SELURUH PETA: 10% max HP tiap musuh (termasuk ultimate boss).
+        // Bola energi ungu bergerak seperti Reversal Red, damage langsung max 800,000 (80% dari Hollow Nuke).
+        // Setelah 5 detik meledak ke SELURUH PETA: max 500,000 damage di inti ledakan, melemah jadi minimum 300,000 di titik terjauh.
         // ==========================================
         function triggerHollowPurple() {
             let angle = player.lastMoveAngle || 0;
@@ -5213,18 +5408,20 @@
                 update() {
                     this.life--;
                     this.x += this.vx; this.y += this.vy;
-                    // Damage kontak langsung sepanjang perjalanan (80% dari Hollow Nuke = 80,000, sekali per musuh)
+                    // Damage kontak langsung sepanjang perjalanan (max 800,000 = 80% dari Hollow Nuke, sekali per musuh)
                     for (let i = 0; i < entities.enemies.length; i++) {
                         let e = entities.enemies[i];
                         if (!e || e.dead || this.hitEnemies.has(e)) continue;
                         if (getDistance(this.x, this.y, e.x, e.y) < 45) {
-                            e.takeDamage(80000);
+                            e.takeDamage(800000);
                             this.hitEnemies.add(e);
                             createParticles(e.x, e.y, '#a855f7', 6);
                         }
                     }
                     if (this.life <= 0) {
-                        // LEDAKAN SELURUH PETA — 10% dari max HP tiap musuh, termasuk ultimate boss
+                        // LEDAKAN SELURUH PETA — damage 500,000 di titik pusat ledakan, melemah linear sampai minimum 300,000 di titik terjauh
+                        let explodeCx = this.x, explodeCy = this.y;
+                        let falloffDist = 2500; // jarak referensi peluruhan damage
                         createDamageText(this.x, this.y - 60, "HOLLOW PURPLE MELEDAK! 🟣💥", '#a855f7', 30);
                         Sound.play('nuke');
                         createParticles(this.x, this.y, '#a855f7', 60);
@@ -5232,7 +5429,10 @@
                         for (let i = 0; i < entities.enemies.length; i++) {
                             let e = entities.enemies[i];
                             if (!e || e.dead) continue;
-                            e.takeDamage((e.maxHp || e.hp) * 0.10);
+                            let dist = getDistance(explodeCx, explodeCy, e.x, e.y);
+                            let ratio = Math.min(1, dist / falloffDist);
+                            let dmg = 500000 - (200000 * ratio); // 500k di pusat -> 300k di titik terjauh
+                            e.takeDamage(dmg);
                         }
                         // Flash layar penuh (screen-space, tidak terpengaruh posisi kamera) agar terasa "seluruh peta"
                         entities.particles.push({
@@ -5299,10 +5499,8 @@
                 if (divineGeneralInstance.life <= 0 || divineGeneralInstance.hp <= 0) {
                     createParticles(divineGeneralInstance.x, divineGeneralInstance.y, '#eab308', 20);
                     createDamageText(divineGeneralInstance.x, divineGeneralInstance.y - 30, "The Divine General departed", '#eab308', 12);
-                    if (saveData.mythicWeapons && saveData.mythicWeapons.potential_maxer) {
-                        saveData.divineGeneralReadyAt = Date.now() + 10 * 60 * 1000; // 10 menit cooldown
-                        saveGame();
-                    }
+                    saveData.divineGeneralReadyAt = Date.now() + DIVINE_GENERAL_COOLDOWN_MS; // 5 menit cooldown sebelum bisa di-resummon
+                    saveGame();
                     divineGeneralInstance = null;
                 }
             }
@@ -5415,6 +5613,9 @@
             }
             if (superBeastInstance && inViewport(superBeastInstance.x, superBeastInstance.y, 100)) {
                 superBeastInstance.draw(ctx);
+            }
+            if (heavenJudgementerInstance && inViewport(heavenJudgementerInstance.x, heavenJudgementerInstance.y, 120)) {
+                heavenJudgementerInstance.draw(ctx);
             }
             player.draw(ctx);
             for (let i = 0; i < entities.damageTexts.length; i++) {
@@ -5544,6 +5745,42 @@
                 }
             } else {
                 ultHud.classList.add('hidden');
+            }
+
+            // Update Divine General Cooldown HUD — muncul begitu kode (HELPME) sudah di-claim
+            const dgHud = document.getElementById('dg-hud');
+            if (saveData.divineGeneralUnlocked) {
+                dgHud.classList.remove('hidden');
+                const dgBadge = document.getElementById('dg-hud-badge');
+                const dgBar = document.getElementById('dg-hud-bar');
+                if (divineGeneralInstance) {
+                    dgBadge.innerText = `TERSUMMON`;
+                    dgBadge.className = "ultimate-badge active";
+                    dgBar.className = "ultimate-bar active";
+                    dgBar.style.width = "100%";
+                } else {
+                    let now = Date.now();
+                    let readyAt = saveData.divineGeneralReadyAt || 0;
+                    if (now >= readyAt) {
+                        dgBadge.innerText = `READY [P]`;
+                        dgBadge.className = "ultimate-badge ready";
+                        dgBar.className = "ultimate-bar active";
+                        dgBar.style.width = "100%";
+                    } else {
+                        let totalCd = DIVINE_GENERAL_COOLDOWN_MS;
+                        let remain = readyAt - now;
+                        let pct = Math.max(0, Math.min(100, (1 - remain / totalCd) * 100));
+                        let remainSec = Math.ceil(remain / 1000);
+                        let mm = Math.floor(remainSec / 60).toString().padStart(2, '0');
+                        let ss = (remainSec % 60).toString().padStart(2, '0');
+                        dgBadge.innerText = `CD (${mm}:${ss})`;
+                        dgBadge.className = "ultimate-badge cooldown";
+                        dgBar.className = "ultimate-bar cooldown";
+                        dgBar.style.width = `${pct}%`;
+                    }
+                }
+            } else {
+                dgHud.classList.add('hidden');
             }
         }
 
@@ -6250,6 +6487,20 @@
             return { count, refund };
         }
 
+        // Menentukan status kunci untuk stat-stat spesial di Statistik Utama.
+        function getStatLockInfo(k) {
+            if (k === 'idleCap' && !saveData.tycoonUnlocked) {
+                return { locked: true, reason: "Gunakan Code Misterius untuk membuka fitur ini." };
+            }
+            if (k === 'superbeast_gene' && !saveData.superBeastUnlocked) {
+                return { locked: true, reason: "Gunakan Code Misterius untuk membuka Superbeast Gene Buff." };
+            }
+            if (k === 'divine_gene' && !saveData.divineGeneralClaimed) {
+                return { locked: true, reason: "CLAIM The Divine General dulu (summon minimal sekali dengan tombol [P]) untuk membuka upgrade ini." };
+            }
+            return { locked: false, reason: '' };
+        }
+
         function renderSubShop() {
             if (!activeSubShop) return;
 
@@ -6267,7 +6518,8 @@
                 titleEl.innerText = "Statistik Utama (Koin)";
                 for (let k in saveData.stats) {
                     let st = saveData.stats[k];
-                    let isLocked = (k === 'idleCap' && !saveData.tycoonUnlocked);
+                    let lockInfo = getStatLockInfo(k);
+                    let isLocked = lockInfo.locked;
                     let plan = getStatPurchasePlan(k);
                     let sellPlan = getStatSellPlan(k);
                     let costLabel = plan.maxed ? 'MAX' : `${plan.cost} Koin`;
@@ -6277,7 +6529,7 @@
                     if (isLocked) {
                         listEl.innerHTML += `
                             <div class="upgrade-item" style="opacity:0.55;"><div class="upgrade-row">
-                                <div class="upgrade-cell-left"><strong>${st.name}</strong> <span style="color:#ef4444; font-weight:700;">[🔒 Terkunci - Code Misterius]</span><br><small>Gunakan Code Misterius untuk membuka fitur ini.</small></div>
+                                <div class="upgrade-cell-left"><strong>${st.name}</strong> <span style="color:#ef4444; font-weight:700;">[🔒 Terkunci - Code Misterius]</span><br><small>${lockInfo.reason}</small></div>
                                 <div class="upgrade-cell-right" style="display: flex; gap: 8px; align-items: center;">
                                     <button class="sell-btn" disabled>Jual</button>
                                     <button disabled>🔒 Terkunci</button>
@@ -6351,6 +6603,23 @@
                     let ult = ULTIMATE_DEFS[k];
                     let owned = saveData.ownedUltimates.includes(k);
                     let equipped = saveData.equippedUltimate === k;
+
+                    // Ultimate rahasia (True Heavenly Judgment): terkunci total sampai kode-kode rahasia dipakai, setelah itu jadi BISA DIBELI
+                    let secretCodesReady = saveData.superBeastUnlocked && saveData.divineGeneralUnlocked;
+                    if (ult.secret && !owned && !secretCodesReady) {
+                        listEl.innerHTML += `
+                            <div class="upgrade-item" style="opacity:0.55;"><div class="upgrade-row">
+                                <div class="upgrade-cell-left">
+                                    <strong>${ult.name}</strong> <span style="color:#ef4444; font-weight:700;">[🔒 Terkunci - Kode Rahasia]</span><br>
+                                    <small style="color:#666; display:block; margin: 2px 0;">Ultimate rahasia! Gunakan kode rahasia yang tersembunyi di dalam game untuk membukanya.</small>
+                                </div>
+                                <div class="upgrade-cell-right">
+                                    <button disabled>🔒 Terkunci</button>
+                                </div>
+                            </div></div>`;
+                        continue;
+                    }
+
                     let cost = Math.floor(ult.cost * getShopDiscountFactor());
                     let costCosmic = Math.floor(ult.costCosmic * getShopDiscountFactor());
 
@@ -6431,7 +6700,7 @@
         };
 
         window.buyStat = function (k, count, cost) {
-            if (k === 'idleCap' && !saveData.tycoonUnlocked) {
+            if (getStatLockInfo(k).locked) {
                 createDamageText(0, 0, "🔒 Terkunci! Gunakan Code Misterius untuk membukanya.", '#ef4444', 14);
                 Sound.play('error');
                 return;
@@ -6449,7 +6718,7 @@
             }
         };
         window.sellStat = function (k, count, refund) {
-            if (k === 'idleCap' && !saveData.tycoonUnlocked) return;
+            if (getStatLockInfo(k).locked) return;
             let st = saveData.stats[k];
             if (st.level >= count) {
                 let freeLevels = st.cheatFreeLevels || 0;
@@ -6546,6 +6815,7 @@
             entities = { enemies: [], drops: [], projectiles: [], damageTexts: [], particles: [] }; bossActive = false; ultimateBossActive = false;
             divineGeneralInstance = null; divineGeneralSummonedThisGame = false;
             superBeastInstance = null;
+            heavenJudgementerInstance = null;
             leaveMeAloneUsedThisGame = false; spawnPauseTimer = 0;
             activeUltimate = null;
             ultimateActiveTimer = 0;
@@ -6581,8 +6851,10 @@
             lastUltimateBossConsecutive = 0;
 
             player = new Player(); camera = new Camera();
+            // Super Beast WAJIB selalu muncul kembali di awal permainan baru (walau sebelumnya "mati"/dihilangkan), tidak terpengaruh cooldown resummon
             if (saveData.superBeastUnlocked) {
                 superBeastInstance = new SuperBeast(player.x, player.y);
+                saveData.superBeastReadyAt = 0; // reset cooldown, sudah tersummon full HP di awal game
             }
             document.getElementById('main-menu').classList.add('hidden');
             document.getElementById('shop-modal').classList.add('hidden');
@@ -6611,7 +6883,7 @@
                 this.size = 22;
                 this.maxHp = this.powered ? 10000000 : 1000000; // Potential Maxer: 10x (Divine General kini hanya buff HP & speed)
                 this.hp = this.maxHp;
-                this.attackDmg = this.powered ? 100 : 10; // per 0.5 detik (10x jika powered)
+                this.attackDmg = (this.powered ? 100 : 10) * getSuperbeastGeneMult(); // per 0.5 detik (10x jika powered, dikalikan lagi Superbeast Gene Buff)
                 this.attackCooldown = 0; // gaya serang sama seperti Divine General: hitbox area, kena semua yang masuk range
                 this.aoeInterval = 600; // 10 detik @60fps, makin sering seiring waktu (turun ke 5 detik / 300 frame)
                 this.aoeTimer = 600;
@@ -6722,6 +6994,174 @@
         }
         let superBeastInstance = null;
 
+        // ==========================================
+        // HEAVEN JUDGEMENTER — muncul sementara (3 menit) saat True Heavenly Judgment diaktifkan,
+        // menggantikan Divine General & Super Beast yang sedang beristirahat.
+        // Stat: HP 10x Divine General, kecepatan 2x player, musuh yang dibunuh meledak dgn knockback 2x Super Beast.
+        // ==========================================
+        class HeavenJudgementer {
+            constructor(x, y, divineGeneralMaxHp) {
+                this.x = x;
+                this.y = y;
+                this.size = 46;
+                this.maxHp = Math.max(1, divineGeneralMaxHp) * 10; // 10x HP Divine General
+                this.hp = this.maxHp;
+                this.attackCooldown = 0;
+                this.attackRange = 365; // setara jarak Magnet level 15 (65 + 15*20)
+                this.leashRadius = 365; // selalu berada dekat player, jarak maksimal setara Magnet level 15
+                this.lightningTimer = 90; // petir pertama datang lebih cepat (1.5 detik)
+            }
+            getSpeed() {
+                return (player.speed || 3) * 2; // 2x kecepatan player
+            }
+            update() {
+                // Selalu berada DEKAT PLAYER — jika keluar dari leash radius, langsung ditarik kembali ke player
+                let distFromPlayer = getDistance(this.x, this.y, player.x, player.y);
+                if (distFromPlayer > this.leashRadius) {
+                    let ang = getAngle(this.x, this.y, player.x, player.y);
+                    let spd = this.getSpeed();
+                    let step = Math.min(distFromPlayer - this.leashRadius * 0.6, spd);
+                    this.x += Math.cos(ang) * step;
+                    this.y += Math.sin(ang) * step;
+                } else {
+                    // Cari musuh terdekat lalu bergerak ke arahnya selama masih dalam leash radius dari player
+                    let target = null, minDist = Infinity;
+                    for (let i = 0; i < entities.enemies.length; i++) {
+                        let e = entities.enemies[i];
+                        if (!e || e.dead) continue;
+                        let d = getDistance(this.x, this.y, e.x, e.y);
+                        if (d < minDist && getDistance(player.x, player.y, e.x, e.y) < this.leashRadius + this.attackRange) {
+                            minDist = d; target = e;
+                        }
+                    }
+                    if (target) {
+                        let ang = getAngle(this.x, this.y, target.x, target.y);
+                        let spd = this.getSpeed();
+                        if (minDist > this.attackRange * 0.6) {
+                            this.x += Math.cos(ang) * spd;
+                            this.y += Math.sin(ang) * spd;
+                        }
+                    }
+                }
+
+                // Petir dari langit — menyambar musuh acak di seluruh peta secara berkala, damage lumayan
+                // Warna emas, jumlah sambaran setara jumlah maksimal petir Thunder (level max 30)
+                if (this.lightningTimer > 0) this.lightningTimer--;
+                if (this.lightningTimer <= 0) {
+                    this.lightningTimer = 150 + Math.floor(Math.random() * 90); // ~2.5 - 4 detik antar gelombang sambaran
+                    let aliveEnemies = entities.enemies.filter(e => e && !e.dead);
+                    if (aliveEnemies.length > 0) {
+                        let maxThunderBolts = WEAPON_DEFS.thunder.max; // 30
+                        let strikeCount = Math.min(aliveEnemies.length, maxThunderBolts);
+                        // Acak urutan lalu ambil sejumlah strikeCount musuh unik (tanpa duplikat)
+                        let shuffled = aliveEnemies.slice();
+                        for (let s = shuffled.length - 1; s > 0; s--) {
+                            let j = Math.floor(Math.random() * (s + 1));
+                            let tmp = shuffled[s]; shuffled[s] = shuffled[j]; shuffled[j] = tmp;
+                        }
+                        let picked = shuffled.slice(0, strikeCount);
+                        Sound.play('mythic');
+                        picked.forEach(e => {
+                            let lightningDmg = 4000 * (player.baseDmgMulti || 1);
+                            e.takeDamage(lightningDmg);
+                            let lx = e.x, ly = e.y;
+                            createParticles(lx, ly, '#ffd700', 16);
+                            createParticles(lx, ly, '#fff7cc', 10);
+                            entities.particles.push({
+                                life: 18, max: 18, x: lx, y: ly,
+                                update() { this.life--; },
+                                draw(ctx) {
+                                    let alpha = this.life / this.max;
+                                    ctx.save();
+                                    ctx.shadowColor = 'rgba(255, 215, 0, 0.9)';
+                                    ctx.shadowBlur = 18;
+                                    ctx.strokeStyle = `rgba(255, 215, 0, ${alpha})`;
+                                    ctx.lineWidth = 4;
+                                    ctx.beginPath();
+                                    let sx = this.x + (Math.random() - 0.5) * 20;
+                                    ctx.moveTo(sx, this.y - 700);
+                                    let cy = this.y - 700;
+                                    let cx = sx;
+                                    while (cy < this.y) {
+                                        cx += (Math.random() - 0.5) * 40;
+                                        cy += 40;
+                                        ctx.lineTo(cx, cy);
+                                    }
+                                    ctx.lineTo(this.x, this.y);
+                                    ctx.stroke();
+                                    ctx.strokeStyle = `rgba(255, 247, 204, ${alpha * 0.8})`;
+                                    ctx.lineWidth = 1.5;
+                                    ctx.stroke();
+                                    ctx.restore();
+                                }
+                            });
+                        });
+                        createDamageText(player.x, player.y - 90, `⚡ PETIR EMAS TURUN (${picked.length}x)! ⚡`, '#ffd700', 16);
+                    }
+                }
+
+                if (this.attackCooldown > 0) this.attackCooldown--;
+                if (this.attackCooldown <= 0) {
+                    let hitAny = false;
+                    for (let i = 0; i < entities.enemies.length; i++) {
+                        let e = entities.enemies[i];
+                        if (!e || e.dead) continue;
+                        if (getDistance(this.x, this.y, e.x, e.y) < this.attackRange) {
+                            hitAny = true;
+                            let wasBoss = !!e.isBoss;
+                            let hpBefore = e.hp;
+                            if (wasBoss) {
+                                e.takeDamage(this.maxHp * 0.02); // damage besar ke boss, sebanding HP raksasa Heaven Judgementer
+                            } else {
+                                e.takeDamage(e.hp + 99999); // bunuh instan musuh biasa
+                            }
+                            // Jika musuh mati kena serangan ini -> ledak dengan knockback 2x lebih kuat dari Super Beast (220 -> 440)
+                            if (e.hp <= 0 || (hpBefore > 0 && e.hp <= 0)) {
+                                let ex = e.x, ey = e.y;
+                                let kb = 440; // 2x knockback AoE Super Beast (220)
+                                let expRadius = 130;
+                                for (let j = 0; j < entities.enemies.length; j++) {
+                                    let e2 = entities.enemies[j];
+                                    if (!e2 || e2.dead || e2 === e) continue;
+                                    let dx = e2.x - ex, dy = e2.y - ey;
+                                    let dist = Math.sqrt(dx * dx + dy * dy);
+                                    if (dist < expRadius) {
+                                        if (dist > 0) {
+                                            e2.x += (dx / dist) * kb;
+                                            e2.y += (dy / dist) * kb;
+                                        } else {
+                                            e2.x += (Math.random() - 0.5) * kb;
+                                            e2.y += (Math.random() - 0.5) * kb;
+                                        }
+                                    }
+                                }
+                                createParticles(ex, ey, '#fbbf24', 18);
+                                createParticles(ex, ey, '#f59e0b', 12);
+                            }
+                        }
+                    }
+                    if (hitAny) {
+                        createParticles(this.x, this.y, '#fde68a', 8);
+                        this.attackCooldown = 15;
+                    }
+                }
+            }
+            draw(ctx) {
+                ctx.save();
+                ctx.shadowColor = 'rgba(251, 191, 36, 0.7)';
+                ctx.shadowBlur = 22;
+                drawHexagon(ctx, this.x, this.y, this.size, '#fde68a', '#f59e0b', 4, frameCount * 0.02);
+                ctx.restore();
+                // HP bar kecil di atas
+                let barW = 70, barH = 6;
+                let hpPct = Math.max(0, this.hp / this.maxHp);
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(this.x - barW / 2, this.y - this.size - 16, barW, barH);
+                ctx.fillStyle = '#fbbf24';
+                ctx.fillRect(this.x - barW / 2, this.y - this.size - 16, barW * hpPct, barH);
+            }
+        }
+
         function activateUltimate(id) {
             activeUltimate = id;
             Sound.play('mythic');
@@ -6769,6 +7209,71 @@
                         }
                     });
                     break;
+                case 'hells_wrath':
+                    // Hell's Wrath: semua weapon cooldown dikurangi 5x lebih cepat (firing rate 5x), bertahan jauh lebih lama dari Rampage
+                    createParticles(player.x, player.y, '#7c0a02', 35);
+                    createParticles(player.x, player.y, '#ff2200', 25);
+                    entities.particles.push({
+                        id: 'hells_wrath_visual',
+                        life: ultimateActiveDuration, maxLife: ultimateActiveDuration,
+                        update() { this.life--; },
+                        draw(ctx) {
+                            // Aura api neraka berputar lebih ganas & lebih gelap di sekitar player
+                            let t = frameCount * 0.12;
+                            let alpha = 0.3 + 0.15 * Math.sin(frameCount * 0.4);
+                            ctx.save();
+                            ctx.strokeStyle = `rgba(124, 10, 2, ${alpha})`;
+                            ctx.lineWidth = 5;
+                            ctx.beginPath();
+                            ctx.arc(player.x, player.y, player.size + 25 + 7 * Math.sin(t), 0, Math.PI * 2);
+                            ctx.stroke();
+                            ctx.strokeStyle = `rgba(255, 60, 0, ${alpha * 0.8})`;
+                            ctx.lineWidth = 3;
+                            ctx.beginPath();
+                            ctx.arc(player.x, player.y, player.size + 40 + 8 * Math.cos(t), 0, Math.PI * 2);
+                            ctx.stroke();
+                            ctx.restore();
+                        }
+                    });
+                    break;
+                case 'true_heavenly_judgment': {
+                    // Divine General & Super Beast menghilang sementara, digantikan Heaven Judgementer.
+                    let baseMaxHp = (divineGeneralInstance ? divineGeneralInstance.maxHp : 1000000);
+                    let spawnX = divineGeneralInstance ? divineGeneralInstance.x : player.x;
+                    let spawnY = divineGeneralInstance ? divineGeneralInstance.y : player.y;
+
+                    divineGeneralInstance = null;
+                    superBeastInstance = null;
+                    saveData.divineGeneralReadyAt = Date.now() + DIVINE_GENERAL_COOLDOWN_MS;
+                    saveData.superBeastReadyAt = Date.now() + DIVINE_GENERAL_COOLDOWN_MS;
+                    saveGame();
+
+                    heavenJudgementerInstance = new HeavenJudgementer(spawnX, spawnY, baseMaxHp);
+                    createParticles(player.x, player.y, '#fde68a', 40);
+                    createDamageText(player.x, player.y - 80, "HEAVEN JUDGEMENTER TURUN! ⚖️👑", '#fbbf24', 24);
+
+                    // Peta berubah warna merah-oranye selama True Heavenly Judgment aktif (screen-space overlay, tidak terpengaruh kamera)
+                    entities.particles.push({
+                        id: 'thj_tint_overlay',
+                        life: ultimateActiveDuration, max: ultimateActiveDuration,
+                        update() { this.life--; },
+                        draw(ctx) {
+                            let pulse = 0.16 + 0.06 * Math.sin(frameCount * 0.06);
+                            ctx.save();
+                            ctx.setTransform(1, 0, 0, 1, 0, 0); // reset ke koordinat layar penuh
+                            let grad = ctx.createRadialGradient(
+                                canvas.width / 2, canvas.height / 2, 0,
+                                canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height) * 0.75
+                            );
+                            grad.addColorStop(0, `rgba(255, 100, 0, ${pulse * 0.5})`);
+                            grad.addColorStop(1, `rgba(180, 20, 0, ${pulse})`);
+                            ctx.fillStyle = grad;
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            ctx.restore();
+                        }
+                    });
+                    break;
+                }
                 case 'infinite_void':
                     let voidDuration = ultimateActiveDuration;
                     createParticles(player.x, player.y, '#3a0ca3', 30);
@@ -6928,7 +7433,7 @@
                             tempMods.cooldownReduction = (activeLv * 0.03) * factor;
                         }
                         if (key === 'art_evasionist') {
-                            tempMods.dodgeChance = (0.10 + (activeLv - 1) * 0.05) * factor;
+                            tempMods.dodgeChance = Math.min(0.8, activeLv * 0.10) * factor;
                         }
                     }
 
@@ -7113,13 +7618,38 @@
                     }
                     break;
                 }
+                case 'hells_wrath': {
+                    // Hell's Wrath: setiap frame, kurangi cooldown SEMUA senjata 4 kali ekstra
+                    // (sudah dikurangi 1 di WeaponInstance.update(), jadi total = 5x lebih cepat!)
+                    for (let i = 0; i < player.weapons.length; i++) {
+                        let w = player.weapons[i];
+                        if (w.cooldown > 0) {
+                            w.cooldown -= 4; // ekstra -4 per frame (total -5 per frame = 5x speed)
+                            if (w.cooldown < 0) w.cooldown = 0;
+                        }
+                    }
+                    // Blue Lapse (purpleTimer) & Reversal Red (_redTimer) juga terisi 5x lebih cepat
+                    if (player.weapons.find(w => w.id === 'blue_lapse')) {
+                        player.purpleTimer += 4;
+                    }
+                    if (player.weapons.find(w => w.id === 'reversal_red')) {
+                        player._redTimer += 4;
+                    }
+                    break;
+                }
+
+                case 'true_heavenly_judgment': {
+                    if (heavenJudgementerInstance) {
+                        heavenJudgementerInstance.update();
+                    }
+                    break;
+                }
             }
 
             if (ultimateActiveTimer <= 0) {
                 deactivateUltimate();
             }
         }
-
         function deactivateUltimate() {
             let id = activeUltimate;
             activeUltimate = null;
@@ -7165,6 +7695,14 @@
                         player.speed = player.backupSpeed;
                         player.magnetArea = player.backupMagnetArea;
                     }
+                    break;
+                case 'true_heavenly_judgment':
+                    // Heaven Judgementer kembali ke langit — Divine General & Super Beast masih dalam masa istirahat (cooldown resummon)
+                    if (heavenJudgementerInstance) {
+                        createParticles(heavenJudgementerInstance.x, heavenJudgementerInstance.y, '#fbbf24', 30);
+                    }
+                    heavenJudgementerInstance = null;
+                    createDamageText(player.x, player.y - 70, "Heaven Judgementer kembali ke langit...", '#fbbf24', 14);
                     break;
             }
             updateHUD();
@@ -7651,9 +8189,10 @@
             "HELP ME": {
                 icon: "👑",
                 title: "THE DIVINE GENERAL!",
-                desc: "Membuka panggilan Divine General (Tekan [P] sekali per game untuk memanggil jendral ber-HP 1 juta!).",
+                desc: "Membuka panggilan Divine General (Tekan [P] untuk memanggil jendral ber-HP 1 juta! Bisa di-resummon setelah mati dengan cooldown 5 menit).",
                 apply() {
                     saveData.divineGeneralUnlocked = true;
+                    checkTrueHeavenlyJudgmentUnlock();
                 }
             },
             "TWIN": {
