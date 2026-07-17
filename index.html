@@ -1730,7 +1730,7 @@
                 // Idle Tycoon - dinaikkan jauh lebih mahal (2000 -> 7000) karena penghasilan pasifnya sangat kuat (terus berjalan walau game ditutup)
                 idleCap: { level: 0, max: 12, costBase: 7000, val: 2, name: "Idle Tycoon - Kapasitas Maks (Jam)" },
                 // More Coin & More Cosmic Coin - meningkatkan koin/cosmic koin yang didapat tiap dipungut. Max level 30.
-                moreCoin: { level: 0, max: 30, costBase: 60, val: 0.05, name: "More Coin (+5% Koin per Level)" },
+                moreCoin: { level: 0, max: 15, costBase: 60, val: 0.05, name: "More Coin (+5% Koin per Level)" },
                 moreCosmicCoin: { level: 0, max: 30, costBase: 500, val: 0.05, name: "More Cosmic Coin (+5% Cosmic Koin per Level)" },
                 // SECRET STAT — terkunci di balik Code Misterius. Setelah dipakai, stat ini terbuka:
                 // tiap level melipatgandakan damage Super Beast secara signifikan. Max level 30.
@@ -8400,8 +8400,8 @@
             let paidMinutes = Math.min(elapsedMinutes, capMinutes);
             return {
                 elapsedMinutes, capMinutes, paidMinutes,
-                coinGain: paidMinutes * 10,
-                cosmicGain: paidMinutes * 1,
+                coinGain: Math.floor(paidMinutes * 10 * getMoreCoinMult()),
+                cosmicGain: Math.floor(paidMinutes * 1 * getMoreCosmicMult()),
                 isFull: elapsedMinutes >= capMinutes
             };
         }
