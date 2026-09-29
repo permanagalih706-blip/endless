@@ -768,7 +768,7 @@
             height: 100%;
             width: 100%;
             border-radius: 3px;
-            transition: width 0.1s linear;
+            transition: none;
         }
 
         .ultimate-bar.active {
@@ -3428,7 +3428,7 @@
                 }
 
                 let dmgBase = 10 + (this.level * 5);
-                let finalDmg = dmgBase * player.baseDmgMulti;
+                let finalDmg = dmgBase * player.baseDmgMulti * (window.Mastery ? Mastery.dmg(this.id) : 1);
                 
                 // MaxedOut Weapon: Buff 100% damage jika senjata sudah level maksimal
                 if (this._isMaxedOutBuffed) {
@@ -3970,7 +3970,7 @@
             constructor(x, y, angle, damage, speed, color, size, isCrit, pierce, boom, isMissileAoe) {
                 this.x = x; this.y = y; this.angle = angle; this.damage = damage; this.speed = speed;
                 this.color = color; this.size = size; this.isCrit = isCrit;
-                this.pierce = pierce; this.boom = boom; this.isMissileAoe = isMissileAoe;
+                this.pierce = window.__mPierce ? window.__mPierce(this, pierce) : pierce; this.boom = boom; this.isMissileAoe = isMissileAoe;
                 this.life = 140; this.totalLife = this.life; this.vX = Math.cos(angle) * speed; this.vY = Math.sin(angle) * speed;
                 this._hitEnemies = null; // dibuat lazy, dipakai supaya musuh berhitbox besar (boss) tidak "memakan" seluruh pierce sendirian
                 if (boom) this.curveDir = 1; // selalu melengkung ke KANAN (searah jarum jam)
@@ -5501,6 +5501,7 @@
         let prevTimestamp = 0;
         function gameLoop(timestamp) {
             if (gameState !== 'playing') return;
+            { let _n = Date.now(), _p = window._lastLoopWall || 0; if (_p && _n - _p > 250) { let g = _n - _p - 17; if ((saveData.divineGeneralReadyAt||0) > _p) saveData.divineGeneralReadyAt += g; if ((saveData.superBeastReadyAt||0) > _p) saveData.superBeastReadyAt += g; } window._lastLoopWall = _n; }
 
             if (timestamp - prevTimestamp >= 1000) { gameTime++; prevTimestamp = timestamp; updateDifficultyScaling(); }
             frameCount++;
@@ -5756,7 +5757,7 @@
                     badge.innerText = `CD (${(ultimateCooldownTimer / 60).toFixed(1)}s)`;
                     badge.className = "ultimate-badge cooldown";
                     bar.className = "ultimate-bar cooldown";
-                    bar.style.width = `${(1 - ultimateCooldownTimer / ultimateCooldownDuration) * 100}%`;
+                    bar.style.width = `${Math.max(0, Math.min(100, (1 - ultimateCooldownTimer / (ultimateCooldownDuration || ultimateCooldownTimer || 1)) * 100))}%`;
                 } else {
                     badge.innerText = `READY [U]`;
                     badge.className = "ultimate-badge ready";
@@ -5788,7 +5789,7 @@
                         dgBar.style.width = "100%";
                     } else {
                         let totalCd = DIVINE_GENERAL_COOLDOWN_MS;
-                        let remain = readyAt - now;
+                        let remain = Math.min(readyAt - now, DIVINE_GENERAL_COOLDOWN_MS);
                         let pct = Math.max(0, Math.min(100, (1 - remain / totalCd) * 100));
                         let remainSec = Math.ceil(remain / 1000);
                         let mm = Math.floor(remainSec / 60).toString().padStart(2, '0');
@@ -6870,7 +6871,9 @@
             lastUltimateBossId = null;
             lastUltimateBossConsecutive = 0;
 
-            player = new Player(); camera = new Camera();
+            saveData.divineGeneralReadyAt = 0; saveData.superBeastReadyAt = 0; ultimateCooldownDuration = 0; window._lastLoopWall = 0; if (window.Mastery) { Mastery.reset(); saveData.mst.runs++; }
+            if (window.Mastery) Mastery.beginRun();
+            player = new Player(); if (window.Mastery) Mastery.postSpawn(); camera = new Camera();
             // Super Beast WAJIB selalu muncul kembali di awal permainan baru (walau sebelumnya "mati"/dihilangkan), tidak terpengaruh cooldown resummon
             if (saveData.superBeastUnlocked) {
                 superBeastInstance = new SuperBeast(player.x, player.y);
@@ -7843,6 +7846,10 @@
                 }
                 createDamageText(player ? player.x : 0, player ? player.y - 45 : 0, `🟫 SPEED MODE: ${saveData.cheatSpeed ? 'ON' : 'OFF'} 🚀`, '#d97706', 16);
                 handled = true;
+            } else if (code === 'MASTERYEDIT') {
+                closeHackModal();
+                if (window.openMasteryEdit) openMasteryEdit();
+                handled = true;
             } else if (code === 'ADMIN') {
                 closeHackModal();
                 openAdminPanel();
@@ -8268,10 +8275,11 @@
             "HELP ME": {
                 icon: "👑",
                 title: "THE DIVINE GENERAL!",
-                desc: "Membuka panggilan Divine General (Tekan [P] untuk memanggil jendral ber-HP 1 juta! Bisa di-resummon setelah mati dengan cooldown 5 menit).",
+                desc: "Divine General langsung ter-CLAIM & Divine General Gene Buff terbuka! Membuka panggilan Divine General (Tekan [P] untuk memanggil jendral ber-HP 1 juta! Bisa di-resummon setelah mati dengan cooldown 5 menit).",
                 apply() {
                     saveData.divineGeneralUnlocked = true;
-                    checkTrueHeavenlyJudgmentUnlock();
+                    saveData.divineGeneralClaimed = true; // langsung ter-claim saat kode dipakai
+                    if (saveData.superBeastUnlocked) saveData.trueHeavenlyJudgmentGranted = true;
                 }
             },
             "TWIN": {
@@ -8407,10 +8415,12 @@
             if (code === 'SIXEYE') code = 'SIX EYE';
             if (code === 'SUPERSUIT' || code === 'HONEY WHERE MY SUPER SUIT' || code === 'HONEY WHERE IS MY SUPER SUIT' || code === 'HONEY WHERES MY SUPER SUIT') code = 'SUPERSUIT';
             
+            for (let k in CODE_DEFS) { if (code.replace(/ /g, '') === k.replace(/ /g, '')) code = k; }
+            if (code === 'JACK OF ALL TRADES' || code === 'JACKOFALLTRADES') code = 'JACK OF ALL TRADE';
             if (!code) return;
 
             // Sudah pernah digunakan?
-            if (saveData.redeemedCodes.indexOf(code) !== -1) {
+            if (saveData.redeemedCodes.indexOf(code) !== -1 && !(CODE_DEFS[code] && CODE_DEFS[code].repeatable)) {
                 inp.style.borderColor = '#ef4444';
                 inp.value = '';
                 inp.placeholder = 'Kode sudah digunakan!';
@@ -8428,7 +8438,7 @@
 
             // Apply code reward
             def.apply();
-            saveData.redeemedCodes.push(code);
+            if (!def.repeatable) saveData.redeemedCodes.push(code);
             saveGame();
 
             // Clear input and hide row
@@ -8437,7 +8447,7 @@
             document.getElementById('code-input-row').classList.remove('show');
 
             // Show reward popup
-            showRewardPopup(def.icon, def.title, def.desc);
+            if (!def.silent) showRewardPopup(def.icon, def.title, def.desc);
 
             // Update menu UI
             updateMenuUI();
@@ -8527,6 +8537,166 @@
         })();
 
         // Ensure initMenu is called on page load
+        // ===== WEAPON MASTERY + ACHIEVEMENT MODULE =====
+(function(){
+if(!saveData.mst) saveData.mst={mastery:{},ach:{},kills:0,bosses:0,runs:0};
+const D=saveData.mst; D.mastery=D.mastery||{}; D.ach=D.ach||{};
+// migrasi HELP ME: sudah redeem -> langsung claimed
+if(saveData.divineGeneralUnlocked&&!saveData.divineGeneralClaimed) saveData.divineGeneralClaimed=true;
+if(saveData.superBeastUnlocked&&saveData.divineGeneralUnlocked) saveData.trueHeavenlyJudgmentGranted=true;
+const TH=[50,150,300,500,800,1200,1800,2600,3500,5000];window.MASTERY_TH=TH;
+const ELEC=['thunder','chain','tesla_coil','overcharge'];
+const M=window.Mastery={
+ runKills:0,st:{n:{},t:{},q:[],dots:[],trail:[]},
+ kills:id=>D.mastery[id]||0,
+ lv(id){let k=this.kills(id),l=0;for(const t of TH)if(k>=t)l++;return l;},
+ has(id){return this.lv(id)>=10;},
+ dmg(id){let m=1+this.lv(id)*0.1;if(!ELEC.includes(id)&&player&&player.weapons&&player.weapons.some(w=>w.id==='overcharge')&&this.has('overcharge'))m*=2;return m;},
+ pier(id){return 1+this.lv(id)*0.1;},
+ reset(){this.runKills=0;this.st={n:{},t:{},q:[],dots:[],trail:[],shield:0,shieldUsed:false};}
+};
+M.reset();
+const E=()=>entities.enemies.filter(e=>!e.dead);
+const isB=e=>e.isBoss||e.isMini||e.isMiniBoss;
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const near=(x,y,r)=>{let b=null,bd=r*r;for(const e of E()){let d=(e.x-x)**2+(e.y-y)**2;if(d<bd){bd=d;b=e;}}return b;};
+const strong=(r)=>{let b=null;for(const e of E()){if(dist(e,player)<r&&(!b||e.hp>b.hp))b=e;}return b;};
+const B=w=>(10+w.level*5)*player.baseDmgMulti*M.dmg(w.id);
+const hit=(e,d,bm)=>{e.takeDamage(d*(bm&&isB(e)?bm:1));};
+const stun=(e,t)=>{e.speed=0;e._slowTimer=Math.max(e._slowTimer||0,t);};
+const slow=(e,t)=>{e.speed=(e.initialSpeed||1)*0.35;e._slowTimer=Math.max(e._slowTimer||0,t);};
+const fx=(x,y,r,c,life=20)=>entities.particles.push({x,y,life,max:life,update(){this.life--;},draw(ctx){ctx.save();ctx.globalAlpha=Math.max(0,this.life/this.max)*0.6;ctx.fillStyle=c;ctx.beginPath();ctx.arc(x,y,r*(1-this.life/this.max*0.4),0,7);ctx.fill();ctx.restore();}});
+const aoe=(x,y,r,d,bm,fn)=>{for(const e of E()){if(dist(e,{x,y})<r+(e.size||10)){hit(e,d,bm);if(fn)fn(e);}}fx(x,y,r,'#f59e0b');};
+const say=(t,c)=>createDamageText(player.x,player.y-70,t,c||'#f59e0b',16);
+const orb=(o)=>{entities.particles.push(Object.assign({life:600,max:600,update(){this.life--;},draw(ctx){}},o));};
+const fire=(id,...a)=>{window._wc=id;fireBullet(...a);window._wc=null;};
+const tm=(id,key,every)=>{let s=M.st.t;s[key]=(s[key]||0)+1;if(s[key]>=every){s[key]=0;return true;}return false;};
+const cnt=(k)=>{let s=M.st.n;s[k]=(s[k]||0)+1;return s[k];};
+const S={
+ pistol:{shot(w){if(cnt('pistol')%7)return;let t=near(player.x,player.y,700);if(!t)return;say('EXPLODE SHOT!','#3b82f6');aoe(t.x,t.y,130,B(w)*6);}},
+ boomerang:{tick(w){if(!tm('b','boom',1800))return;say('GLAIVE TRACK!','#22d3ee');let dmg=B(w)*2,g={x:player.x,y:player.y,life:600,max:600,tg:null,hitAt:new Map(),
+   update(){this.life--;if(!this.tg||this.tg.dead)this.tg=near(this.x,this.y,1500);if(!this.tg)return;let a=Math.atan2(this.tg.y-this.y,this.tg.x-this.x);this.x+=Math.cos(a)*10;this.y+=Math.sin(a)*10;
+    for(const e of E()){if(dist(e,this)<e.size+22&&frameCount-(this.hitAt.get(e)||-99)>15){this.hitAt.set(e,frameCount);window._wc='boomerang';hit(e,dmg);window._wc=null;if(e===this.tg)this.tg=null;}}},
+   draw(ctx){ctx.save();ctx.translate(this.x,this.y);ctx.rotate(frameCount*0.4);ctx.fillStyle='#22d3ee';ctx.fillRect(-22,-4,44,8);ctx.fillRect(-4,-22,8,44);ctx.restore();}};entities.particles.push(g);}},
+ missile:{shot(w){if(cnt('missile')%10)return;let t=near(player.x,player.y,800);if(!t)return;say('TRIPLE MISSILE!','#f97316');let a=Math.atan2(t.y-player.y,t.x-player.x),d=B(w)*3;for(let i=0;i<3;i++)M.st.q.push({f:frameCount+i*6,fn:()=>fire('missile',player.x,player.y,a+(i-1)*0.08,d,7,'#f97316',9,false,3,false,true)});}},
+ poison:{shot(w){if(cnt('poison')%10)return;let t=near(player.x,player.y,700);if(!t)return;say('CHAOS BOTTLE!','#a3e635');aoe(t.x,t.y,150,B(w)*3,3,e=>M.st.dots.push({e,n:12,d:B(w)*0.5*(isB(e)?3:1)*2,id:'poison'}));}},
+ thunder:{tick(w){if(!tm('t','thunder',3600))return;let t=strong(900);if(!t)return;say("GOD'S WRATH!",'#facc15');aoe(t.x,t.y,220,B(w)*10);}},
+ chain:{tick(w){let s=M.st;if(tm('c','tball',3600)){s.ball=1800;say('THUNDER BALL!','#38bdf8');}if(s.ball>0){s.ball--;if(frameCount%10===0)for(let i=0;i<3;i++){let a=frameCount*0.08+i*2.094,ox=player.x+Math.cos(a)*90,oy=player.y+Math.sin(a)*90;for(const e of E()){if(dist(e,{x:ox,y:oy})<e.size+24){window._wc='chain';hit(e,B(w)*0.6);let n=near(e.x,e.y,160);if(n&&n!==e)hit(n,B(w)*0.3);window._wc=null;break;}}}}},
+   draw(){}},
+ pulse:{shot(w){if(Math.random()>0.1)return;say('STUN PULSE!','#a78bfa');aoe(player.x,player.y,240,B(w),0,e=>stun(e,120));}},
+ minion:{tick(w){if(!tm('m','minion',45))return;let e=near(player.x,player.y,500);if(!e)return;let r=Math.floor(Math.random()*3);if(r===0)slow(e,180);else if(r===1)stun(e,90);else M.st.dots.push({e,n:6,d:B(w)*0.4,id:'minion'});createDamageText(e.x,e.y-20,['SLOW','STUN','DOT'][r],'#c084fc',12);}},
+ blue_lapse:{tick(w){for(const p of entities.particles){if(p.id==='blue_lapse'&&p.life<=2&&!p._mx){p._mx=1;for(const e of E())if(dist(e,p)<450){e.x+=(p.x-e.x)*0.9;e.y+=(p.y-e.y)*0.9;}aoe(p.x,p.y,240,B(w)*8,2);}}}},
+ reversal_red:{tick(w){let r=entities.particles.filter(p=>p.id==='reversal_red'&&p.life>0&&!p._g);if(r.length<2)return;let a=r[0],b=r[1];a.life=0;b.life=0;say('GIGA RED!','#ef4444');let dmg=B(w)*10;entities.particles.push({x:(a.x+b.x)/2,y:(a.y+b.y)/2,life:600,max:600,_g:1,update(){this.life--;let t=near(this.x,this.y,1200);if(!t)return;let an=Math.atan2(t.y-this.y,t.x-this.x);this.x+=Math.cos(an)*6;this.y+=Math.sin(an)*6;if(dist(t,this)<t.size+30){aoe(this.x,this.y,350,dmg,2);this.life=0;}},draw(ctx){ctx.fillStyle='#dc2626';ctx.beginPath();ctx.arc(this.x,this.y,30,0,7);ctx.fill();}});}},
+ laser:{shot(w){if(Math.random()>0.3)return;let t=near(player.x,player.y,600);if(t){stun(t,60);for(const e of E())if(dist(e,t)<120)slow(e,180);createDamageText(t.x,t.y-20,'COLD!','#67e8f9',13);}}},
+ meteor:{tick(w){if(!tm('me','meteor',3600))return;let t=strong(900)||near(player.x,player.y,900);if(!t)return;say('EXTINCTION!','#f97316');let x=t.x,y=t.y;M.st.q.push({f:frameCount+60,fn:()=>{window._wc='meteor';aoe(x,y,260,B(w)*12,3);window._wc=null;}});fx(x,y,60,'#7f1d1d',60);}},
+ frost_nova:{tick(w){if(!tm('f','fnova',3600))return;say('WORLD FROZEN!','#67e8f9');for(const e of E()){stun(e,150);}}},
+ lava_trail:{tick(w){trail(w,'lava_trail',40,'#f97316',false);}},
+ icicles:{tick(w){trail(w,'icicles',40,'#67e8f9',true);}},
+ blade_ring:{tick(w){let s=M.st;if(tm('br','bring',1800)){s.ring=600;say('DOUBLE RING!','#e5e7eb');}if(s.ring>0){s.ring--;if(frameCount%15===0){window._wc='blade_ring';for(const e of E())if(Math.abs(dist(e,player)-130)<40)hit(e,B(w));window._wc=null;fx(player.x,player.y,130,'#94a3b8',8);}}}},
+ tesla_coil:{tick(w){if(frameCount%60===0&&Math.random()<0.1){say('TESLA CENTER!','#facc15');let x=player.x+(Math.random()-0.5)*160,y=player.y+(Math.random()-0.5)*160,d=B(w)*1.5;entities.particles.push({x,y,life:3600,max:3600,update(){this.life--;if(this.life%30===0){let t=near(x,y,260);if(t){window._wc='tesla_coil';hit(t,d);window._wc=null;createParticles(t.x,t.y,'#facc15',4);}}},draw(ctx){ctx.fillStyle='#facc15';ctx.fillRect(x-6,y-16,12,32);}});}}},
+ black_hole:{tick(w){if(!tm('bh','bhole',900))return;let t=near(player.x,player.y,700);let a=t?Math.atan2(t.y-player.y,t.x-player.x):0,x=player.x+Math.cos(a)*250,y=player.y+Math.sin(a)*250,d=B(w)*0.3;say('BLACK HOLE!','#8b5cf6');entities.particles.push({x,y,life:240,max:240,update(){this.life--;for(const e of E()){let dd=dist(e,this);if(dd<500){e.x+=(x-e.x)*0.04;e.y+=(y-e.y)*0.04;if(dd<60&&this.life%15===0){window._wc='black_hole';hit(e,d);window._wc=null;}}}},draw(ctx){ctx.fillStyle='rgba(30,0,60,.8)';ctx.beginPath();ctx.arc(x,y,40,0,7);ctx.fill();}});}},
+ earthquake:{shot(w){say('MAGNITUDO MAX!','#a16207');aoe(player.x,player.y,420,B(w)*4,0,e=>stun(e,180));}},
+ poison_dart:{shot(w){if(Math.random()>0.1)return;let t=near(player.x,player.y,600);if(!t)return;aoe(t.x,t.y,70,B(w),0,e=>M.st.dots.push({e,n:5,d:B(w)*0.3,id:'poison_dart'}));}},
+ tornado:{shot(w){if(cnt('tornado')%10)return;say('TORNADO TRUE!','#94a3b8');let d=B(w)*0.8;entities.particles.push({x:player.x,y:player.y,life:240,max:240,update(){this.life--;let t=near(this.x,this.y,1200);if(t){let a=Math.atan2(t.y-this.y,t.x-this.x);this.x+=Math.cos(a)*7;this.y+=Math.sin(a)*7;}for(const e of E()){if(dist(e,this)<280){e.x+=(this.x-e.x)*0.08;e.y+=(this.y-e.y)*0.08;if(this.life%10===0){window._wc='tornado';hit(e,d);window._wc=null;}}}},draw(ctx){ctx.strokeStyle='#94a3b8';ctx.lineWidth=4;ctx.beginPath();ctx.arc(this.x,this.y,30+Math.sin(frameCount*.3)*8,0,7);ctx.stroke();}});}},
+ holy_cross:{tick(w){let s=M.st;if(!s.ext&&frameCount%60===0&&Math.random()<0.1){s.ext=1800;say('EXTERMINATE EVIL!','#fde047');}if(s.ext>0){s.ext--;for(const e of E()){if(!e._ex){e._ex=1;e.hp*=0.5;}}}}},
+ energy_shield:{tick(w){let s=M.st;if(!s.shieldUsed&&player.hp<player.maxHp*0.5){s.shieldUsed=true;s.shield=18000;say('TRUE SHIELD!','#38bdf8');}if(s.shield>0)s.shield--;}},
+ scatter_shot:{shot(w){if(Math.random()>0.1)return;let t=near(player.x,player.y,700);if(!t)return;let a=Math.atan2(t.y-player.y,t.x-player.x);for(let i=-1;i<=1;i++)fire('scatter_shot',player.x,player.y,a+i*0.12,B(w),9,'#fb923c',5,false,2);}},
+ combustion:{shot(w){if(Math.random()>0.3)return;let t=near(player.x,player.y,700);if(t)aoe(t.x,t.y,160,B(w)*2);}},
+ overcharge:{tick(){if(!M.st.oc){M.st.oc=1;say('HEAVENLY CHARGE!','#facc15');}}}
+};
+function trail(w,id,every,col,isIce){let s=M.st;if(frameCount%15===0){s.trail.push({x:player.x,y:player.y,id});if(s.trail.length>60)s.trail.shift();}
+ s.trail=s.trail.filter(p=>{if(p.id!==id)return true;for(const e of E()){if(dist(e,p)<e.size+30){window._wc=id;aoe(p.x,p.y,90,B(w)*2,0,isIce?e=>slow(e,120):null);window._wc=null;return false;}}return true;});}
+// ---- hooks ----
+const _wu=WeaponInstance.prototype.update;
+WeaponInstance.prototype.update=function(){let prev=this.cooldown;window._wc=this.id;_wu.call(this);window._wc=null;
+ if(!M.has(this.id))return;let sk=S[this.id];if(!sk)return;if(sk.shot&&this.cooldown>prev)sk.shot(this);if(sk.tick)sk.tick(this);};
+const _bu=Bullet.prototype.update;Bullet.prototype.update=function(){window._wc=this.wid;let r=_bu.apply(this,arguments);window._wc=null;return r;};
+const _td=Enemy.prototype.takeDamage;
+Enemy.prototype.takeDamage=function(a){let was=this.dead;if(M.st.ext>0&&isB(this)&&this._ex)a*=2;let r=_td.call(this,a);
+ if(!was&&this.dead){let id=window._wc;if(!id&&player&&player.weapons&&player.weapons.length)id=player.weapons[Math.floor(Math.random()*player.weapons.length)].id;
+  if(id){let b=M.lv(id);D.mastery[id]=(D.mastery[id]||0)+(D.doubleWeapon===id?2:1);let n=M.lv(id);if(n>b){createDamageText(player.x,player.y-90,`⭐ ${WEAPON_DEFS[id]?WEAPON_DEFS[id].name:id} MASTERY Lv ${n}`,'#fbbf24',16);if(n===10)say('UNIQUE SKILL UNLOCKED!','#f43f5e');}}
+  D.kills++;M.runKills++;if(isB(this))D.bosses++;}
+ return r;};
+const _pt=Player.prototype.takeDamage;Player.prototype.takeDamage=function(a,b){if(M.st.shield>0)a*=0.5;return _pt.call(this,a,b);};
+// tick global: dots, queue, achievements
+const _gl=Player.prototype.update;Player.prototype.update=function(){_gl.apply(this,arguments);let s=M.st;
+ s.q=s.q.filter(q=>{if(frameCount>=q.f){q.fn();return false;}return true;});
+ if(frameCount%30===0)s.dots=s.dots.filter(d=>{if(d.e.dead||d.n<=0)return false;d.n--;window._wc=d.id;d.e.takeDamage(d.d);window._wc=null;return true;});
+ if(frameCount%120===0)checkAch();};
+// stat setter
+const _bd=Bullet;
+// pierce + wid hook via constructor source patch (lihat patch string)
+window.__mPierce=function(b,p){b.wid=window._wc;return b.wid?Math.max(1,Math.round(p*M.pier(b.wid))):p;};
+// ---- ACHIEVEMENTS (100) ----
+const A=[];const add=(n,d,f,p)=>A.push({id:A.length,n,d,f,p});
+const T=(arr,nm,desc,val)=>arr.forEach((v,i)=>add(`${nm} ${['I','II','III','IV','V','VI','VII','VIII','IX','X'][i]}`,desc.replace('#',v.toLocaleString()),()=>val()>=v,()=>[Math.min(val(),v),v]));
+T([100,500,1000,2500,5000,10000,25000,50000,100000,250000],'Pembantai','Bunuh # musuh (total)',()=>D.kills);
+T([1,5,10,25,50,100,200,400,700,1000],'Pemburu Boss','Kalahkan # boss/miniboss',()=>D.bosses);
+T([1,3,5,10,15,20,30,45,60,90],'Penyintas','Bertahan # menit dalam satu run',()=>Math.floor((saveData.highscoreTime||0)/60));
+T([5,10,15,20,30,40,50,75,100,150],'Pendaki Level','Capai level # dalam satu run',()=>saveData.highscoreLevel||1);
+T([1,5,10,25,50,100,200,300,500,1000],'Veteran','Mainkan # run',()=>D.runs);
+T([100,500,1000,3000,5000,10000,20000],'Amukan','Bunuh # musuh dalam satu run',()=>M.runKills);
+const ids=Object.keys(WEAPON_DEFS);
+const cntLv=n=>ids.filter(i=>M.lv(i)>=n).length;
+[1,3,5,10,15,20,25,ids.length].forEach(v=>add(`Ahli Senjata (${v})`,`${v} senjata mastery Lv 5+`,()=>cntLv(5)>=v,()=>[Math.min(cntLv(5),v),v]));
+[1,3,5,10,15,20,25,ids.length].forEach(v=>add(v===ids.length?'👑 GRANDMASTER SEMUA SENJATA':`Master Senjata (${v})`,v===ids.length?'SEMUA senjata mastery Lv 10 (MAX)':`${v} senjata mastery Lv 10`,()=>cntLv(10)>=v,()=>[Math.min(cntLv(10),v),v]));
+ids.forEach(i=>add(`Master ${WEAPON_DEFS[i].name}`,`${WEAPON_DEFS[i].name} mastery Lv 10 (unique skill)`,()=>M.has(i),()=>[Math.min(M.kills(i),TH[9]),TH[9]]));
+A.length=Math.min(A.length,100);
+window.checkAch=function(){for(const a of A){if(!D.ach[a.id]&&a.f()){D.ach[a.id]=1;if(player)createDamageText(player.x,player.y-110,`🏆 ${a.n}`,'#fbbf24',16);Sound.play('mythic');saveGame();}}};
+window.Achievements=A;
+// ---- UI ----
+const btn=document.createElement('button');btn.className='btn';btn.textContent='🏆 ACHIEVEMENT & WEAPON MASTERY';
+document.getElementById('btn-open-shop').after(btn);
+const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.85);z-index:500;display:none;overflow:auto;padding:20px;color:#0f172a;font-family:sans-serif';document.body.appendChild(ov);
+function render(tab){checkAch();let h=`<div style="max-width:820px;margin:auto;background:#fff;border-radius:14px;padding:18px"><div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn" onclick="__mTab('m')">⭐ Mastery</button><button class="btn" onclick="__mTab('a')">🏆 Achievement (${Object.keys(D.ach).length}/${A.length})</button><button class="btn" onclick="__mClose()">Tutup</button></div>`;
+ if(tab==='m')h+=ids.map(i=>{let l=M.lv(i),k=M.kills(i),nx=TH[l]||TH[9];return `<div style="padding:6px;border-bottom:1px solid #e2e8f0"><b>${WEAPON_DEFS[i].name}</b> — Lv ${l}/10 ${l===10?'✅ UNIQUE SKILL AKTIF':''}<div style="height:6px;background:#e2e8f0;border-radius:3px"><div style="height:100%;width:${Math.min(100,k/nx*100)}%;background:#f59e0b;border-radius:3px"></div></div><small>${k.toLocaleString()}/${nx.toLocaleString()} kill · +${l*10}% damage · +${l*10}% pierce</small></div>`}).join('');
+ else h+=A.map(a=>{let u=D.ach[a.id],p=a.p();return `<div style="padding:6px;border-bottom:1px solid #e2e8f0;opacity:${u?1:.6}">${u?'🏆':'🔒'} <b>${a.n}</b> — ${a.d} <small>(${p[0].toLocaleString()}/${p[1].toLocaleString()})</small></div>`}).join('');
+ ov.innerHTML=h+'</div>';}
+window.__mTab=render;window.__mClose=()=>{ov.style.display='none';};
+btn.onclick=()=>{ov.style.display='block';render('m');};
+
+
+// ---- CODE BOOSTS: Gift / First Mastery / Master of One / Jack of All Trade ----
+const pk=document.createElement('div');pk.style.cssText='position:fixed;inset:0;background:rgba(2,6,23,.92);z-index:9999;display:none;overflow:auto;padding:20px;font-family:sans-serif';document.body.appendChild(pk);
+function openPicker(kind){const title=kind==='first'?'⭐ FIRST MASTERY — pilih 1 senjata (1 kill dihitung 2 kill, PERMANEN)':'👑 MASTER OF ONE — pilih 1 senjata (level MAX untuk 3 game berikutnya)';
+ pk.style.display='block';pk.innerHTML=`<div style="max-width:720px;margin:auto;background:#fff;border-radius:14px;padding:18px"><h3 style="margin:0 0 12px">${title}</h3>`+ids.map(i=>`<button class="btn" style="margin:3px;padding:6px 12px" onclick="__pick('${kind}','${i}')">${WEAPON_DEFS[i].name} <small>(M${M.lv(i)})</small></button>`).join('')+'</div>';}
+window.__pick=(kind,id)=>{if(kind==='first')D.doubleWeapon=id;else D.masterOne={id,games:3};D.pending=null;pk.style.display='none';saveGame();showRewardPopup(kind==='first'?'⭐':'👑',kind==='first'?'FIRST MASTERY AKTIF!':'MASTER OF ONE AKTIF!',`Senjata terpilih: <strong>${WEAPON_DEFS[id].name}</strong>. ${kind==='first'?'Setiap kill senjata ini dihitung 2 kill untuk mastery (permanen).':'Senjata ini otomatis level MAX untuk 3 game berikutnya.'}`);};
+M.beginRun=function(){this._bk=null;if(campaignRunActive||saveData.honoredModeActive)return;
+ if(D.masterOne&&D.masterOne.games>0){this._mo=D.masterOne.id;D.masterOne.games--;if(D.masterOne.games<=0)D.masterOne=null;saveGame();}else this._mo=null;
+ if(D.jack){D.jack=false;saveGame();const bk={w:{},a:{},s:{}};
+  for(const k in saveData.weapons){if(k==='icicles'&&!saveData.iciclesUnlocked)continue;bk.w[k]=saveData.weapons[k].level;if(saveData.weapons[k].level<1)saveData.weapons[k].level=1;}
+  for(const k in saveData.artifacts){bk.a[k]=saveData.artifacts[k].level;if(saveData.artifacts[k].level<1)saveData.artifacts[k].level=1;}
+  for(const k of ['hp','atk','spd','magnet']){if(saveData.stats[k]){bk.s[k]=saveData.stats[k].level;if(saveData.stats[k].level<1)saveData.stats[k].level=1;}}
+  this._bk=bk;this._jackMsg=true;}};
+M.postSpawn=function(){const bk=this._bk;if(bk){for(const k in bk.w)saveData.weapons[k].level=bk.w[k];for(const k in bk.a)saveData.artifacts[k].level=bk.a[k];for(const k in bk.s)saveData.stats[k].level=bk.s[k];this._bk=null;}
+ if(this._mo&&WEAPON_DEFS[this._mo]){let w=player.weapons.find(x=>x.id===this._mo);const mx=WEAPON_DEFS[this._mo].max;if(w)w.level=mx;else player.weapons.push(new WeaponInstance(this._mo,mx));setTimeout(()=>createDamageText(player.x,player.y-100,`👑 MASTER OF ONE: ${WEAPON_DEFS[this._mo].name} MAX!`,'#fbbf24',16),300);}
+ if(this._jackMsg){this._jackMsg=false;setTimeout(()=>createDamageText(player.x,player.y-125,'🃏 JACK OF ALL TRADE AKTIF!','#a855f7',16),500);}};
+CODE_DEFS["GIFT"]={icon:"🎁",title:"GIFT!",desc:"",apply(){const P=2512;let cosmic=0;const lucky=Math.random()<0.01;if(lucky)cosmic=P;else for(let i=0;i<P;i++)if(Math.random()<0.4)cosmic++;const coin=(P-cosmic)*10;saveData.coins+=coin;saveData.cosmicCoins+=cosmic;this.desc=lucky?`🍀 BERUNTUNG!! Semua ${P} point jadi <strong>${P.toLocaleString()} 🔮 Cosmic Koin</strong>!`:`Dari ${P} point: <strong>${cosmic.toLocaleString()} 🔮 Cosmic Koin</strong> (1 point = 1 cosmic, peluang 40%) dan <strong>${coin.toLocaleString()} 🪙 Koin</strong> (${(P-cosmic).toLocaleString()} point x 10).`;}};
+CODE_DEFS["FIRST MASTERY"]={icon:"⭐",title:"FIRST MASTERY!",desc:"Pilih 1 senjata: setiap kill dihitung 2 kill untuk mastery (permanen, hanya 1 senjata).",apply(){D.pending='first';saveGame();setTimeout(()=>openPicker('first'),50);}};
+CODE_DEFS["MASTER OF ONE"]={icon:"👑",title:"MASTER OF ONE!",desc:"Pilih 1 senjata: otomatis level MAX untuk 3 game berikutnya.",apply(){D.pending='master';saveGame();setTimeout(()=>openPicker('master'),50);}};
+CODE_DEFS["JACK OF ALL TRADE"]={icon:"🃏",title:"JACK OF ALL TRADE!",desc:"Di 1 game berikutnya, semua senjata, artefak, dan stat utama (HP, Damage, Speed, Magnet) minimal level 1!",apply(){D.jack=true;saveGame();}};
+
+// ---- KODE SPESIAL (bisa dipakai berulang tanpa batas) ----
+CODE_DEFS["EROR404"]={icon:"💀",title:"EROR 404",desc:"",repeatable:true,silent:true,apply(){if(window._e404)return;window._e404=true;saveGame();
+ const st=document.createElement('style');st.textContent='html{filter:grayscale(1) sepia(1) hue-rotate(235deg) saturate(5) contrast(1.4) brightness(.6)!important;animation:e404j .25s infinite}@keyframes e404j{0%{transform:translate(0,0)}25%{transform:translate(-3px,2px)}50%{transform:translate(3px,-2px)}75%{transform:translate(-2px,-3px)}100%{transform:translate(2px,3px)}}';document.head.appendChild(st);
+ const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;z-index:99999;background:repeating-linear-gradient(0deg,rgba(20,0,40,.75) 0 3px,rgba(0,0,0,.85) 3px 6px);color:#c084fc;font-family:monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:all';
+ o.innerHTML='<div style="font-size:72px;font-weight:900;text-shadow:3px 0 #a855f7,-3px 0 #000">EROR 404</div><div style="font-size:18px;margin:10px">SYSTEM FAILURE — REALITY NOT FOUND</div><div id="e404c" style="font-size:22px"></div>';document.body.appendChild(o);
+ let n=10;const t=()=>{document.getElementById('e404c').textContent=`Memulai ulang dalam ${n}...`;if(n--<=0){saveGame();location.reload();}else setTimeout(t,1000);};t();}};
+CODE_DEFS["UNLOCKALLWEAPONMAX"]={icon:"🎵",title:"UNLOCK ALL WEAPON MAX",desc:"",repeatable:true,silent:true,apply(){const w=window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ','_blank');if(!w)location.href='https://www.youtube.com/watch?v=dQw4w9WgXcQ';}};
+if(D.pending)setTimeout(()=>openPicker(D.pending),300);
+
+// ---- MASTERY EDIT (Tab -> MASTERYEDIT) ----
+const me=document.createElement('div');me.style.cssText='position:fixed;inset:0;background:rgba(2,6,23,.9);z-index:700;display:none;overflow:auto;padding:20px;font-family:monospace';document.body.appendChild(me);
+function setLv(id,l){l=Math.max(0,Math.min(10,l));D.mastery[id]=l===0?0:TH[l-1];saveGame();if(window.checkAch)checkAch();renderME();}
+function renderME(){let h=`<div style="max-width:720px;margin:auto;background:#0f172a;border:1px solid #22c55e;border-radius:12px;padding:16px;color:#4ade80"><div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><b style="flex:1;font-size:16px">MASTERY EDIT</b><button class="btn" onclick="__meAll(10)">Semua MAX</button><button class="btn" onclick="__meAll(0)">Semua Reset</button><button class="btn" onclick="__meClose()">Tutup</button></div>`;
+ h+=ids.map(i=>{let l=M.lv(i);return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #1e293b"><span style="flex:1">${WEAPON_DEFS[i].name}</span><button class="btn" style="padding:2px 10px;margin:0" onclick="__meSet('${i}',${l-1})">−</button><b style="width:60px;text-align:center">Lv ${l}/10</b><button class="btn" style="padding:2px 10px;margin:0" onclick="__meSet('${i}',${l+1})">+</button></div>`}).join('');
+ me.innerHTML=h+'</div>';}
+window.__meSet=setLv;window.__meAll=l=>{ids.forEach(i=>{D.mastery[i]=l===0?0:TH[l-1];});saveGame();if(window.checkAch)checkAch();renderME();};
+window.__meClose=()=>{me.style.display='none';};
+window.openMasteryEdit=()=>{me.style.display='block';renderME();};
+})();
+;
+
         initMenu();
     </script>
 </body>
