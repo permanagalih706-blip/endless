@@ -8923,7 +8923,7 @@ UNIQ.ghost=["Insane Ghost","Kecepatan serang Ghost 2x lipat, dan setiap musuh ya
 function ghostStep(w){const n=Math.min(w.level,20),G=w._g||(w._g=[]);
  while(G.length<n)G.push({a:0,x:player.x+(Math.random()-0.5)*40,y:player.y+(Math.random()-0.5)*40,tg:null,ph:Math.random()*6.28});
  while(G.length>n)G.pop();
- const sp=M.eh('ghost')?2:1,dmg=(6+w.level*3)*player.baseDmgMulti,iv=Math.max(3,Math.round(12/sp)),det=260+w.level*14,orb=58+Math.min(n,12)*3;
+ const ov=(saveData.weaponOverrides&&saveData.weaponOverrides.ghost)||{},sp=M.eh('ghost')?2:1,dmg=(6+w.level*3)*player.baseDmgMulti*(ov.dmgMult||1),iv=Math.max(2,Math.round(12/sp*(ov.cdMult||1))),det=260+w.level*14,orb=58+Math.min(n,12)*3;
  w._ga=(w._ga||0)+0.035*sp;
  for(let i=0;i<n;i++){const g=G[i];if(g.tg&&g.tg.dead)g.tg=null;
   if((!g.tg||frameCount%60===i)&&(frameCount+i)%12===0){const c=near(player.x,player.y,det);if(c)g.tg=c;else if(g.tg)g.tg=null;}
@@ -8998,7 +8998,7 @@ window.makeSpecial=makeSpecial;
 // tampilan KR di atas player
 {const _da=drawAura;drawAura=function(ctx){_da(ctx);if(M.kr>0&&gameState==='playing'&&player){ctx.save();ctx.textAlign='center';ctx.font='bold 13px sans-serif';ctx.fillStyle='#e879f9';ctx.fillText(`KR ${M.kr}`,player.x,player.y+player.size+22);ctx.restore();}};}
 // -- jumpscare W.D. Gaster
-function jumpscare(bank){try{if(bank&&gameState==='playing')checkAndSaveRunData();else saveGame();}catch(e){}gameState='menu';
+function jumpscare(bank){try{if(bank&&(gameState==='playing'||gameState==='paused'))checkAndSaveRunData();else saveGame();}catch(e){}gameState='menu';
  const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;z-index:2147483000;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column';
  o.innerHTML='<svg viewBox="0 0 200 240" style="height:80vh;filter:contrast(1.6)"><path d="M100 10C50 10 20 50 22 110C24 160 45 215 100 230C155 215 176 160 178 110C180 50 150 10 100 10Z" fill="#f1f5f9"/><ellipse cx="65" cy="105" rx="26" ry="34" fill="#000"/><ellipse cx="135" cy="105" rx="26" ry="34" fill="#000"/><path d="M65 71L52 30L38 62L48 95Z" fill="#000"/><path d="M135 71L150 40L165 70L150 95Z" fill="#000"/><path d="M62 150C80 160 120 160 138 150" stroke="#000" stroke-width="6" fill="none"/><path d="M100 10L92 55L104 90L94 130" stroke="#000" stroke-width="3" fill="none"/><circle cx="65" cy="112" r="4" fill="#fff"/><circle cx="135" cy="112" r="4" fill="#fff"/></svg><div style="color:#fff;font:900 22px monospace;letter-spacing:6px;margin-top:10px">W.D. GASTER</div>';
  document.body.appendChild(o);
@@ -9007,11 +9007,7 @@ function jumpscare(bank){try{if(bank&&gameState==='playing')checkAndSaveRunData(
  setTimeout(()=>{clearInterval(iv);location.reload();},1700);}
 // -- GASTER: crash, panel palsu, reload
 function toast(t,c){const e=document.createElement('div');e.style.cssText=`position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:999999;background:#0f172a;color:${c||'#fbbf24'};border:2px solid ${c||'#fbbf24'};padding:10px 18px;border-radius:10px;font:700 14px sans-serif;text-align:center;box-shadow:0 4px 20px #000a`;e.innerHTML=t;document.body.appendChild(e);setTimeout(()=>e.remove(),6500);}
-function gasterCrash(){saveData.gst={phase:1,bk:{c:saveData.coins,s:saveData.cosmicCoins,l:saveData.highscoreLevel,t:saveData.highscoreTime}};saveGame();
- const st=document.createElement('style');st.textContent='@keyframes gsh{0%{transform:translate(0,0)}20%{transform:translate(-8px,4px)}40%{transform:translate(6px,-6px)}60%{transform:translate(-4px,-8px)}80%{transform:translate(9px,5px)}100%{transform:translate(0,0)}}';document.head.appendChild(st);
- const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;z-index:2147483000;background:#000;color:#fff;font-family:monospace;overflow:hidden;animation:gsh .12s infinite';document.body.appendChild(o);
- const glyph='☜☼✌☟✋❄✡☠✞☹⚐♓♒♐♑▓▒░█';let n=0;const iv=setInterval(()=>{let s='';for(let i=0;i<600;i++)s+=glyph[Math.floor(Math.random()*glyph.length)]+(i%50===49?'\n':'');o.innerHTML=`<pre style="margin:0;font-size:18px;line-height:1.1;color:${n%2?'#fff':'#a3a3a3'}">${s}</pre>`;n++;},70);
- setTimeout(()=>{clearInterval(iv);o.style.animation='none';o.style.background='#202124';o.innerHTML='<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;color:#bdc1c6;text-align:center;padding:20px"><div style="font-size:80px">☹</div><h1 style="margin:10px 0;font-weight:400">Aw, Snap!</h1><div style="max-width:420px">Something went wrong while displaying this webpage.<br><small>Error code: GASTER_666</small></div><button id="gs-rl" style="margin-top:24px;background:#8ab4f8;color:#202124;border:0;padding:10px 24px;border-radius:20px;font-weight:700;cursor:pointer">Reload</button></div>';document.getElementById('gs-rl').onclick=()=>location.reload();},2800);}
+function gasterCrash(){saveData.gst={phase:1,bk:{c:saveData.coins,s:saveData.cosmicCoins,l:saveData.highscoreLevel,t:saveData.highscoreTime}};saveGame();jumpscare(false);}
 CODE_DEFS["INSTAHOLIDAY"]={icon:"🎄",title:"INSTA HOLIDAY!",desc:"Mulai sekarang kode <strong>GIFT</strong> bisa dipakai kapan saja dan selalu berefek 2x lipat, seakan-akan tanggal 25 Desember!",apply(){saveData.instaHoliday=true;}};
 CODE_DEFS["SPOOKY"]={icon:"🎃",title:"SPOOKY MODE!",desc:"Mode Spooky terbuka! Hanya punya senjata <strong>Ghost</strong> dan dunia berubah jadi oranye. Nyalakan/matikan lewat tombol di menu utama.",apply(){saveData.spookyUnlocked=true;saveData.spookyActive=true;}};
 CODE_DEFS["GASTER"]={icon:"❔",title:"...",desc:"",silent:true,apply(){if(saveData.gst)return;setTimeout(gasterCrash,300);}};
@@ -9114,6 +9110,50 @@ window.hackNew=function(code){const px=player?player.x:0,py=player?player.y-45:0
  else if(code==='POWER OF NEO'){saveData.cheatNeo=!saveData.cheatNeo;saveGame();createDamageText(px,py,`POWER OF NEO: ${saveData.cheatNeo?'ON (semua Metaton jadi NEO)':'OFF'}`,'#fde047',16);}
  else if(code==='EGG MAN'){const first=!saveData.eggUnlocked;saveData.eggUnlocked=true;D.ach[101]=1;saveGame();createDamageText(px,py,first?'🥚 EGG! Stat EGG terbuka + achievement EGG':'🥚 EGG sudah terbuka','#fbbf24',16);if(first)toast('🏆 Achievement: <b>EGG</b><br>🥚 Stat baru <b>EGG</b> terbuka di Toko → Statistik','#fbbf24');}};
 A.push({id:101,n:'EGG',d:'???',f:()=>false,p:()=>[D.ach[101]?1:0,1]});
+// ---- ADMIN PANEL: tab FITUR BARU ----
+(function(){const cb=document.getElementById('admin-tab-btn-creator'),eb=document.getElementById('admin-tab-btn-editor'),pg=document.getElementById('admin-tab-pg');if(!cb||!eb||!pg)return;
+ const nb=document.createElement('button');nb.className='btn';nb.id='admin-tab-btn-new';nb.setAttribute('style',eb.getAttribute('style'));nb.textContent='FITUR BARU';nb.onclick=()=>switchAdminTab('new');eb.after(nb);
+ const pane=document.createElement('div');pane.id='admin-tab-new';pane.className='hidden';pg.after(pane);
+ const inact='linear-gradient(135deg, #475569 0%, #334155 100%)',act='linear-gradient(135deg, #a855f7 0%, #6366f1 100%)';
+ const _sw=window.switchAdminTab;window.switchAdminTab=function(tab){
+  if(tab==='new'){for(const t of ['creator','editor','pg']){document.getElementById('admin-tab-'+t).classList.add('hidden');document.getElementById('admin-tab-btn-'+t).style.background=inact;}pane.classList.remove('hidden');nb.style.background=act;renderNew();return;}
+  pane.classList.add('hidden');nb.style.background=inact;return _sw(tab);};
+ const run=()=>!!(player&&(gameState==='playing'||gameState==='paused'));
+ const need=()=>{if(run())return true;toast('Mulai game dulu (tombol ini hanya bekerja saat bermain)','#ef4444');return false;};
+ const sv=()=>{saveGame();try{updateMenuUI();}catch(e){}renderNew();};
+ const A$={
+  sans:()=>{if(need())spawnSans(true);},metaton:()=>{if(need())spawnMetaton(true);},img:()=>{if(need())spawnImg();},unleash:()=>{if(need())unleashImg();},
+  jump:()=>{if(need()&&confirm('Jumpscare W.D. Gaster lalu game reload. Lanjut?'))jumpscare(true);},
+  flag:k=>{saveData[k]=!saveData[k];sv();},
+  spooky:()=>{saveData.spookyUnlocked=true;saveData.spookyActive=!saveData.spookyActive;sv();},
+  nightmare:()=>{saveData.nightmareActive=!saveData.nightmareActive;sv();},
+  fun:()=>{let v=Math.max(0,Math.min(66,parseInt(document.getElementById('adm-fun').value)||0));saveData.stats.fun_value.level=v;saveData.funUnlocked=true;saveData.gstMax=v;sv();},
+  egg:()=>{let v=Math.max(0,Math.min(5,parseInt(document.getElementById('adm-egg').value)||0));saveData.stats.egg.level=v;saveData.eggUnlocked=true;sv();},
+  booster:()=>{let v=Math.max(0,Math.min(10,parseInt(document.getElementById('adm-boost').value)||0));saveData.artifacts.art_mastery_booster.level=v;sv();},
+  ghost:()=>{let v=Math.max(0,Math.min(20,parseInt(document.getElementById('adm-ghost').value)||0));saveData.weapons.ghost.level=v;sv();},
+  mastAll:l=>{for(const i of Object.keys(WEAPON_DEFS))D.mastery[i]=l===0?0:TH[l-1];sv();},
+  mastEdit:()=>{if(window.openMasteryEdit)openMasteryEdit();},
+  achAll:()=>{for(const a of A)D.ach[a.id]=1;sv();},
+  achReset:()=>{if(confirm('Hapus SEMUA achievement?')){D.ach={};sv();}},
+  codes:()=>{if(confirm('Reset semua kode redeem agar bisa dipakai lagi?')){saveData.redeemedCodes=[];if(saveData.gst&&saveData.gst.phase===3)delete saveData.gst;sv();}}};
+ window.__adm=A$;
+ const B=(label,fn,bg)=>`<button class="btn" onclick="__adm.${fn}" style="margin:0;padding:6px;font-size:11px;background:${bg||'#475569'};color:#fff">${label}</button>`;
+ const Ck=(label,k)=>`<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;color:#f1f5f9"><input type="checkbox" ${saveData[k]?'checked':''} onchange="__adm.flag('${k}')"/> ${label}</label>`;
+ const H=t=>`<label style="font-size:11px;font-weight:800;text-transform:uppercase;color:#94a3b8;display:block;margin:2px 0 6px">${t}</label>`;
+ const row=(id,val,max,fn,label)=>`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><span style="font-size:12px;color:#e2e8f0;flex:1">${label}</span><input type="number" id="${id}" value="${val}" min="0" max="${max}" style="width:70px;padding:5px 8px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#fff;font-size:13px"/><button class="btn" onclick="__adm.${fn}()" style="margin:0;padding:6px 12px;font-size:11px;background:#3b82f6;color:#fff">Set</button></div>`;
+ const sec='border-bottom:1px solid #334155;padding-bottom:10px;margin-bottom:12px;text-align:left';
+ function renderNew(){const g=saveData.gstMax||0,fv=(saveData.stats.fun_value||{}).level||0,ach=Object.keys(D.ach).length;
+  pane.innerHTML=`<div style="display:flex;flex-direction:column;gap:2px;margin-bottom:12px">
+  <div style="${sec}">${H('Summon Tes (saat bermain)')}<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">${B('Sans','sans()')}${B('Metaton','metaton()')}${B('IMG_Friend','img()','#9f1239')}${B('Unleash IMG','unleash()','#be123c')}${B('Jumpscare','jump()','#7f1d1d')}</div>
+   <div style="font-size:10px;color:#94a3b8;margin-top:6px">Atau ketik saat bermain: sans · metaton · friend · unleash · gaster</div></div>
+  <div style="${sec}">${H('Cheat Musuh')}<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${Ck('Easiest Enemy (SANS)','cheatEasiest')}${Ck('Power of Neo','cheatNeo')}</div></div>
+  <div style="${sec}">${H('Mode')}<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">${B(`🎃 Spooky: ${saveData.spookyActive?'ON':'OFF'}`,'spooky()','#c2410c')}${B(`😈 Nightmare: ${saveData.nightmareActive?'ON':'OFF'}${g>=56?'':' (butuh Fun 56)'}`,'nightmare()','#7f1d1d')}</div><div style="margin-top:8px">${Ck('INSTAHOLIDAY (GIFT 2x kapan saja)','instaHoliday')}</div></div>
+  <div style="${sec}">${H('Fun Value & EGG')}${row('adm-fun',fv,66,'fun',`Fun Value Lv (terbuka s/d ${g})`)}<div style="font-size:10px;color:#94a3b8;margin:-2px 0 6px">2+ Wrong Number · 40 Sans & Gaster Blaster · 46 Metaton · 56 Nightmare · 66 Jumpscare</div>${row('adm-egg',(saveData.stats.egg||{}).level||0,5,'egg','EGG Lv (peluang IMG_Friend)')}</div>
+  <div style="${sec}">${H('Mastery, Ghost & Achievement')}${row('adm-ghost',saveData.weapons.ghost.level,20,'ghost','Ghost Lv')}${row('adm-boost',saveData.artifacts.art_mastery_booster.level,10,'booster','Mastery Booster Lv')}
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">${B('Mastery Editor','mastEdit()','#6366f1')}${B('Semua Mastery MAX','mastAll(10)','#16a34a')}${B('Reset Mastery','mastAll(0)','#dc2626')}${B(`Unlock Achievement (${ach}/${A.length})`,'achAll()','#16a34a')}${B('Reset Achievement','achReset()','#dc2626')}${B('Reset Kode Redeem','codes()','#b45309')}</div></div></div>
+  <button class="btn" onclick="closeAdminModal()" style="width:100%;margin:0;padding:10px;font-size:14px;background:linear-gradient(135deg,#64748b 0%,#475569 100%);color:#fff;border-radius:8px">TUTUP</button>`;}
+})();
+
 
 window.__gasterLevelSync=()=>{saveData.gstMax=Math.max(gmax(),(saveData.stats.fun_value||{}).level||0);};
 window.__gasterLevelSync();
