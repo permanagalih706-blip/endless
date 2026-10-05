@@ -3428,11 +3428,11 @@
                 }
 
                 let dmgBase = 10 + (this.level * 5);
-                let finalDmg = dmgBase * player.baseDmgMulti * (window.Mastery ? Mastery.dmg(this.id) : 1);
+                let finalDmg = dmgBase * player.baseDmgMulti;
                 
                 // MaxedOut Weapon: Buff 100% damage jika senjata sudah level maksimal
                 if (this._isMaxedOutBuffed) {
-                    finalDmg *= 2;
+                    finalDmg *= (this._isMaxedOutBuffed === 3 ? 3 : 2);
                 }
                 
                 let isCrit = Math.random() < player.artMods.crit;
@@ -4722,7 +4722,7 @@
                     this.dead = true;
                     createParticles(this.x, this.y, this.stroke, 12);
                     if (this.isUltimateBoss) {
-                        ultimateBossActive = false;
+                        ultimateBossActive = entities.enemies.some(e => !e.dead && e.isUltimateBoss && !e._img);
                         if (this.bossSubType === 'strongest_today') {
                             player.deathThroesTimer = 300;
                             player.deathThroesDmg = 10;
@@ -4901,7 +4901,7 @@
                     let greedMult = 1 + ((saveData.greedBonusPercent || 0) / 100);
                     let ebMult = getEnemyBufferRewardMult();
                     let moreCoinMult = getMoreCoinMult();
-                    let finalVal = Math.round(this.value * mult * frenzyMult * greedMult * ebMult * moreCoinMult);
+                    let finalVal = Math.round(this.value * mult * frenzyMult * greedMult * ebMult * moreCoinMult * (window.funWrong ? funWrong(this.x, this.y) : 1));
                     runCoins += finalVal;
                     createDamageText(this.x, this.y, `+${finalVal}${mult > 1 ? ' (x2!)' : ''}`, '#d97706', mult > 1 ? 14 : 11);
                 } else if (this.type === 'cosmic') {
@@ -4909,7 +4909,7 @@
                     let greedMult = 1 + ((saveData.greedBonusPercent || 0) / 100);
                     let ebMult = getEnemyBufferRewardMult();
                     let moreCosmicMult = getMoreCosmicMult();
-                    let finalVal = Math.round(1 * mult * frenzyMult * greedMult * ebMult * moreCosmicMult);
+                    let finalVal = Math.round(1 * mult * frenzyMult * greedMult * ebMult * moreCosmicMult * (window.funWrong ? funWrong(this.x, this.y) : 1));
                     runCosmic += finalVal;
                     createDamageText(this.x, this.y, `+${finalVal} COSMIC${mult > 1 ? ' (x2!)' : ''}`, '#0d9488', mult > 1 ? 15 : 13);
                 } else if (this.type === 'magnet') {
@@ -4925,7 +4925,7 @@
         }
 
         function triggerGuaranteedDrop(x, y, isBoss, isUltimateBoss = false) {
-            if (isBoss && !isUltimateBoss) bossActive = false;
+            if (isBoss && !isUltimateBoss) bossActive = entities.enemies.some(e => !e.dead && e.isBoss && !e.isUltimateBoss && !e._img);
             let numDrops = Math.random() < 0.15 ? 2 : 1;
             if (isBoss) numDrops = 3;
             if (isUltimateBoss) numDrops = 6;
@@ -5173,6 +5173,7 @@
                 lastMinuteScaled = currentMinute;
                 let incRate = saveData.honoredModeActive ? 0.30 : CONFIG.ENEMY_HP_SCALE_PER_MIN;
                 enemyHpScaleMulti *= (1 + incRate);
+                if (currentMinute >= 10 && currentMinute % 10 === 0) { enemyHpScaleMulti *= 2; createDamageText(player.x, player.y - 75, `💀 LONJAKAN MENIT ${currentMinute}! HP musuh x2`, '#ef4444', 18); }
                 if (currentMinute > 0) { // Jangan tampilkan pesan di menit 0
                     createDamageText(player.x, player.y - 55, `⚠️ Musuh semakin kuat! (+${Math.round(incRate * 100)}% HP)`, '#f59e0b', 15);
                 }
@@ -5186,9 +5187,9 @@
 
         function handleSpawning() {
             if (spawnPauseTimer > 0) return; // Hack LEAVEMEALONE: spawn dihentikan sementara
-            if (entities.enemies.length >= 150) return;
+            let __capped = entities.enemies.length >= 150;
             let rate = Math.max(12, 55 - Math.floor(gameTime / 8));
-            if (frameCount % rate === 0) {
+            if (!__capped && frameCount % rate === 0) {
                 let batch = 1 + Math.floor(gameTime / 24);
                 let minSpawnDist = getMinEnemySpawnDist();
                 let spawnDist = Math.max(canvas.width / 1.4, minSpawnDist);
@@ -5206,7 +5207,7 @@
                         if (gameTime > 80 && r > 0.75) variant = 'tank';
                     }
 
-                    entities.enemies.push(new Enemy(px, py, variant, gameTime));
+                    entities.enemies.push(window.makeEnemy ? makeEnemy(px, py, variant, gameTime) : new Enemy(px, py, variant, gameTime));
                 }
             }
 
@@ -5217,6 +5218,7 @@
                 let boss = new Enemy(player.x + Math.cos(bossAngle) * bossDist, player.y + Math.sin(bossAngle) * bossDist, 'boss', gameTime);
                 entities.enemies.push(boss);
                 bossActive = true;
+                if (window.spawnExtraBosses) spawnExtraBosses('mini');
                 // Kurangi interval boss untuk boss berikutnya
                 currentBossInterval = Math.max(
                     CONFIG.BOSS_MIN_INTERVAL,
@@ -5230,6 +5232,7 @@
             // Spawn Ultimate Boss (interval terpisah, scaling 10% per spawn)
             if (gameTime >= nextUltimateBossAt && !ultimateBossActive) {
                 spawnUltimateBoss();
+                if (window.spawnExtraBosses) spawnExtraBosses('ult');
             }
         }
 
@@ -5274,7 +5277,7 @@
                 }
             });
 
-            if (!saveData.honoredModeActive) {
+            if (!saveData.honoredModeActive && !(window.spookyOn && spookyOn())) {
                 for (let wId in WEAPON_DEFS) {
                     let owned = player.weapons.find(pw => pw.id === wId);
                     if (!owned) {
@@ -6320,7 +6323,7 @@
             let st = saveData.stats[k];
             let currentLevel = st.level;
             let maxLevel = st.max;
-            let costBase = Math.floor(st.costBase * getShopDiscountFactor());
+            let costBase = (k === 'fun_value') ? 666 : Math.floor(st.costBase * getShopDiscountFactor());
             let coins = saveData.coins;
             
             let mult = shopMultiplier;
@@ -6330,7 +6333,7 @@
             let count = 0;
             let cost = 0;
             for (let i = 0; i < targetCount; i++) {
-                let nextLevelCost = costBase * (currentLevel + i + 1);
+                let nextLevelCost = (k === 'fun_value') ? 666 : costBase * (currentLevel + i + 1);
                 if (mult === 'max') {
                     if (coins >= cost + nextLevelCost) {
                         cost += nextLevelCost;
@@ -6349,7 +6352,7 @@
                 }
             }
             if (count === 0 && maxPossible > 0 && cost === 0) {
-                cost = costBase * (currentLevel + 1);
+                cost = (k === 'fun_value') ? 666 : costBase * (currentLevel + 1);
             }
             return { count, cost, maxed: currentLevel >= maxLevel };
         }
@@ -6453,7 +6456,7 @@
             let count = 0;
             let refund = 0;
             for (let i = 0; i < targetCount; i++) {
-                let levelCost = costBase * (currentLevel - i);
+                let levelCost = (k === 'fun_value') ? 666 : costBase * (currentLevel - i);
                 if (i >= freeLevels) { // hanya level yang bukan hasil hack yang dihitung refund-nya
                     refund += Math.floor(levelCost * 0.7);
                 }
@@ -6811,6 +6814,7 @@
             if (confirm("Apakah kamu yakin ingin menghapus seluruh data permainan?")) {
                 localStorage.removeItem('thousandYearsBattleSave');
                 saveData = JSON.parse(JSON.stringify(BASE_SAVE));
+                if (window.resetMasteryData) resetMasteryData();
                 saveGame();
                 initMenu();
             }
@@ -7753,6 +7757,7 @@
                     player.baseDmgMulti /= 2;
                     player.magnetArea /= 2;
                     break;
+                case 'malevolent_shrine':
                 case 'maxed_out_weapon':
                     if (player.backupWeaponLevels) {
                         player.weapons.forEach(w => {
@@ -7849,6 +7854,9 @@
             } else if (code === 'MASTERYEDIT') {
                 closeHackModal();
                 if (window.openMasteryEdit) openMasteryEdit();
+                handled = true;
+            } else if (code === 'EASIEST ENEMY' || code === 'POWER OF NEO' || code === 'EGG MAN') {
+                if (window.hackNew) hackNew(code);
                 handled = true;
             } else if (code === 'ADMIN') {
                 closeHackModal();
@@ -8436,6 +8444,18 @@
                 return;
             }
 
+            // Syarat khusus (mis. GIFT hanya di Desember) — kode TIDAK terpakai jika belum memenuhi syarat
+            if (def.canUse) {
+                let why = def.canUse();
+                if (why !== true) {
+                    inp.style.borderColor = '#ef4444';
+                    inp.classList.add('error-shake');
+                    setTimeout(() => { inp.classList.remove('error-shake'); inp.style.borderColor = '#a5b4fc'; }, 500);
+                    showRewardPopup(def.icon, def.title + ' — BELUM BISA', why);
+                    return;
+                }
+            }
+
             // Apply code reward
             def.apply();
             if (!def.repeatable) saveData.redeemedCodes.push(code);
@@ -8540,93 +8560,144 @@
         // ===== WEAPON MASTERY + ACHIEVEMENT MODULE =====
 (function(){
 if(!saveData.mst) saveData.mst={mastery:{},ach:{},kills:0,bosses:0,runs:0};
+// ---- DATA BARU: senjata Ghost & stat Fun Value ----
+WEAPON_DEFS.ghost={name:"Ghost",max:20,costBase:6,desc:"Hantu putih gentayangan mengitari player. Jika ada musuh, hantu menyerang dengan damage konstan & slow. Tiap upgrade menambah 1 hantu dan menguatkannya."};
+BASE_SAVE.weapons.ghost={level:0,max:20,costBase:6};
+if(!saveData.weapons.ghost)saveData.weapons.ghost={level:0,max:20,costBase:6};
+BASE_SAVE.stats.fun_value={level:0,max:66,costBase:666,val:1,name:"Fun Value"};
+if(!saveData.stats.fun_value)saveData.stats.fun_value={level:0,max:66,costBase:666,val:1,name:"Fun Value"};
+saveData.stats.fun_value.costBase=666;saveData.stats.fun_value.max=66;
 const D=saveData.mst; D.mastery=D.mastery||{}; D.ach=D.ach||{};
 // migrasi HELP ME: sudah redeem -> langsung claimed
 if(saveData.divineGeneralUnlocked&&!saveData.divineGeneralClaimed) saveData.divineGeneralClaimed=true;
 if(saveData.superBeastUnlocked&&saveData.divineGeneralUnlocked) saveData.trueHeavenlyJudgmentGranted=true;
 const TH=[50,150,300,500,800,1200,1800,2600,3500,5000];window.MASTERY_TH=TH;
-const ELEC=['thunder','chain','tesla_coil','overcharge'];
+let _ec=-1,_ea=[];
 const M=window.Mastery={
- runKills:0,st:{n:{},t:{},q:[],dots:[],trail:[]},
+ runKills:0,st:{},
  kills:id=>D.mastery[id]||0,
- lv(id){let k=this.kills(id),l=0;for(const t of TH)if(k>=t)l++;return l;},
+ lv(id){const k=D.mastery[id]||0;let l=0;while(l<10&&k>=TH[l])l++;return l;},
  has(id){return this.lv(id)>=10;},
- dmg(id){let m=1+this.lv(id)*0.1;if(!ELEC.includes(id)&&player&&player.weapons&&player.weapons.some(w=>w.id==='overcharge')&&this.has('overcharge'))m*=2;return m;},
- pier(id){return 1+this.lv(id)*0.1;},
- reset(){this.runKills=0;this.st={n:{},t:{},q:[],dots:[],trail:[],shield:0,shieldUsed:false};}
+ eh(id){return this.mm||this.lv(id)>=10;},
+ dmg(id){const r=this.lv(id),e=this.mm?10:r;return 1+e*0.1*(this.mm&&r>=10?2:1);},
+ pier(id){const r=this.lv(id),e=this.mm?10:r;return 1+e*0.1*(this.mm&&r>=10?2:1);},
+ reset(){this.runKills=0;this.st={n:{},t:{},q:[],dots:[],coils:[],ring:0,ext:0,ball:0,shield:0,shieldUsed:false};_ec=-1;hookParticles();}
 };
+// ---- helper ringan (hemat CPU untuk laptop kentang) ----
+const lowG=()=>!!saveData.lowGraphicsMode;
+const E=()=>{if(_ec!==frameCount){_ec=frameCount;_ea=entities.enemies.filter(e=>!e.dead);}return _ea;};
+const isB=e=>!!e.isBoss;
+function near(x,y,r,skip){let b=null,bd=r*r;const L=E();for(let i=0;i<L.length;i++){const e=L[i];if(e.dead||e===skip)continue;const d=(e.x-x)*(e.x-x)+(e.y-y)*(e.y-y);if(d<bd){bd=d;b=e;}}return b;}
+function strong(r){let b=null;const L=E(),rr=r*r;for(let i=0;i<L.length;i++){const e=L[i];if(e.dead)continue;const d=(e.x-player.x)**2+(e.y-player.y)**2;if(d<rr&&(!b||e.hp>b.hp))b=e;}return b;}
+const B=w=>(10+w.level*5)*player.baseDmgMulti;
+const hit=(e,d,bm)=>{if(!e.dead)e.takeDamage(d*(bm&&isB(e)?bm:1));};
+const stun=(e,t)=>{if(e.dead)return;e.speed=0;e._slowTimer=Math.max(e._slowTimer||0,t);};
+const slow=(e,t)=>{if(e.dead||(e.speed===0&&e._slowTimer>0))return;e.speed=(e.initialSpeed||1)*0.35;e._slowTimer=Math.max(e._slowTimer||0,t);};
+function fx(x,y,r,c,life=18){if(lowG()||entities.particles.length>MAX_PARTICLES*2)return;entities.particles.push({x,y,life,max:life,update(){this.life--;},draw(ctx){ctx.save();ctx.globalAlpha=Math.max(0,this.life/this.max)*0.5;ctx.fillStyle=c;ctx.beginPath();ctx.arc(x,y,r*(1-this.life/this.max*0.4),0,7);ctx.fill();ctx.restore();}});}
+function boom(x,y,r,d,c,fn,bm){const L=E(),rr=r*r;for(let i=0;i<L.length;i++){const e=L[i];if(e.dead)continue;const dx=e.x-x,dy=e.y-y,q=r+(e.size||10);if(dx*dx+dy*dy<q*q){hit(e,d,bm);if(fn)fn(e);}}fx(x,y,r,c);}
+const say=(t,c)=>{createDamageText(player.x,player.y-70,t,c||'#f59e0b',16);};
+const fire=(id,...a)=>{const p=window._wc;window._wc=id;const b=fireBullet(...a);window._wc=p;return b;};
+const rdy=(k,n)=>{const t=M.st.t;t[k]=(t[k]||0)+1;return t[k]>=n/(M.mm?2:1);};
+const ev=(k,n)=>cnt(k)%Math.max(1,Math.round(n/(M.mm?2:1)))===0;
+const done=k=>{M.st.t[k]=0;};
+const cnt=k=>{const s=M.st.n;s[k]=(s[k]||0)+1;return s[k];};
+function puddle(x,y,r,d,life,every,col,bm){entities.particles.push({x,y,life,max:life,update(){this.life--;if(this.life%every===0){const rr=r*r,L=E();for(let i=0;i<L.length;i++){const e=L[i];if(e.dead)continue;const dx=e.x-x,dy=e.y-y;if(dx*dx+dy*dy<rr)hit(e,d,bm);}}},draw(ctx){if(lowG())return;ctx.save();ctx.globalAlpha=0.18*Math.min(1,this.life/60);ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();ctx.restore();}});}
+// ---- tag partikel dgn senjata asal (biar kill AOE/trail/setTimeout terhitung ke senjata yg benar) ----
+function wrapUpd(o,id){if(typeof o.update!=='function')return;const u=o.update;o.update=function(){window._wc=id;try{u.apply(this,arguments);}finally{window._wc=null;}};}
+function special(o,id){
+ if((id==='lava_trail'||id==='icicles')&&o.radius&&o.update){const u=o.update,ice=id==='icicles';
+  o.update=function(){u.apply(this,arguments);if(this.life>0&&frameCount%4===0){const L=E();for(let i=0;i<L.length;i++){const e=L[i];if(e.dead)continue;const dx=e.x-this.x,dy=e.y-this.y,q=this.radius+(e.size||10);if(dx*dx+dy*dy<q*q){boom(this.x,this.y,this.radius*3.5,(this.dmg||10)*8,ice?'#67e8f9':'#f97316',ice?(x=>slow(x,150)):null);this.life=0;break;}}}};}
+ else if(id==='black_hole'&&o.radius){o.radius*=2;}
+}
+function hookParticles(){const arr=entities.particles;if(arr._mh)return;arr._mh=1;const op=arr.push;
+ arr.push=function(...a){for(const o of a){if(!o)continue;let id=window._wc;
+   if(!id&&(o.id==='blue_lapse'||o.id==='reversal_red'))id=o.id;
+   if(o.id==='blue_lapse'&&o.dmg&&!o._ms){o._ms=1;o.dmg*=M.dmg('blue_lapse');}
+   if(o.id==='reversal_red'&&o.dmg&&!o._ms){o._ms=1;const m=M.dmg('reversal_red');o.dmg*=m;if(o.baseDmgMulti)o.baseDmgMulti*=m;}
+   if(id&&!o._wc){o._wc=id;if(M.eh(id))special(o,id);wrapUpd(o,id);}}
+  return op.apply(this,a);};}
+// setTimeout ikut membawa tag senjata (meteor, chain lightning, dll)
+const _st=window.setTimeout;window.setTimeout=function(fn,ms,...a){const id=window._wc;if(!id||typeof fn!=='function')return _st(fn,ms,...a);return _st(function(){window._wc=id;try{fn.apply(this,a);}finally{window._wc=null;}},ms);};
 M.reset();
-const E=()=>entities.enemies.filter(e=>!e.dead);
-const isB=e=>e.isBoss||e.isMini||e.isMiniBoss;
-const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-const near=(x,y,r)=>{let b=null,bd=r*r;for(const e of E()){let d=(e.x-x)**2+(e.y-y)**2;if(d<bd){bd=d;b=e;}}return b;};
-const strong=(r)=>{let b=null;for(const e of E()){if(dist(e,player)<r&&(!b||e.hp>b.hp))b=e;}return b;};
-const B=w=>(10+w.level*5)*player.baseDmgMulti*M.dmg(w.id);
-const hit=(e,d,bm)=>{e.takeDamage(d*(bm&&isB(e)?bm:1));};
-const stun=(e,t)=>{e.speed=0;e._slowTimer=Math.max(e._slowTimer||0,t);};
-const slow=(e,t)=>{e.speed=(e.initialSpeed||1)*0.35;e._slowTimer=Math.max(e._slowTimer||0,t);};
-const fx=(x,y,r,c,life=20)=>entities.particles.push({x,y,life,max:life,update(){this.life--;},draw(ctx){ctx.save();ctx.globalAlpha=Math.max(0,this.life/this.max)*0.6;ctx.fillStyle=c;ctx.beginPath();ctx.arc(x,y,r*(1-this.life/this.max*0.4),0,7);ctx.fill();ctx.restore();}});
-const aoe=(x,y,r,d,bm,fn)=>{for(const e of E()){if(dist(e,{x,y})<r+(e.size||10)){hit(e,d,bm);if(fn)fn(e);}}fx(x,y,r,'#f59e0b');};
-const say=(t,c)=>createDamageText(player.x,player.y-70,t,c||'#f59e0b',16);
-const orb=(o)=>{entities.particles.push(Object.assign({life:600,max:600,update(){this.life--;},draw(ctx){}},o));};
-const fire=(id,...a)=>{window._wc=id;fireBullet(...a);window._wc=null;};
-const tm=(id,key,every)=>{let s=M.st.t;s[key]=(s[key]||0)+1;if(s[key]>=every){s[key]=0;return true;}return false;};
-const cnt=(k)=>{let s=M.st.n;s[k]=(s[k]||0)+1;return s[k];};
+// ---- UNIQUE SKILLS ----
 const S={
- pistol:{shot(w){if(cnt('pistol')%7)return;let t=near(player.x,player.y,700);if(!t)return;say('EXPLODE SHOT!','#3b82f6');aoe(t.x,t.y,130,B(w)*6);}},
- boomerang:{tick(w){if(!tm('b','boom',1800))return;say('GLAIVE TRACK!','#22d3ee');let dmg=B(w)*2,g={x:player.x,y:player.y,life:600,max:600,tg:null,hitAt:new Map(),
-   update(){this.life--;if(!this.tg||this.tg.dead)this.tg=near(this.x,this.y,1500);if(!this.tg)return;let a=Math.atan2(this.tg.y-this.y,this.tg.x-this.x);this.x+=Math.cos(a)*10;this.y+=Math.sin(a)*10;
-    for(const e of E()){if(dist(e,this)<e.size+22&&frameCount-(this.hitAt.get(e)||-99)>15){this.hitAt.set(e,frameCount);window._wc='boomerang';hit(e,dmg);window._wc=null;if(e===this.tg)this.tg=null;}}},
-   draw(ctx){ctx.save();ctx.translate(this.x,this.y);ctx.rotate(frameCount*0.4);ctx.fillStyle='#22d3ee';ctx.fillRect(-22,-4,44,8);ctx.fillRect(-4,-22,8,44);ctx.restore();}};entities.particles.push(g);}},
- missile:{shot(w){if(cnt('missile')%10)return;let t=near(player.x,player.y,800);if(!t)return;say('TRIPLE MISSILE!','#f97316');let a=Math.atan2(t.y-player.y,t.x-player.x),d=B(w)*3;for(let i=0;i<3;i++)M.st.q.push({f:frameCount+i*6,fn:()=>fire('missile',player.x,player.y,a+(i-1)*0.08,d,7,'#f97316',9,false,3,false,true)});}},
- poison:{shot(w){if(cnt('poison')%10)return;let t=near(player.x,player.y,700);if(!t)return;say('CHAOS BOTTLE!','#a3e635');aoe(t.x,t.y,150,B(w)*3,3,e=>M.st.dots.push({e,n:12,d:B(w)*0.5*(isB(e)?3:1)*2,id:'poison'}));}},
- thunder:{tick(w){if(!tm('t','thunder',3600))return;let t=strong(900);if(!t)return;say("GOD'S WRATH!",'#facc15');aoe(t.x,t.y,220,B(w)*10);}},
- chain:{tick(w){let s=M.st;if(tm('c','tball',3600)){s.ball=1800;say('THUNDER BALL!','#38bdf8');}if(s.ball>0){s.ball--;if(frameCount%10===0)for(let i=0;i<3;i++){let a=frameCount*0.08+i*2.094,ox=player.x+Math.cos(a)*90,oy=player.y+Math.sin(a)*90;for(const e of E()){if(dist(e,{x:ox,y:oy})<e.size+24){window._wc='chain';hit(e,B(w)*0.6);let n=near(e.x,e.y,160);if(n&&n!==e)hit(n,B(w)*0.3);window._wc=null;break;}}}}},
-   draw(){}},
- pulse:{shot(w){if(Math.random()>0.1)return;say('STUN PULSE!','#a78bfa');aoe(player.x,player.y,240,B(w),0,e=>stun(e,120));}},
- minion:{tick(w){if(!tm('m','minion',45))return;let e=near(player.x,player.y,500);if(!e)return;let r=Math.floor(Math.random()*3);if(r===0)slow(e,180);else if(r===1)stun(e,90);else M.st.dots.push({e,n:6,d:B(w)*0.4,id:'minion'});createDamageText(e.x,e.y-20,['SLOW','STUN','DOT'][r],'#c084fc',12);}},
- blue_lapse:{tick(w){for(const p of entities.particles){if(p.id==='blue_lapse'&&p.life<=2&&!p._mx){p._mx=1;for(const e of E())if(dist(e,p)<450){e.x+=(p.x-e.x)*0.9;e.y+=(p.y-e.y)*0.9;}aoe(p.x,p.y,240,B(w)*8,2);}}}},
- reversal_red:{tick(w){let r=entities.particles.filter(p=>p.id==='reversal_red'&&p.life>0&&!p._g);if(r.length<2)return;let a=r[0],b=r[1];a.life=0;b.life=0;say('GIGA RED!','#ef4444');let dmg=B(w)*10;entities.particles.push({x:(a.x+b.x)/2,y:(a.y+b.y)/2,life:600,max:600,_g:1,update(){this.life--;let t=near(this.x,this.y,1200);if(!t)return;let an=Math.atan2(t.y-this.y,t.x-this.x);this.x+=Math.cos(an)*6;this.y+=Math.sin(an)*6;if(dist(t,this)<t.size+30){aoe(this.x,this.y,350,dmg,2);this.life=0;}},draw(ctx){ctx.fillStyle='#dc2626';ctx.beginPath();ctx.arc(this.x,this.y,30,0,7);ctx.fill();}});}},
- laser:{shot(w){if(Math.random()>0.3)return;let t=near(player.x,player.y,600);if(t){stun(t,60);for(const e of E())if(dist(e,t)<120)slow(e,180);createDamageText(t.x,t.y-20,'COLD!','#67e8f9',13);}}},
- meteor:{tick(w){if(!tm('me','meteor',3600))return;let t=strong(900)||near(player.x,player.y,900);if(!t)return;say('EXTINCTION!','#f97316');let x=t.x,y=t.y;M.st.q.push({f:frameCount+60,fn:()=>{window._wc='meteor';aoe(x,y,260,B(w)*12,3);window._wc=null;}});fx(x,y,60,'#7f1d1d',60);}},
- frost_nova:{tick(w){if(!tm('f','fnova',3600))return;say('WORLD FROZEN!','#67e8f9');for(const e of E()){stun(e,150);}}},
- lava_trail:{tick(w){trail(w,'lava_trail',40,'#f97316',false);}},
- icicles:{tick(w){trail(w,'icicles',40,'#67e8f9',true);}},
- blade_ring:{tick(w){let s=M.st;if(tm('br','bring',1800)){s.ring=600;say('DOUBLE RING!','#e5e7eb');}if(s.ring>0){s.ring--;if(frameCount%15===0){window._wc='blade_ring';for(const e of E())if(Math.abs(dist(e,player)-130)<40)hit(e,B(w));window._wc=null;fx(player.x,player.y,130,'#94a3b8',8);}}}},
- tesla_coil:{tick(w){if(frameCount%60===0&&Math.random()<0.1){say('TESLA CENTER!','#facc15');let x=player.x+(Math.random()-0.5)*160,y=player.y+(Math.random()-0.5)*160,d=B(w)*1.5;entities.particles.push({x,y,life:3600,max:3600,update(){this.life--;if(this.life%30===0){let t=near(x,y,260);if(t){window._wc='tesla_coil';hit(t,d);window._wc=null;createParticles(t.x,t.y,'#facc15',4);}}},draw(ctx){ctx.fillStyle='#facc15';ctx.fillRect(x-6,y-16,12,32);}});}}},
- black_hole:{tick(w){if(!tm('bh','bhole',900))return;let t=near(player.x,player.y,700);let a=t?Math.atan2(t.y-player.y,t.x-player.x):0,x=player.x+Math.cos(a)*250,y=player.y+Math.sin(a)*250,d=B(w)*0.3;say('BLACK HOLE!','#8b5cf6');entities.particles.push({x,y,life:240,max:240,update(){this.life--;for(const e of E()){let dd=dist(e,this);if(dd<500){e.x+=(x-e.x)*0.04;e.y+=(y-e.y)*0.04;if(dd<60&&this.life%15===0){window._wc='black_hole';hit(e,d);window._wc=null;}}}},draw(ctx){ctx.fillStyle='rgba(30,0,60,.8)';ctx.beginPath();ctx.arc(x,y,40,0,7);ctx.fill();}});}},
- earthquake:{shot(w){say('MAGNITUDO MAX!','#a16207');aoe(player.x,player.y,420,B(w)*4,0,e=>stun(e,180));}},
- poison_dart:{shot(w){if(Math.random()>0.1)return;let t=near(player.x,player.y,600);if(!t)return;aoe(t.x,t.y,70,B(w),0,e=>M.st.dots.push({e,n:5,d:B(w)*0.3,id:'poison_dart'}));}},
- tornado:{shot(w){if(cnt('tornado')%10)return;say('TORNADO TRUE!','#94a3b8');let d=B(w)*0.8;entities.particles.push({x:player.x,y:player.y,life:240,max:240,update(){this.life--;let t=near(this.x,this.y,1200);if(t){let a=Math.atan2(t.y-this.y,t.x-this.x);this.x+=Math.cos(a)*7;this.y+=Math.sin(a)*7;}for(const e of E()){if(dist(e,this)<280){e.x+=(this.x-e.x)*0.08;e.y+=(this.y-e.y)*0.08;if(this.life%10===0){window._wc='tornado';hit(e,d);window._wc=null;}}}},draw(ctx){ctx.strokeStyle='#94a3b8';ctx.lineWidth=4;ctx.beginPath();ctx.arc(this.x,this.y,30+Math.sin(frameCount*.3)*8,0,7);ctx.stroke();}});}},
- holy_cross:{tick(w){let s=M.st;if(!s.ext&&frameCount%60===0&&Math.random()<0.1){s.ext=1800;say('EXTERMINATE EVIL!','#fde047');}if(s.ext>0){s.ext--;for(const e of E()){if(!e._ex){e._ex=1;e.hp*=0.5;}}}}},
- energy_shield:{tick(w){let s=M.st;if(!s.shieldUsed&&player.hp<player.maxHp*0.5){s.shieldUsed=true;s.shield=18000;say('TRUE SHIELD!','#38bdf8');}if(s.shield>0)s.shield--;}},
- scatter_shot:{shot(w){if(Math.random()>0.1)return;let t=near(player.x,player.y,700);if(!t)return;let a=Math.atan2(t.y-player.y,t.x-player.x);for(let i=-1;i<=1;i++)fire('scatter_shot',player.x,player.y,a+i*0.12,B(w),9,'#fb923c',5,false,2);}},
- combustion:{shot(w){if(Math.random()>0.3)return;let t=near(player.x,player.y,700);if(t)aoe(t.x,t.y,160,B(w)*2);}},
- overcharge:{tick(){if(!M.st.oc){M.st.oc=1;say('HEAVENLY CHARGE!','#facc15');}}}
+ pistol:{shot(w){if(!ev('pistol',7))return;const t=near(player.x,player.y,700);const a=t?Math.atan2(t.y-player.y,t.x-player.x):0;say('EXPLODE SHOT!','#3b82f6');fire('pistol',player.x,player.y,a,B(w)*6,6,'#3b82f6',20,false,1,false,false,180);}},
+ boomerang:{tick(w){if(!rdy('boom',1800))return;done('boom');say('GLAIVE TRACK!','#22d3ee');const dmg=B(w)*2;
+  entities.particles.push({x:player.x,y:player.y,life:600,max:600,tg:null,hm:new Map(),
+   update(){this.life--;if(!this.tg||this.tg.dead||frameCount%20===0){let b=null,bd=1e12;const L=E();for(let i=0;i<L.length;i++){const e=L[i];if(e.dead||frameCount-(this.hm.get(e)||-999)<45)continue;const d=(e.x-this.x)**2+(e.y-this.y)**2;if(d<bd){bd=d;b=e;}}this.tg=b;}
+    if(this.tg){const a=Math.atan2(this.tg.y-this.y,this.tg.x-this.x);this.x+=Math.cos(a)*12;this.y+=Math.sin(a)*12;}
+    const L=E();for(let i=0;i<L.length;i++){const e=L[i];if(e.dead)continue;const dx=e.x-this.x,dy=e.y-this.y,q=e.size+28;if(dx*dx+dy*dy<q*q&&frameCount-(this.hm.get(e)||-999)>=45){this.hm.set(e,frameCount);hit(e,dmg);if(e===this.tg)this.tg=null;}}},
+   draw(ctx){ctx.save();ctx.translate(this.x,this.y);ctx.rotate(frameCount*0.4);ctx.fillStyle='#22d3ee';ctx.fillRect(-26,-5,52,10);ctx.fillRect(-5,-26,10,52);ctx.restore();}});}},
+ missile:{shot(w){if(!ev('missile',10))return;const n=Math.min(3,w.level)*2,ao=45+(w.level>=4?(w.level-3)*15:0),d=B(w)*1.8;say('TRIPLE MISSILE!','#f97316');
+  for(let i=0;i<n;i++)M.st.q.push({f:frameCount+3*(i+1),id:'missile',fn:()=>{const t=near(player.x,player.y,900);const a=t?Math.atan2(t.y-player.y,t.x-player.x):Math.random()*6.28;fire('missile',player.x,player.y,a+(Math.random()-0.5)*0.35,d,6,'#fd7e14',8,false,1,false,false,ao);}});}},
+ poison:{shot(w){if(!ev('poison',10))return;const t=near(player.x,player.y,700);if(!t)return;say('CHAOS BOTTLE!','#a3e635');
+  const r=(40+(w.level>=11?(w.level-10)*12:0))*1.6,d=(4+(w.level>=6?Math.min(5,w.level-5)*3:0))*player.baseDmgMulti*2;puddle(t.x,t.y,r,d,300,30,'#84cc16',3);}},
+ thunder:{tick(w){if(!rdy('thunder',3600))return;const t=strong(1000);if(!t)return;done('thunder');say("GOD'S WRATH!",'#facc15');boom(t.x,t.y,350,B(w)*1.5*10,'#facc15');}},
+ chain:{tick(w){if(M.st.ball>0||!rdy('tball',3600))return;done('tball');say('THUNDER BALL!','#38bdf8');const dmg=B(w)*1.2;
+  entities.particles.push({x:player.x,y:player.y,life:1800,max:1800,update(){this.life--;this.x=player.x;this.y=player.y;M.st.ball=this.life;
+    if(this.life%8===0){for(let k=0;k<3;k++){const a=frameCount*0.07+k*2.094,bx=this.x+Math.cos(a)*95,by=this.y+Math.sin(a)*95,L=E();for(let i=0;i<L.length;i++){const e=L[i];if(e.dead)continue;const dx=e.x-bx,dy=e.y-by,q=e.size+26;if(dx*dx+dy*dy<q*q){hit(e,dmg);const n=near(e.x,e.y,240,e);if(n){hit(n,dmg*0.6);fx(n.x,n.y,26,'#38bdf8',8);}break;}}}}},
+   draw(ctx){for(let k=0;k<3;k++){const a=frameCount*0.07+k*2.094;ctx.fillStyle='#38bdf8';ctx.beginPath();ctx.arc(this.x+Math.cos(a)*95,this.y+Math.sin(a)*95,10,0,7);ctx.fill();}}});}},
+ pulse:{shot(w){if(Math.random()>0.1*(M.mm?2:1))return;say('STUN PULSE!','#a78bfa');boom(player.x,player.y,(55+w.level*22)*1.4,(12+w.level*6)*player.baseDmgMulti,'#a78bfa',e=>stun(e,120));}},
+ minion:{shot(w){const L=E();if(!L.length)return;for(let i=0;i<w.level;i++){const e=L[Math.floor(Math.random()*L.length)];if(!e||e.dead||(e.x-player.x)**2+(e.y-player.y)**2>640000)continue;const r=Math.floor(Math.random()*4);
+   if(r===0)slow(e,180);else if(r===1)stun(e,90);else{if(M.st.dots.length<200)M.st.dots.push({e,n:r===2?6:4,d:B(w)*(r===2?0.4:0.7),id:'minion'});}}}},
+ blue_lapse:{tick(w){const P=entities.particles;for(let i=0;i<P.length;i++){const p=P[i];if(p.id==='blue_lapse'&&p.life<=1&&!p._mx){p._mx=1;const L=E();for(let j=0;j<L.length;j++){const e=L[j];if((e.x-p.x)**2+(e.y-p.y)**2<202500){e.x=p.x+(Math.random()-0.5)*40;e.y=p.y+(Math.random()-0.5)*40;}}
+   say('BLUE LAPSE DETONATION!','#3b82f6');boom(p.x,p.y,260,(15+w.level*10)*player.baseDmgMulti*12,'#3b82f6',null,2);}}}},
+ reversal_red:{tick(w){const P=entities.particles;let r=[];for(let i=0;i<P.length;i++){const p=P[i];if(p.id==='reversal_red'&&p.life>0&&!p._f)r.push(p);}
+  if(r.length<2)return;const a=r[0],b=r[1];for(const p of [a,b]){p._f=1;p.update=()=>{};p.draw=()=>{};p.life=0;}
+  say('GIGA RED!','#ef4444');const dmg=Math.min(1e6,1e5*w.level)*player.baseDmgMulti*2;
+  entities.particles.push({x:(a.x+b.x)/2,y:(a.y+b.y)/2,life:600,max:600,f:0,
+   update(){this.life--;const t=near(this.x,this.y,1500);if(t){const an=Math.atan2(t.y-this.y,t.x-this.x);this.x+=Math.cos(an)*6;this.y+=Math.sin(an)*6;}
+    if((t&&(t.x-this.x)**2+(t.y-this.y)**2<(t.size+40)**2)||this.life<=0){const L=E();for(let i=0;i<L.length;i++){const e=L[i];if(!e.dead&&(e.x-this.x)**2+(e.y-this.y)**2<1210000)hit(e,dmg,2);}fx(this.x,this.y,500,'#dc2626',30);this.life=0;}},
+   draw(ctx){ctx.fillStyle='#dc2626';ctx.beginPath();ctx.arc(this.x,this.y,32+Math.sin(frameCount*.3)*5,0,7);ctx.fill();}});}},
+ laser:{shot(w){const t=near(player.x,player.y,600);if(!t)return;const a=Math.atan2(t.y-player.y,t.x-player.x),c=Math.cos(a),s=Math.sin(a),L=E();
+  for(let i=0;i<L.length;i++){const e=L[i];if(e.dead)continue;const dx=e.x-player.x,dy=e.y-player.y,pr=dx*c+dy*s;if(pr<0||pr>560)continue;if(Math.abs(dx*s-dy*c)<40+e.size){const r=Math.random();if(r<0.3)stun(e,90);else if(r<0.6)slow(e,180);}}}},
+ meteor:{tick(w){if(!rdy('meteor',3600))return;const t=strong(1000)||near(player.x,player.y,1000);if(!t)return;done('meteor');say('EXTINCTION!','#f97316');const x=t.x,y=t.y;fx(x,y,120,'#7f1d1d',60);
+  M.st.q.push({f:frameCount+60,id:'meteor',fn:()=>boom(x,y,(50+w.level*8)*3,B(w)*2*12,'#ea580c',null,3)});}},
+ frost_nova:{tick(w){if(!rdy('fnova',3600))return;done('fnova');say('WORLD FROZEN!','#67e8f9');const L=E();for(let i=0;i<L.length;i++)stun(L[i],180);fx(player.x,player.y,600,'#67e8f9',30);}},
+ blade_ring:{shot(w){if(M.st.ring>0){const r=55+w.level*6,d=B(w)*0.6,L=E();for(let i=0;i<L.length;i++){const e=L[i];if(!e.dead&&(e.x-player.x)**2+(e.y-player.y)**2<r*r)hit(e,d);}}},
+  tick(w){const s=M.st;if(rdy('bring',1800)){done('bring');s.ring=600;say('DOUBLE RING!','#e5e7eb');}if(s.ring>0)s.ring--;}},
+ tesla_coil:{shot(w){if(Math.random()>0.1*(M.mm?2:1))return;const s=M.st;say('TESLA CENTER!','#facc15');const x=player.x+(Math.random()-0.5)*160,y=player.y+(Math.random()-0.5)*160,rad=(100+w.level*10)*1.3,d=B(w)*1.2;
+  const c={x,y,life:3600,max:3600,tg:null,tl:0,update(){this.life--;if(this.tl>0)this.tl--;if(this.life%20===0){const t=near(x,y,rad);if(t){hit(t,d);this.tg=t;this.tl=6;}}},
+   draw(ctx){ctx.fillStyle='#facc15';ctx.fillRect(x-6,y-16,12,32);if(this.tl>0&&this.tg&&!lowG()){ctx.strokeStyle='#fde047';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y-14);ctx.lineTo(this.tg.x,this.tg.y);ctx.stroke();}}};
+  s.coils=s.coils.filter(k=>k.life>0);if(s.coils.length>=5){s.coils.shift().life=0;}s.coils.push(c);entities.particles.push(c);}},
+ earthquake:{shot(w){say('MAGNITUDO MAX!','#a16207');const d=B(w)*1.5*2,L=E();for(let i=0;i<L.length;i++){const e=L[i];if(!e.dead&&(e.x-player.x)**2+(e.y-player.y)**2<1000000){hit(e,d);stun(e,180);}}fx(player.x,player.y,700,'#a16207',20);}},
+ poison_dart:{shot(w){if(Math.random()>0.1*(M.mm?2:1))return;const t=near(player.x,player.y,600);if(!t)return;puddle(t.x,t.y,40,4*player.baseDmgMulti,180,30,'#22c55e');}},
+ tornado:{shot(w){if(!ev('tornado',10))return;say('TORNADO TRUE!','#94a3b8');const a=player.lastMoveAngle||0,dmg=(15+w.level*10)*player.baseDmgMulti*2;
+  entities.particles.push({x:player.x+Math.cos(a)*60,y:player.y+Math.sin(a)*60,life:300,max:300,vx:Math.cos(a)*2.4,vy:Math.sin(a)*2.4,
+   update(){this.life--;this.x+=this.vx;this.y+=this.vy;const L=E();for(let i=0;i<L.length;i++){const e=L[i];if(e.dead)continue;const dx=this.x-e.x,dy=this.y-e.y,d2=dx*dx+dy*dy;if(d2<16900){const d=Math.sqrt(d2)||1,f=6*(e.knockbackResist?0.1:1);e.x+=dx/d*f;e.y+=dy/d*f;if(d2<4225&&this.life%12===0)hit(e,dmg*0.3);}}},
+   draw(ctx){ctx.save();ctx.strokeStyle='#94a3b8';ctx.lineWidth=3;for(let k=0;k<3;k++){ctx.beginPath();ctx.arc(this.x,this.y,25+k*28+Math.sin(frameCount*.3+k)*5,0,7);ctx.stroke();}ctx.restore();}});}},
+ holy_cross:{shot(w){const s=M.st;if(s.ext>0||Math.random()>0.1*(M.mm?2:1))return;s.ext=1800;say('EXTERMINATE EVIL!','#fde047');},
+  tick(){const s=M.st;if(s.ext>0){s.ext--;if(frameCount%10===0){const L=E();for(let i=0;i<L.length;i++){const e=L[i];if(!e._ex){e._ex=1;e.hp*=0.5;}}}}}},
+ energy_shield:{tick(){const s=M.st;if(!s.shieldUsed&&player.hp<player.maxHp*0.5){s.shieldUsed=true;s.shield=18000;say('TRUE SHIELD!','#38bdf8');
+  entities.particles.push({x:player.x,y:player.y,life:18000,max:18000,update(){this.life--;this.x=player.x;this.y=player.y;if(M.st.shield<=0)this.life=0;},draw(ctx){ctx.save();ctx.strokeStyle='rgba(56,189,248,.7)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(this.x,this.y,32,0,7);ctx.stroke();ctx.restore();}});}
+  if(s.shield>0)s.shield--;}},
+ scatter_shot:{shot(w){if(Math.random()>0.1*(M.mm?2:1))return;const t=near(player.x,player.y,700);if(!t)return;const a=Math.atan2(t.y-player.y,t.x-player.x),d=B(w)*(0.5+w.level*0.08)*1.2;for(let i=0;i<8;i++)fire('scatter_shot',player.x,player.y,a+(i-3.5)*0.06,d,8,'#a855f7',4,false,1);}},
+ combustion:{tick(){if(frameCount%10)return;const L=E();for(let i=0;i<L.length;i++){const e=L[i];if(e._combustion&&!e._cbm){e._cbm=1;if(Math.random()<0.3*(M.mm?2:1)){e._combustion.rad*=2;e._combustion.dmg*=2;}}}}},
+ overcharge:{shot(w){const red=Math.floor(w.level*1.5),W=player.weapons;for(let i=0;i<W.length;i++){const x=W[i];if(x.id!=='overcharge'&&x.cooldown>5&&x.cooldown<9000)x.cooldown-=red;}}}
 };
-function trail(w,id,every,col,isIce){let s=M.st;if(frameCount%15===0){s.trail.push({x:player.x,y:player.y,id});if(s.trail.length>60)s.trail.shift();}
- s.trail=s.trail.filter(p=>{if(p.id!==id)return true;for(const e of E()){if(dist(e,p)<e.size+30){window._wc=id;aoe(p.x,p.y,90,B(w)*2,0,isIce?e=>slow(e,120):null);window._wc=null;return false;}}return true;});}
 // ---- hooks ----
 const _wu=WeaponInstance.prototype.update;
-WeaponInstance.prototype.update=function(){let prev=this.cooldown;window._wc=this.id;_wu.call(this);window._wc=null;
- if(!M.has(this.id))return;let sk=S[this.id];if(!sk)return;if(sk.shot&&this.cooldown>prev)sk.shot(this);if(sk.tick)sk.tick(this);};
-const _bu=Bullet.prototype.update;Bullet.prototype.update=function(){window._wc=this.wid;let r=_bu.apply(this,arguments);window._wc=null;return r;};
+WeaponInstance.prototype.update=function(){const id=this.id,prev=this.cooldown,pb=player.baseDmgMulti;player.baseDmgMulti=pb*M.dmg(id);window._wc=id;
+ try{_wu.call(this);if(M.eh(id)){const sk=S[id];if(sk){try{if(sk.shot&&this.cooldown>prev)sk.shot(this);if(sk.tick)sk.tick(this);}catch(err){if(!window._mWarn){window._mWarn=1;console.warn('mastery skill',id,err);}}}}}
+ finally{player.baseDmgMulti=pb;window._wc=null;}};
+const _wd=WeaponInstance.prototype.draw;
+WeaponInstance.prototype.draw=function(ctx){_wd.call(this,ctx);if(this.id==='blade_ring'&&M.st.ring>0){const n=2+Math.floor(this.level/2),r=55+this.level*6;for(let i=0;i<n;i++){const a=frameCount*0.08+(Math.PI*2/n)*(i+0.5);ctx.save();ctx.translate(player.x+Math.cos(a)*r,player.y+Math.sin(a)*r);ctx.rotate(a);ctx.fillStyle='#e2e8f0';ctx.fillRect(-6,-2,12,4);ctx.restore();}}};
+const _bu=Bullet.prototype.update;Bullet.prototype.update=function(){window._wc=this.wid||null;try{return _bu.apply(this,arguments);}finally{window._wc=null;}};
 const _td=Enemy.prototype.takeDamage;
-Enemy.prototype.takeDamage=function(a){let was=this.dead;if(M.st.ext>0&&isB(this)&&this._ex)a*=2;let r=_td.call(this,a);
- if(!was&&this.dead){let id=window._wc;if(!id&&player&&player.weapons&&player.weapons.length)id=player.weapons[Math.floor(Math.random()*player.weapons.length)].id;
-  if(id){let b=M.lv(id);D.mastery[id]=(D.mastery[id]||0)+(D.doubleWeapon===id?2:1);let n=M.lv(id);if(n>b){createDamageText(player.x,player.y-90,`⭐ ${WEAPON_DEFS[id]?WEAPON_DEFS[id].name:id} MASTERY Lv ${n}`,'#fbbf24',16);if(n===10)say('UNIQUE SKILL UNLOCKED!','#f43f5e');}}
-  D.kills++;M.runKills++;if(isB(this))D.bosses++;}
+Enemy.prototype.takeDamage=function(a){const was=this.dead;if(M.st.ext>0&&this.isBoss)a*=2;const r=_td.call(this,a);
+ if(!was&&this.dead){const id=window._wc;if(id&&window.__boostKill)__boostKill(id,this.x,this.y);
+  if(id&&WEAPON_DEFS[id]){const b=M.lv(id);D.mastery[id]=(D.mastery[id]||0)+kadd(id);const n=M.lv(id);if(n>b){createDamageText(player.x,player.y-90,`⭐ ${WEAPON_DEFS[id].name} MASTERY Lv ${n}`,'#fbbf24',16);if(n===10)say('UNIQUE SKILL UNLOCKED!','#f43f5e');saveGame();}}
+  D.kills++;M.runKills++;if(this.isBoss)D.bosses++;}
  return r;};
 const _pt=Player.prototype.takeDamage;Player.prototype.takeDamage=function(a,b){if(M.st.shield>0)a*=0.5;return _pt.call(this,a,b);};
-// tick global: dots, queue, achievements
-const _gl=Player.prototype.update;Player.prototype.update=function(){_gl.apply(this,arguments);let s=M.st;
- s.q=s.q.filter(q=>{if(frameCount>=q.f){q.fn();return false;}return true;});
- if(frameCount%30===0)s.dots=s.dots.filter(d=>{if(d.e.dead||d.n<=0)return false;d.n--;window._wc=d.id;d.e.takeDamage(d.d);window._wc=null;return true;});
- if(frameCount%120===0)checkAch();};
-// stat setter
-const _bd=Bullet;
-// pierce + wid hook via constructor source patch (lihat patch string)
-window.__mPierce=function(b,p){b.wid=window._wc;return b.wid?Math.max(1,Math.round(p*M.pier(b.wid))):p;};
+const _gl=Player.prototype.update;Player.prototype.update=function(){_gl.apply(this,arguments);const s=M.st;
+ if(s.q.length){let keep=[];for(const q of s.q){if(frameCount>=q.f){window._wc=q.id;try{q.fn();}catch(e){}finally{window._wc=null;}}else keep.push(q);}s.q=keep;}
+ if(s.dots.length&&frameCount%30===0)s.dots=s.dots.filter(d=>{if(d.e.dead||d.n<=0)return false;d.n--;window._wc=d.id;try{d.e.takeDamage(d.d);}finally{window._wc=null;}return true;});
+ if(frameCount%300===0)checkAch();
+ if(window.boostTick)boostTick();
+ if(window.gTick)window.gTick();
+ if(frameCount>0&&frameCount%1800===0)saveGame();};
+window.__mPierce=function(b,p){b.wid=window._wc||null;return b.wid?Math.max(1,Math.round(p*M.pier(b.wid))):p;};
 // ---- ACHIEVEMENTS (100) ----
 const A=[];const add=(n,d,f,p)=>A.push({id:A.length,n,d,f,p});
 const T=(arr,nm,desc,val)=>arr.forEach((v,i)=>add(`${nm} ${['I','II','III','IV','V','VI','VII','VIII','IX','X'][i]}`,desc.replace('#',v.toLocaleString()),()=>val()>=v,()=>[Math.min(val(),v),v]));
@@ -8648,31 +8719,187 @@ window.Achievements=A;
 const btn=document.createElement('button');btn.className='btn';btn.textContent='🏆 ACHIEVEMENT & WEAPON MASTERY';
 document.getElementById('btn-open-shop').after(btn);
 const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.85);z-index:500;display:none;overflow:auto;padding:20px;color:#0f172a;font-family:sans-serif';document.body.appendChild(ov);
-const UNIQ={"pistol": ["Explode Shot", "Setiap tembakan ke-7, muncul ledakan besar di musuh terdekat dengan damage 6x dan area luas."], "boomerang": ["Glaive Track", "Tiap 30 detik muncul 1 glaive berkekuatan 2x yang memantul mengejar semua musuh selama 10 detik, lalu hilang."], "missile": ["Triple Missile Shoot", "Setiap tembakan ke-10, menembakkan 3 missile beruntun dengan damage 3x lipat."], "poison": ["Chaos Bottle", "Setiap serangan ke-10 melempar Chaos Bottle: efek poison 2x lipat dan damage 3x lipat ke boss/miniboss."], "thunder": ["God's Wrath", "Tiap 1 menit menyambar musuh terkuat terdekat dengan damage 10x dan area ledakan besar."], "chain": ["Thunder Ball", "Tiap 1 menit, 3 bola listrik mengitari player selama 30 detik, memberi damage konstan yang bisa menyambar (chain) ke musuh lain."], "pulse": ["Stun Pulse", "10% peluang menciptakan pulse yang menstun musuh di sekitar."], "minion": ["Random Debuff Attack", "Serangan minion memberi debuff acak: slow, stun, atau damage berkala."], "blue_lapse": ["Blue Lapse Detonation", "Saat masa hidup Blue Lapse habis, musuh di jangkauan tersedot ke satu titik lalu meledak dengan damage tinggi (2x ke boss/miniboss)."], "reversal_red": ["Giga Red", "Dua Reversal Red menyatu jadi Giga Red yang mengejar musuh dan meledak besar begitu kena, 2x damage ke boss/miniboss."], "laser": ["Cold Laser", "Serangan laser punya peluang membuat musuh stun dan slow."], "meteor": ["Extinction", "Tiap 1 menit menjatuhkan giga meteor dengan damage 3x ke boss/miniboss."], "frost_nova": ["World Frozen", "Tiap 1 menit, semua musuh terkena stun dan slow."], "lava_trail": ["Explode Berserk", "Jejak lava meledak ketika terkena musuh."], "blade_ring": ["Double Ring", "Tiap 30 detik, jumlah blade jadi 2x lipat selama 10 detik."], "tesla_coil": ["Tesla Center", "10% peluang muncul Tesla Coil tambahan di sekitar player yang bertahan 1 menit."], "black_hole": ["Black Hole", "Menciptakan lubang hitam tepat di depan player dengan jarak hisap 2x lipat."], "earthquake": ["Magnitudo Max", "Gempa memberi stun parah dan damage besar ke musuh di sekitar."], "poison_dart": ["AOE Mode", "10% peluang poison dart menciptakan serangan setara Poison Bottle level 1."], "tornado": ["Tornado True", "Setiap 10 serangan, muncul tornado yang menyedot musuh seperti Blue Lapse namun lebih cepat dan damage lebih tinggi, tanpa meledak."], "holy_cross": ["Exterminate Evil", "10% peluang: semua musuh terkena debuff darah setengah dan boss/miniboss menerima 2x damage selama 30 detik."], "energy_shield": ["True Shield", "Saat HP di bawah 50%, muncul shield yang menyerap setengah damage selama 5 menit. Hanya sekali per game."], "scatter_shot": ["Auto Chances", "10% peluang menembak otomatis tambahan ke musuh."], "combustion": ["Explosion", "30% peluang ledakan AOE 2x lipat."], "overcharge": ["Heavenly Charge", "Efek 2x lipat ke semua senjata non-listrik."], "icicles": ["Explode Ice", "Jejak es juga meledak ketika terkena musuh, dan memperlambat musuh."]};window.__mSk=id=>{const e=document.getElementById("sk-"+id);if(e)e.style.display=e.style.display==="none"?"block":"none";};
+const UNIQ={"pistol": ["Explode Shot", "Setiap tembakan ke-7, menembakkan 1 peluru raksasa yang meledak besar (damage 6x, area luas)."], "boomerang": ["Glaive Track", "Tiap 30 detik muncul 1 glaive berkekuatan 2x yang memantul mengejar semua musuh selama 10 detik, lalu hilang."], "missile": ["Triple Missile Shoot", "Setiap tembakan ke-10, jumlah missile jadi 3x lipat dari biasanya (maks 9 missile di level penuh) dan ditembakkan beruntun dengan cepat."], "poison": ["Chaos Bottle", "Setiap serangan ke-10 melempar Chaos Bottle: genangan lebih luas, poison 2x lipat, dan damage 3x ke boss."], "thunder": ["God's Wrath", "Tiap 1 menit menyambar musuh terkuat dengan damage 10x dan area ledakan 10x lebih besar."], "chain": ["Thunder Ball", "Tiap 1 menit, 3 bola listrik mengitari player selama 30 detik, memberi damage konstan yang bisa menyambar (chain) ke musuh lain."], "pulse": ["Stun Pulse", "10% peluang tiap pulse jadi Stun Pulse yang lebih luas dan menstun musuh."], "minion": ["Random Debuff Attack", "Setiap serangan minion memberi debuff acak (slow, stun, atau damage berkala) ke banyak musuh sekaligus."], "blue_lapse": ["Blue Lapse Detonation", "Saat masa hidup Blue Lapse habis, musuh di jangkauan tersedot ke satu titik lalu meledak dengan damage tinggi (2x ke boss/miniboss)."], "reversal_red": ["Giga Red", "Bila ada dua Reversal Red sekaligus, keduanya menyatu jadi Giga Red yang mengejar musuh dan meledak begitu menyentuh: damage besar ke semua musuh, 2x ke boss."], "laser": ["Cold Laser", "Serangan laser punya peluang membuat musuh stun dan slow."], "meteor": ["Extinction", "Tiap 1 menit jatuh giga meteor (area 3x, damage sangat besar), 3x damage ke boss."], "frost_nova": ["World Frozen", "Tiap 1 menit, semua musuh terkena stun 3 detik."], "lava_trail": ["Explode Berserk", "Genangan lava meledak besar begitu terkena musuh."], "blade_ring": ["Double Ring", "Tiap 30 detik, jumlah blade jadi 2x lipat selama 10 detik."], "tesla_coil": ["Tesla Center", "10% peluang muncul Tesla Coil tambahan di sekitar player yang bertahan 1 menit."], "black_hole": ["Black Hole", "Lubang hitam Singularity punya jarak hisap 2x lipat."], "earthquake": ["Magnitudo Max", "Gempa memberi stun parah dan damage besar ke musuh di sekitar."], "poison_dart": ["AOE Mode", "10% peluang poison dart menciptakan serangan setara Poison Bottle level 1."], "tornado": ["Tornado True", "Setiap 10 serangan, muncul tornado yang bergerak 2x lebih cepat, menyedot musuh seperti Blue Lapse dengan damage lebih tinggi, tanpa meledak."], "holy_cross": ["Exterminate Evil", "10% peluang: semua musuh terkena debuff darah setengah dan boss/miniboss menerima 2x damage selama 30 detik."], "energy_shield": ["True Shield", "Saat HP di bawah 50%, muncul shield 5 menit yang menyerap 50% damage. Hanya sekali per game."], "scatter_shot": ["Auto Chances", "10% peluang menembakkan salvo 8 peluru terarah ke musuh terdekat."], "combustion": ["Explosion", "30% peluang ledakan kematian musuh berukuran dan damage 2x lipat."], "overcharge": ["Heavenly Charge", "Efek percepatan cooldown jadi 2x untuk senjata listrik, dan juga berlaku untuk semua senjata non-listrik."], "icicles": ["Explode Ice", "Jejak es meledak begitu terkena musuh, sekaligus memperlambat musuh di sekitarnya."]};window.__mSk=id=>{const e=document.getElementById("sk-"+id);if(e)e.style.display=e.style.display==="none"?"block":"none";};
 function render(tab){checkAch();let h=`<div style="max-width:820px;margin:auto;background:#fff;border-radius:14px;padding:18px"><div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn" onclick="__mTab('m')">⭐ Mastery</button><button class="btn" onclick="__mTab('a')">🏆 Achievement (${Object.keys(D.ach).length}/${A.length})</button><button class="btn" onclick="__mClose()">Tutup</button></div>`;
- if(tab==='m')h+=ids.map(i=>{let l=M.lv(i),k=M.kills(i),nx=TH[l]||TH[9];return `<div style="padding:6px;border-bottom:1px solid #e2e8f0"><b>${WEAPON_DEFS[i].name}</b> — Lv ${l}/10 ${l===10?'✅ UNIQUE SKILL AKTIF':''}<div style="height:6px;background:#e2e8f0;border-radius:3px"><div style="height:100%;width:${Math.min(100,k/nx*100)}%;background:#f59e0b;border-radius:3px"></div></div><div onclick="__mSk('${i}')" style="cursor:pointer;margin:3px 0;color:${l===10?'#16a34a':'#7c3aed'};font-size:12px">${l===10?'✅':'🔒'} Unique Skill: <b>${(UNIQ[i]||['?'])[0]}</b> <u>(klik untuk detail)</u></div><div id="sk-${i}" style="display:none;background:#f1f5f9;border-radius:6px;padding:6px 8px;margin:3px 0;font-size:12px">${(UNIQ[i]||['','Belum ada deskripsi'])[1]}<br><i>Terbuka di mastery Lv 10 (5.000 kill).</i></div><small>${k.toLocaleString()}/${nx.toLocaleString()} kill · +${l*10}% damage · +${l*10}% pierce</small></div>`}).join('');
+ if(tab==='m')h+=ids.map(i=>{let l=M.lv(i),k=M.kills(i),nx=TH[l]||TH[9];return `<div style="padding:6px;border-bottom:1px solid #e2e8f0"><b>${WEAPON_DEFS[i].name}</b>${D.doubleWeapon===i?' <span style="color:#b45309">⭐ kill x2</span>':''}${D.masterOne&&D.masterOne.id===i?' <span style="color:#7e22ce">👑 Master of One</span>':''} — Lv ${l}/10 ${l===10?'✅ UNIQUE SKILL AKTIF':''}<div style="height:6px;background:#e2e8f0;border-radius:3px"><div style="height:100%;width:${Math.min(100,k/nx*100)}%;background:#f59e0b;border-radius:3px"></div></div><div onclick="__mSk('${i}')" style="cursor:pointer;margin:3px 0;color:${l===10?'#16a34a':'#7c3aed'};font-size:12px">${l===10?'✅':'🔒'} Unique Skill: <b>${(UNIQ[i]||['?'])[0]}</b> <u>(klik untuk detail)</u></div><div id="sk-${i}" style="display:none;background:#f1f5f9;border-radius:6px;padding:6px 8px;margin:3px 0;font-size:12px">${(UNIQ[i]||['','Belum ada deskripsi'])[1]}<br><i>Terbuka di mastery Lv 10 (5.000 kill).</i></div><small>${k.toLocaleString()}/${nx.toLocaleString()} kill · +${l*10}% damage · +${l*10}% pierce</small></div>`}).join('');
  else h+=A.map(a=>{let u=D.ach[a.id],p=a.p();return `<div style="padding:6px;border-bottom:1px solid #e2e8f0;opacity:${u?1:.6}">${u?'🏆':'🔒'} <b>${a.n}</b> — ${a.d} <small>(${p[0].toLocaleString()}/${p[1].toLocaleString()})</small></div>`}).join('');
  ov.innerHTML=h+'</div>';}
 window.__mTab=render;window.__mClose=()=>{ov.style.display='none';};
 btn.onclick=()=>{ov.style.display='block';render('m');};
 
 
+// ---- MODULE 2: musuh baru, boss ekstra, artefak, ultimate baru ----
+BASE_SAVE.artifacts.art_mastery_booster={level:0,max:10,costBase:300};
+window.resetMasteryData=function(){for(const k of Object.keys(D))delete D[k];D.mastery={};D.ach={};D.kills=0;D.bosses=0;D.runs=0;saveData.mst=D;M.runKills=0;M.st={n:{},t:{},q:[],dots:[],coils:[],ring:0,ext:0,ball:0,shield:0,shieldUsed:false};
+ if(!saveData.artifacts.art_mastery_booster)saveData.artifacts.art_mastery_booster={level:0,max:10,costBase:300};
+ try{pk.style.display='none';me.style.display='none';ov.style.display='none';}catch(e){}};
+Object.defineProperty(M,'mm',{get:()=>activeUltimate==='mastery_master'});
+Object.defineProperty(M,'void',{get:()=>activeUltimate==='void_02'});
+// -- artefak Mastery Booster
+ARTIFACT_DEFS.art_mastery_booster={name:"Mastery Booster",max:10,costBase:300,desc:"Mempercepat mastery senjata. Tiap level +10% kill dihitung ekstra (Lv 10: 1 kill = 2 kill untuk mastery, semua senjata)."};
+if(!saveData.artifacts.art_mastery_booster)saveData.artifacts.art_mastery_booster={level:0,max:10,costBase:300};
+saveData.artifacts.art_mastery_booster.max=10;saveData.artifacts.art_mastery_booster.costBase=300;
+function boostFrac(){const a=saveData.artifacts.art_mastery_booster;let l=a?a.level:0,f=1;
+ if(activeUltimate==='beyond_all_limit'){l=10;f=3;}else if(activeUltimate==='maxed_out_artefact'){l=10;f=(a&&a.level>=10)?2:1;}
+ return l*0.1*f;}
+function kadd(id){const m=(1+boostFrac())*(D.doubleWeapon===id?2:1);return Math.floor(m)+(Math.random()<m%1?1:0);}
+// -- musuh baru (mulai menit 10)
+const SP={healer:{k:600,sz:30,st:'#22c55e',dmg:12,sp:0.6},necromancer:{k:220,sz:22,st:'#7c3aed',dmg:10,sp:0.9},tanker:{k:1400,sz:40,st:'#64748b',dmg:26,sp:0.45},undead:{k:11,sz:13,st:'#65a30d',dmg:14,sp:1.4}};
+let _tc=-1,_tcv={},_tk=[];
+function typeCount(){if(_tc!==frameCount){_tc=frameCount;_tcv={healer:0,necromancer:0,tanker:0,undead:0};_tk=[];const L=entities.enemies;for(let i=0;i<L.length;i++){const e=L[i];if(e.dead)continue;if(_tcv[e.type]!==undefined)_tcv[e.type]++;if(e.type==='tanker')_tk.push(e);}}return _tcv;}
+function makeSpecial(type,x,y,t){const e=new Enemy(x,y,'normal',t),P=SP[type];
+ if(!saveData.mode67Active){e.maxHp*=P.k/22;e.hp=e.maxHp;}
+ e.damage=e.damage/7*P.dmg;e.type=type;e.size=P.sz;e.stroke=P.st;e.initialSpeed=P.sp;e.speed=P.sp;e.knockbackResist=(type==='tanker'||type==='healer');e._sp=Math.floor(Math.random()*240);return e;}
+window.makeEnemy=function(x,y,variant,t){
+ if(t>=600&&!saveData.honoredModeActive&&!campaignRunActive){const c=typeCount(),g=Math.floor((t/60-10)/5),r=Math.random();
+  if(r<0.03&&c.healer<4+g){c.healer++;return makeSpecial('healer',x,y,t);}
+  if(r<0.06&&c.necromancer<3+g){c.necromancer++;return makeSpecial('necromancer',x,y,t);}
+  if(r<0.09&&c.tanker<5+g){c.tanker++;return makeSpecial('tanker',x,y,t);}}
+ return new Enemy(x,y,variant,t);};
+const _eu=Enemy.prototype.update;
+Enemy.prototype.update=function(){if(M.void&&frameCount%10)return;_eu.call(this);if(this.dead)return;const t=this.type;
+ if(t==='healer'){if((frameCount+this._sp)%60===0){const L=E(),r2=270*270;let n=0;for(let i=0;i<L.length;i++){const e=L[i];if(e.dead||e===this||e.hp>=e.maxHp)continue;const dx=e.x-this.x,dy=e.y-this.y;if(dx*dx+dy*dy<r2){e.hp=Math.min(e.maxHp,e.hp+e.maxHp*(e.isBoss?0.02:0.1));n++;}}if(n&&!lowG())fx(this.x,this.y,270,'#22c55e',20);}}
+ else if(t==='necromancer'){if((frameCount+this._sp)%240===0&&entities.enemies.length<165){let al=0;const L=entities.enemies;for(let i=0;i<L.length;i++)if(L[i].owner===this&&!L[i].dead)al++;
+   for(let k=0;k<2&&al<6;k++,al++){const u=makeSpecial('undead',this.x+(Math.random()-0.5)*60,this.y+(Math.random()-0.5)*60,gameTime);u.owner=this;entities.enemies.push(u);}
+   createDamageText(this.x,this.y-30,'☠ SUMMON!','#a78bfa',12);}}};
+const _ed=Enemy.prototype.draw;
+Enemy.prototype.draw=function(ctx){_ed.call(this,ctx);const t=this.type;if(!SP[t])return;const x=this.x,y=this.y,s=this.size;
+ if(t==='tanker'&&!lowG()){ctx.save();ctx.globalAlpha=0.08+0.03*Math.sin(frameCount*0.1);ctx.fillStyle='#64748b';ctx.beginPath();ctx.arc(x,y,250,0,7);ctx.fill();ctx.restore();}
+ ctx.save();ctx.lineWidth=3;ctx.strokeStyle=this.stroke;
+ if(t==='healer'){ctx.fillStyle='#22c55e';ctx.fillRect(x-3,y-s*0.55,6,s*1.1);ctx.fillRect(x-s*0.55,y-3,s*1.1,6);}
+ else if(t==='necromancer'){ctx.beginPath();ctx.arc(x,y,s+6+Math.sin(frameCount*0.15)*2,0,7);ctx.stroke();ctx.fillStyle='#c4b5fd';ctx.fillRect(x-5,y-4,3,5);ctx.fillRect(x+2,y-4,3,5);}
+ else if(t==='tanker'){ctx.lineWidth=6;ctx.beginPath();ctx.arc(x,y,s+5,0,7);ctx.stroke();ctx.fillStyle='#cbd5e1';ctx.fillRect(x-s*0.4,y-s*0.3,s*0.8,s*0.6);}
+ else if(t==='undead'){ctx.fillStyle='rgba(101,163,13,.35)';ctx.beginPath();ctx.arc(x,y,s+3,0,7);ctx.fill();}
+ if(t!=='undead'){const w=s*2,h=5,by=y-s-14;ctx.fillStyle='#dee2e6';ctx.fillRect(x-w/2,by,w,h);ctx.fillStyle=this.stroke;ctx.fillRect(x-w/2,by,w*Math.max(0,this.hp/this.maxHp),h);}
+ ctx.restore();};
+// tanker menyerap serangan ke musuh non-boss di sekitarnya
+const _td2=Enemy.prototype.takeDamage;
+Enemy.prototype.takeDamage=function(a){if(!this.dead&&this.type!=='tanker'&&this.type!=='sans'&&this.type!=='metaton'&&!this.isBoss){typeCount();if(_tk.length){for(let i=0;i<_tk.length;i++){const k=_tk[i];if(k.dead)continue;const dx=k.x-this.x,dy=k.y-this.y;if(dx*dx+dy*dy<62500){if(!lowG()&&frameCount%6===0)createParticles(k.x,k.y,'#94a3b8',2);_td2.call(k,a*0.6);return;}}}}
+ return _td2.call(this,a);};
+// -- boss & miniboss bertambah mulai menit 10
+window.spawnExtraBosses=function(kind){const m=Math.floor(gameTime/60);if(m<10)return;const n=Math.min(5,1+Math.floor((m-10)/5));
+ for(let i=0;i<n;i++){if(kind==='mini'){const a=Math.random()*6.283,d=Math.max(560,getMinEnemySpawnDist());entities.enemies.push(new Enemy(player.x+Math.cos(a)*d,player.y+Math.sin(a)*d,'boss',gameTime));}
+  else{const ci=currentUltimateBossInterval,nx=nextUltimateBossAt;spawnUltimateBoss();currentUltimateBossInterval=ci;nextUltimateBossAt=nx;}}
+ createDamageText(player.x,player.y-90,`⚠️ +${n} ${kind==='mini'?'MINIBOSS':'BOSS'} TAMBAHAN!`,'#f43f5e',18);};
+// -- Mastery Master & 0.2 Second Infinite Void
+const PL=Player.prototype.update;
+Player.prototype.update=function(){let sp;if(M.void){sp=this.speed;this.speed=sp*10;}
+ try{PL.apply(this,arguments);}finally{if(sp!==undefined)this.speed=sp;}
+ if(M.void){const L=E();for(let i=0;i<L.length;i++){const e=L[i];if(e.dead)continue;const dx=e.x-this.x,dy=e.y-this.y,q=this.size+e.size+14;
+   if(dx*dx+dy*dy<q*q&&(frameCount+i)%4===0){const b=400*this.baseDmgMulti;e.takeDamage(e.isBoss?b+e.maxHp*0.01:Math.max(b,e.maxHp*0.15));if(!lowG())createParticles(e.x,e.y,'#a78bfa',3);}}
+  const g=M.st.ghost||(M.st.ghost=[]);g.push({x:this.x,y:this.y});if(g.length>8)g.shift();}else if(M.st.ghost&&M.st.ghost.length)M.st.ghost.length=0;};
+const _bu2=Bullet.prototype.update;Bullet.prototype.update=function(){if(M.void&&this.isEnemy&&frameCount%10)return;return _bu2.apply(this,arguments);};
+const _pt2=Player.prototype.takeDamage;Player.prototype.takeDamage=function(a,b){if(M.void)a*=0.1;return _pt2.call(this,a,b);};
+// -- definisi ultimate baru (urutan = dari terlemah ke terkuat, secret paling bawah)
+(function(){const th=ULTIMATE_DEFS.true_heavenly_judgment;delete ULTIMATE_DEFS.true_heavenly_judgment;
+ ULTIMATE_DEFS.mastery_master={id:"mastery_master",name:"Mastery Master",cost:20000,costCosmic:650,key:"u",duration:900,cooldown:1800,desc:"Aktifkan: Tekan [U]. Durasi 15s, Cooldown 30s. Semua buff mastery 2x lipat bagi senjata yang sudah Mastery Lv MAX; senjata yang belum max mendapat kekuatan Mastery Lv 10 (+100% damage & pierce + unique skill). Skill unik juga dipercepat: cooldown 1 menit jadi 30 detik, chance 2x, hitungan tembakan 2x lebih sering."};
+ ULTIMATE_DEFS.void_02={id:"void_02",name:"0.2 Second Infinite Void",cost:30000,costCosmic:900,key:"u",duration:360,cooldown:1500,desc:"Aktifkan: Tekan [U]. Durasi 6s, Cooldown 25s. Ruang & waktu melambat 10x untuk semua musuh dan serangan mereka, kecepatan player 10x lipat, kebal 90% damage, dan bersentuhan dengan musuh memberi damage besar. Terinspirasi 0.2 second domain."};
+ ULTIMATE_DEFS.beyond_all_limit={id:"beyond_all_limit",name:"Beyond All Limit",cost:45000,costCosmic:1500,key:"u",duration:900,cooldown:2700,desc:"Aktifkan: Tekan [U]. Durasi 15s, Cooldown 45s. Membuka paksa SEMUA senjata & artefak, semua stat/artefak/senjata langsung LEVEL MAX. Yang sudah max diperkuat 3x lipat selama durasi aktif."};
+ ULTIMATE_DEFS.true_heavenly_judgment=th;})();
+const _cdt=createDamageText;createDamageText=function(...a){if(M.quiet)return;return _cdt.apply(this,a);};
+const _sp=Sound.play;Sound.play=function(...a){if(M.quiet)return;return _sp.apply(this,a);};
+const _au=activateUltimate,_du=deactivateUltimate;
+function beyondOn(){const def=ULTIMATE_DEFS.beyond_all_limit;M.quiet=1;
+ try{_au('maxed_out_weapon');
+  for(const id of Object.keys(WEAPON_DEFS)){if(player.weapons.some(w=>w.id===id)||(id==='icicles'&&!saveData.iciclesUnlocked))continue;const w=new WeaponInstance(id,WEAPON_DEFS[id].max);w._beyondAdded=1;player.weapons.push(w);}
+  for(const w of player.weapons)if(w._isMaxedOutBuffed)w._isMaxedOutBuffed=3;
+  _au('maxed_out_stat');
+  const st=saveData.stats,ex=(k)=>st[k]&&st[k].level>=25;const hp0=player.maxHp;
+  if(ex('hp'))player.maxHp*=1.5;if(ex('spd'))player.speed*=1.5;if(ex('atk'))player.baseDmgMulti*=1.5;if(ex('magnet'))player.magnetArea*=1.5;player.hp=Math.min(player.maxHp,player.hp+(player.maxHp-hp0));
+  const spS=player.speed,mgS=player.magnetArea;_au('maxed_out_artefact');
+  const bs=CONFIG.BASE_PLAYER_SPEED+st.spd.level*st.spd.val,bm=CONFIG.MAGNET_BASE_RANGE+st.magnet.level*st.magnet.val;
+  const ma=k=>saveData.artifacts[k]&&saveData.artifacts[k].level>=ARTIFACT_DEFS[k].max,m=player.artMods;
+  let boost=player.speed-bs;if(ma('art_aegis_shoes'))boost*=1.5;const ratio=(player.magnetArea/bm)*(ma('art_the_force')?1.5:1);
+  player.speed=spS+boost;player.magnetArea=mgS*ratio;
+  if(ma('art_eagle_eye'))m.crit*=1.5;if(ma('art_the_force'))m.forceKnockback*=1.5;if(ma('art_ultimate_dasher')){m.dashDistMod=1+(m.dashDistMod-1)*1.5;m.dashCdRed=Math.min(0.9,m.dashCdRed*1.5);}
+  if(ma('art_los'))m.maxShield*=1.5;if(ma('art_phoenix_feather'))m.reviveHpPercent*=1.5;if(ma('art_philosopher_stone'))m.doubleCoinsChance=Math.min(1,m.doubleCoinsChance*1.5);
+  if(ma('art_juggernaut_armor'))m.dmgReduction=Math.min(0.9,m.dmgReduction*1.5);if(ma('art_vampire_flesh'))m.healPerKill*=1.5;if(ma('art_chronos_watch'))m.cooldownReduction=Math.min(0.9,m.cooldownReduction*1.5);if(ma('art_evasionist'))m.dodgeChance=Math.min(0.95,m.dodgeChance*1.5);
+ }finally{M.quiet=0;}
+ activeUltimate='beyond_all_limit';ultimateActiveDuration=def.duration;ultimateActiveTimer=def.duration;ultimateCooldownDuration=def.cooldown;ultimateCooldownTimer=0;
+ createDamageText(player.x,player.y-60,'ULTIMATE: BEYOND ALL LIMIT! ♾️','#f8fafc',22);updateHUD();}
+activateUltimate=function(id){if(id==='beyond_all_limit')beyondOn();else _au(id);try{ultFX(id);}catch(e){}};
+deactivateUltimate=function(){const id=activeUltimate;
+ if(id==='beyond_all_limit'){M.quiet=1;try{for(const s of ['maxed_out_artefact','maxed_out_stat','maxed_out_weapon']){activeUltimate=s;_du();}}finally{M.quiet=0;}
+  for(let i=player.weapons.length-1;i>=0;i--)if(player.weapons[i]._beyondAdded)player.weapons.splice(i,1);
+  const def=ULTIMATE_DEFS.beyond_all_limit;activeUltimate=null;ultimateCooldownDuration=def.cooldown;ultimateCooldownTimer=def.cooldown;createDamageText(player.x,player.y-50,'Beyond All Limit selesai','#64748b',12);updateHUD();return;}
+ _du();};
+// -- efek visual ultimate (banner, gelombang kejut, aura)
+const UC={rampage:'#ff3b1f',firework:'#ffbe0b',kamehameha:'#00b4d8',dragon_cry:'#0ea5e9',maxed_out_artefact:'#8338ec',maxed_out_stat:'#3a86c8',frenzy_time:'#fb5607',malevolent_shrine:'#ef4444',hells_wrath:'#dc2626',maxed_out_weapon:'#ff006e',infinite_void:'#7c3aed',true_heavenly_judgment:'#fbbf24',mastery_master:'#f59e0b',void_02:'#a78bfa',beyond_all_limit:'#f8fafc'};
+function ultFX(id){const def=ULTIMATE_DEFS[id];if(!def)return;const col=UC[id]||'#fff',P=entities.particles;
+ P.push({life:120,max:120,update(){this.life--;},draw(ctx){ctx.save();ctx.setTransform(1,0,0,1,0,0);const k=this.life/this.max;ctx.globalAlpha=Math.min(1,k*4);ctx.textAlign='center';ctx.font='900 34px sans-serif';if(!lowG()){ctx.shadowColor=col;ctx.shadowBlur=24;}ctx.fillStyle='#fff';ctx.fillText(def.name.toUpperCase(),canvas.width/2,canvas.height*0.2-(1-k)*14);ctx.restore();}});
+ if(lowG())return;
+ for(let i=0;i<3;i++)P.push({x:player.x,y:player.y,life:36+i*10,max:36+i*10,update(){this.life--;},draw(ctx){const k=1-this.life/this.max;ctx.save();ctx.globalAlpha=(1-k)*0.7;ctx.strokeStyle=col;ctx.lineWidth=6-k*4;ctx.beginPath();ctx.arc(this.x,this.y,30+k*(420+i*90),0,7);ctx.stroke();ctx.restore();}});
+ P.push({life:10,max:10,update(){this.life--;},draw(ctx){ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=this.life/this.max*0.35;ctx.fillStyle=col;ctx.fillRect(0,0,canvas.width,canvas.height);ctx.restore();}});
+ const dur=ultimateActiveDuration||300;
+ P.push({life:dur,max:dur,update(){this.life--;if(activeUltimate!==id)this.life=0;
+   if(id==='firework'&&frameCount%7===0){const e=near(player.x,player.y,700);if(e){const x=e.x,y=e.y,c=['#ffbe0b','#fb5607','#ff006e','#8338ec','#3a86c8'][Math.floor(Math.random()*5)];fx(x,y,40+Math.random()*30,c,14);createParticles(x,y,c,5);}}},
+  draw(ctx){const t=frameCount*0.07,n=id==='beyond_all_limit'?12:6;ctx.save();ctx.fillStyle=col;ctx.strokeStyle=col;
+   for(let i=0;i<n;i++){const a=t+i*6.283/n;ctx.globalAlpha=0.75;ctx.beginPath();ctx.arc(player.x+Math.cos(a)*(48+Math.sin(t*2+i)*4),player.y+Math.sin(a)*(48+Math.sin(t*2+i)*4),4,0,7);ctx.fill();}
+   ctx.globalAlpha=0.35+0.15*Math.sin(t*3);ctx.lineWidth=3;ctx.beginPath();ctx.arc(player.x,player.y,player.size+20,0,7);ctx.stroke();
+   if(id==='kamehameha'){const a=player.lastMoveAngle||0;ctx.globalAlpha=0.55;ctx.lineWidth=26;ctx.strokeStyle='#e0f7ff';ctx.beginPath();ctx.moveTo(player.x,player.y);ctx.lineTo(player.x+Math.cos(a)*1200,player.y+Math.sin(a)*1200);ctx.stroke();}
+   if(id==='malevolent_shrine'){ctx.globalAlpha=0.4;ctx.lineWidth=2;for(let k=1;k<=3;k++){ctx.beginPath();ctx.arc(player.x,player.y,k*70,t*k,t*k+4.2);ctx.stroke();}}
+   if(id==='void_02'){const g=M.st.ghost||[];for(let i=0;i<g.length;i++){ctx.globalAlpha=i/g.length*0.35;ctx.beginPath();ctx.arc(g[i].x,g[i].y,player.size,0,7);ctx.fill();}}
+   ctx.restore();}});
+ if(id==='void_02'||id==='mastery_master'||id==='beyond_all_limit')P.push({life:dur,max:dur,update(){this.life--;if(activeUltimate!==id)this.life=0;},draw(ctx){ctx.save();ctx.setTransform(1,0,0,1,0,0);const pu=0.14+0.05*Math.sin(frameCount*0.08);const g=ctx.createRadialGradient(canvas.width/2,canvas.height/2,0,canvas.width/2,canvas.height/2,Math.max(canvas.width,canvas.height)*0.75);
+   if(id==='void_02'){g.addColorStop(0,`rgba(255,255,255,${pu*0.25})`);g.addColorStop(1,`rgba(10,0,30,${pu*3})`);}else if(id==='mastery_master'){g.addColorStop(0,`rgba(251,191,36,${pu*0.3})`);g.addColorStop(1,`rgba(120,53,15,${pu})`);}else{g.addColorStop(0,`rgba(255,255,255,${pu*0.4})`);g.addColorStop(1,`rgba(56,189,248,${pu})`);}
+   ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,canvas.height);ctx.restore();}});}
+
+// ---- EFEK SPESIAL: First Mastery / Master of One / Jack of All Trade ----
+const wname=id=>WEAPON_DEFS[id]?WEAPON_DEFS[id].name:id;
+const owned=id=>player&&player.weapons&&player.weapons.find(w=>w.id===id);
+function boostTick(){const s=M.st;
+ if(D.doubleWeapon&&!s._fmk)s._fmk=0;
+ if(M._mo&&frameCount%360===0){const w=owned(M._mo);if(w){say('👑 SUPREME PULSE!','#c084fc');boom(player.x,player.y,320,B(w)*5,'#c084fc',null,2);
+   for(let i=0;i<3;i++)createParticles(player.x,player.y,'#e9d5ff',6);}}
+ if(M._jackRun&&frameCount%900===0){for(const w of player.weapons)if(w.cooldown>0&&w.cooldown<9000)w.cooldown=0;say("🃏 JACK'S HAND! Semua senjata siap tembak",'#a855f7');}}
+window.__boostKill=function(id,x,y){if(id!==D.doubleWeapon)return;const s=M.st;s._fmk=(s._fmk||0)+1;
+ if(!lowG())createParticles(x,y,'#fbbf24',4);
+ if(s._fmk%10===0){const w=owned(id);if(w){const dmg=B(w)*3;s.q.push({f:frameCount+2,id,fn:()=>{boom(x,y,150,dmg,'#fbbf24',null,2);createDamageText(x,y-20,'⭐ MASTERY SURGE!','#fbbf24',14);}});}}};
+function drawAura(ctx){if(gameState!=='playing'||!player)return;const t=frameCount*0.05;ctx.save();ctx.textAlign='center';ctx.font='16px sans-serif';
+ if(D.doubleWeapon&&owned(D.doubleWeapon)){for(let i=0;i<3;i++){const a=t*2+i*2.094;ctx.fillText('⭐',player.x+Math.cos(a)*42,player.y+Math.sin(a)*42+5);}
+  if(!lowG()){ctx.globalAlpha=0.25+0.1*Math.sin(t*4);ctx.strokeStyle='#fbbf24';ctx.lineWidth=3;ctx.beginPath();ctx.arc(player.x,player.y,player.size+12,0,7);ctx.stroke();ctx.globalAlpha=1;}}
+ if(M._mo&&owned(M._mo)){ctx.font='22px sans-serif';ctx.fillText('👑',player.x,player.y-player.size-14+Math.sin(t*3)*3);
+  if(!lowG()){ctx.globalAlpha=0.3+0.1*Math.sin(t*5);ctx.strokeStyle='#c084fc';ctx.lineWidth=4;ctx.beginPath();ctx.arc(player.x,player.y,player.size+22,0,7);ctx.stroke();ctx.globalAlpha=1;}}
+ if(M._jackRun){ctx.font='15px sans-serif';for(let i=0;i<4;i++){const a=-t*1.6+i*1.571;ctx.fillText('🃏',player.x+Math.cos(a)*62,player.y+Math.sin(a)*62+5);}
+  if(!lowG()){ctx.lineWidth=3;ctx.strokeStyle=`hsl(${(frameCount*4)%360},90%,60%)`;ctx.globalAlpha=0.5;ctx.beginPath();ctx.arc(player.x,player.y,player.size+32,0,7);ctx.stroke();ctx.globalAlpha=1;}}
+ ctx.restore();}
+M.aura=function(){entities.particles.push({life:1e9,max:1e9,update(){},draw:drawAura});};
+const _bd2=Bullet.prototype.draw;Bullet.prototype.draw=function(ctx){if(!lowG()&&!this.isEnemy&&this.wid&&(this.wid===M._mo||this.wid===D.doubleWeapon)){ctx.save();ctx.globalAlpha=0.5;ctx.fillStyle=this.wid===M._mo?'#c084fc':'#fbbf24';ctx.beginPath();ctx.arc(this.x,this.y,this.size+5,0,7);ctx.fill();ctx.restore();}return _bd2.call(this,ctx);};
+// HUD badge selama bermain
+const bdg=document.createElement('div');bdg.style.cssText='position:fixed;left:10px;bottom:10px;z-index:60;pointer-events:none;font:700 12px sans-serif;color:#fff;text-shadow:0 1px 3px #000;display:none;line-height:1.5';document.body.appendChild(bdg);
+setInterval(()=>{if(gameState!=='playing'){bdg.style.display='none';return;}let h='';
+ if(D.doubleWeapon)h+=`<div style="color:#fbbf24">⭐ First Mastery: ${wname(D.doubleWeapon)} (kill x2)</div>`;
+ if(M._mo)h+=`<div style="color:#d8b4fe">👑 Master of One: ${wname(M._mo)} MAX${D.masterOne?` · sisa ${D.masterOne.games} game`:' · game terakhir'}</div>`;
+ if(M._jackRun)h+=`<div style="color:#f0abfc">🃏 Jack of All Trade aktif</div>`;
+ bdg.innerHTML=h;bdg.style.display=h?'block':'none';},500);
+// badge di toko
+const _rs=renderSubShop;renderSubShop=function(){_rs.apply(this,arguments);try{const list=document.getElementById('subshop-list');if(!list||!activeSubShop)return;
+ const map={};if(activeSubShop==='weapon')for(const k in WEAPON_DEFS)map[WEAPON_DEFS[k].name]={t:'w',k};else if(activeSubShop==='artifact')for(const k in ARTIFACT_DEFS)map[ARTIFACT_DEFS[k].name]={t:'a',k};else if(activeSubShop==='stat')for(const k in saveData.stats)map[saveData.stats[k].name]={t:'s',k};else return;
+ if(D.jack){const b=document.createElement('div');b.style.cssText='margin:6px 0;padding:8px 10px;border-radius:8px;background:linear-gradient(90deg,#f0abfc,#a5b4fc,#67e8f9);color:#1e1b4b;font-weight:800;font-size:12px';b.textContent='🃏 JACK OF ALL TRADE AKTIF — game berikutnya: semua senjata, artefak & stat utama minimal Level 1';list.prepend(b);}
+ list.querySelectorAll('.upgrade-cell-left > strong').forEach(st=>{const m=map[st.textContent.trim()];if(!m)return;let tags='';
+  if(m.t==='w'){if(D.doubleWeapon===m.k)tags+='<span style="background:#fbbf24;color:#451a03;border-radius:6px;padding:1px 6px;margin-left:4px;font-size:10px;font-weight:800">⭐ FIRST MASTERY · kill x2 permanen</span>';
+   if(D.masterOne&&D.masterOne.id===m.k)tags+=`<span style="background:#a855f7;color:#fff;border-radius:6px;padding:1px 6px;margin-left:4px;font-size:10px;font-weight:800">👑 MASTER OF ONE · MAX Lv ${WEAPON_DEFS[m.k].max} · ${D.masterOne.games} game lagi</span>`;}
+  if(D.jack){const lv=m.t==='w'?(saveData.weapons[m.k]||{}).level:m.t==='a'?(saveData.artifacts[m.k]||{}).level:(saveData.stats[m.k]||{}).level;const ok=m.t!=='s'||['hp','atk','spd','magnet'].includes(m.k);
+   if(ok&&!(m.k==='icicles'&&!saveData.iciclesUnlocked))tags+=`<span style="background:linear-gradient(90deg,#e879f9,#818cf8);color:#fff;border-radius:6px;padding:1px 6px;margin-left:4px;font-size:10px;font-weight:800">🃏 ${(lv||0)<1?'→ Lv 1 (game berikutnya)':'sudah ≥ Lv 1'}</span>`;}
+  if(tags)st.insertAdjacentHTML('afterend',tags);});}catch(e){}};
+
+window.boostTick=boostTick;
 // ---- CODE BOOSTS: Gift / First Mastery / Master of One / Jack of All Trade ----
 const pk=document.createElement('div');pk.style.cssText='position:fixed;inset:0;background:rgba(2,6,23,.92);z-index:9999;display:none;overflow:auto;padding:20px;font-family:sans-serif';document.body.appendChild(pk);
 function openPicker(kind){const title=kind==='first'?'⭐ FIRST MASTERY — pilih 1 senjata (1 kill dihitung 2 kill, PERMANEN)':'👑 MASTER OF ONE — pilih 1 senjata (level MAX untuk 3 game berikutnya)';
  pk.style.display='block';pk.innerHTML=`<div style="max-width:720px;margin:auto;background:#fff;border-radius:14px;padding:18px"><h3 style="margin:0 0 12px">${title}</h3>`+ids.map(i=>`<button class="btn" style="margin:3px;padding:6px 12px" onclick="__pick('${kind}','${i}')">${WEAPON_DEFS[i].name} <small>(M${M.lv(i)})</small></button>`).join('')+'</div>';}
 window.__pick=(kind,id)=>{if(kind==='first')D.doubleWeapon=id;else D.masterOne={id,games:3};D.pending=null;pk.style.display='none';saveGame();showRewardPopup(kind==='first'?'⭐':'👑',kind==='first'?'FIRST MASTERY AKTIF!':'MASTER OF ONE AKTIF!',`Senjata terpilih: <strong>${WEAPON_DEFS[id].name}</strong>. ${kind==='first'?'Setiap kill senjata ini dihitung 2 kill untuk mastery (permanen).':'Senjata ini otomatis level MAX untuk 3 game berikutnya.'}`);};
-M.beginRun=function(){this._bk=null;if(campaignRunActive||saveData.honoredModeActive)return;
+M.beginRun=function(){this._bk=null;this._jackRun=false;this._mo=null;if(campaignRunActive||saveData.honoredModeActive)return;
  if(D.masterOne&&D.masterOne.games>0){this._mo=D.masterOne.id;D.masterOne.games--;if(D.masterOne.games<=0)D.masterOne=null;saveGame();}else this._mo=null;
- if(D.jack){D.jack=false;saveGame();const bk={w:{},a:{},s:{}};
+ if(D.jack){D.jack=false;saveGame();this._jackRun=true;const bk={w:{},a:{},s:{}};
   for(const k in saveData.weapons){if(k==='icicles'&&!saveData.iciclesUnlocked)continue;bk.w[k]=saveData.weapons[k].level;if(saveData.weapons[k].level<1)saveData.weapons[k].level=1;}
   for(const k in saveData.artifacts){bk.a[k]=saveData.artifacts[k].level;if(saveData.artifacts[k].level<1)saveData.artifacts[k].level=1;}
   for(const k of ['hp','atk','spd','magnet']){if(saveData.stats[k]){bk.s[k]=saveData.stats[k].level;if(saveData.stats[k].level<1)saveData.stats[k].level=1;}}
   this._bk=bk;this._jackMsg=true;}};
-M.postSpawn=function(){const bk=this._bk;if(bk){for(const k in bk.w)saveData.weapons[k].level=bk.w[k];for(const k in bk.a)saveData.artifacts[k].level=bk.a[k];for(const k in bk.s)saveData.stats[k].level=bk.s[k];this._bk=null;}
+M.postSpawn=function(){M.aura();if(D.doubleWeapon)setTimeout(()=>createDamageText(player.x,player.y-100,`⭐ FIRST MASTERY: ${wname(D.doubleWeapon)} (kill x2)`,'#fbbf24',16),150);const bk=this._bk;if(bk){for(const k in bk.w)saveData.weapons[k].level=bk.w[k];for(const k in bk.a)saveData.artifacts[k].level=bk.a[k];for(const k in bk.s)saveData.stats[k].level=bk.s[k];this._bk=null;}
  if(this._mo&&WEAPON_DEFS[this._mo]){let w=player.weapons.find(x=>x.id===this._mo);const mx=WEAPON_DEFS[this._mo].max;if(w)w.level=mx;else player.weapons.push(new WeaponInstance(this._mo,mx));setTimeout(()=>createDamageText(player.x,player.y-100,`👑 MASTER OF ONE: ${WEAPON_DEFS[this._mo].name} MAX!`,'#fbbf24',16),300);}
  if(this._jackMsg){this._jackMsg=false;setTimeout(()=>createDamageText(player.x,player.y-125,'🃏 JACK OF ALL TRADE AKTIF!','#a855f7',16),500);}};
-CODE_DEFS["GIFT"]={icon:"🎁",title:"GIFT!",desc:"",apply(){const P=2512;let cosmic=0;const lucky=Math.random()<0.01;if(lucky)cosmic=P;else for(let i=0;i<P;i++)if(Math.random()<0.4)cosmic++;const coin=(P-cosmic)*10;saveData.coins+=coin;saveData.cosmicCoins+=cosmic;this.desc=lucky?`🍀 BERUNTUNG!! Semua ${P} point jadi <strong>${P.toLocaleString()} 🔮 Cosmic Koin</strong>!`:`Dari ${P} point: <strong>${cosmic.toLocaleString()} 🔮 Cosmic Koin</strong> (1 point = 1 cosmic, peluang 40%) dan <strong>${coin.toLocaleString()} 🪙 Koin</strong> (${(P-cosmic).toLocaleString()} point x 10).`;}};
+CODE_DEFS["GIFT"]={icon:"🎁",title:"GIFT!",desc:"",canUse(){const n=new Date();if(n.getMonth()!==11&&!saveData.instaHoliday)return "Kode GIFT hanya bisa dipakai di <strong>bulan Desember</strong> (mengikuti kalender perangkatmu). Kodemu belum terpakai — coba lagi di bulan Desember! 🎄 Tepat tanggal <strong>25 Desember</strong> efeknya jadi <strong>2x lipat</strong>.";return true;},apply(){const P=2512,n=new Date(),xmas=((n.getMonth()===11&&n.getDate()===25)||!!saveData.instaHoliday),m=xmas?2:1;let cosmic=0;const lucky=Math.random()<0.01;if(lucky)cosmic=P;else for(let i=0;i<P;i++)if(Math.random()<0.4)cosmic++;const coin=(P-cosmic)*10*m,cos=cosmic*m;saveData.coins+=coin;saveData.cosmicCoins+=cos;const tag=xmas?'🎄 <strong>SELAMAT NATAL!</strong> Efek GIFT 2x lipat! ':'';this.desc=tag+(lucky?`🍀 BERUNTUNG!! Semua ${P} point jadi <strong>${cos.toLocaleString()} 🔮 Cosmic Koin</strong>!`:`Dari ${P} point: <strong>${cos.toLocaleString()} 🔮 Cosmic Koin</strong> dan <strong>${coin.toLocaleString()} 🪙 Koin</strong>${xmas?' (sudah 2x lipat)':''}.`);}};
 CODE_DEFS["FIRST MASTERY"]={icon:"⭐",title:"FIRST MASTERY!",desc:"Pilih 1 senjata: setiap kill dihitung 2 kill untuk mastery (permanen, hanya 1 senjata).",apply(){D.pending='first';saveGame();setTimeout(()=>openPicker('first'),50);}};
 CODE_DEFS["MASTER OF ONE"]={icon:"👑",title:"MASTER OF ONE!",desc:"Pilih 1 senjata: otomatis level MAX untuk 3 game berikutnya.",apply(){D.pending='master';saveGame();setTimeout(()=>openPicker('master'),50);}};
 CODE_DEFS["JACK OF ALL TRADE"]={icon:"🃏",title:"JACK OF ALL TRADE!",desc:"Di 1 game berikutnya, semua senjata, artefak, dan stat utama (HP, Damage, Speed, Magnet) minimal level 1!",apply(){D.jack=true;saveGame();}};
@@ -8685,6 +8912,211 @@ CODE_DEFS["EROR404"]={icon:"💀",title:"EROR 404",desc:"",repeatable:true,silen
  let n=10;const t=()=>{document.getElementById('e404c').textContent=`Memulai ulang dalam ${n}...`;if(n--<=0){saveGame();location.reload();}else setTimeout(t,1000);};t();}};
 CODE_DEFS["UNLOCKALLWEAPONMAX"]={icon:"🎵",title:"UNLOCK ALL WEAPON MAX",desc:"",repeatable:true,silent:true,apply(){const w=window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ','_blank');if(!w)location.href='https://www.youtube.com/watch?v=dQw4w9WgXcQ';}};
 if(D.pending)setTimeout(()=>openPicker(D.pending),300);
+
+// ---- MODULE 4: INSTAHOLIDAY, SPOOKY (Ghost), GASTER (Fun Value) ----
+const gmax=()=>saveData.gstMax||0;
+const spookyOn=()=>!!(saveData.spookyUnlocked&&saveData.spookyActive&&!campaignRunActive&&!saveData.honoredModeActive);
+window.spookyOn=spookyOn;
+const gfake=()=>!!(saveData.gst&&saveData.gst.phase===2);
+UNIQ.ghost=["Insane Ghost","Kecepatan serang Ghost 2x lipat, dan setiap musuh yang dibunuh hantu meledak."];
+// -- GHOST
+function ghostStep(w){const n=Math.min(w.level,20),G=w._g||(w._g=[]);
+ while(G.length<n)G.push({a:0,x:player.x+(Math.random()-0.5)*40,y:player.y+(Math.random()-0.5)*40,tg:null,ph:Math.random()*6.28});
+ while(G.length>n)G.pop();
+ const sp=M.eh('ghost')?2:1,dmg=(6+w.level*3)*player.baseDmgMulti,iv=Math.max(3,Math.round(12/sp)),det=260+w.level*14,orb=58+Math.min(n,12)*3;
+ w._ga=(w._ga||0)+0.035*sp;
+ for(let i=0;i<n;i++){const g=G[i];if(g.tg&&g.tg.dead)g.tg=null;
+  if((!g.tg||frameCount%60===i)&&(frameCount+i)%12===0){const c=near(player.x,player.y,det);if(c)g.tg=c;else if(g.tg)g.tg=null;}
+  let tx,ty,spd;if(g.tg){tx=g.tg.x;ty=g.tg.y;spd=9+w.level*0.3;}else{const a=w._ga+i*6.2832/n;tx=player.x+Math.cos(a)*orb;ty=player.y+Math.sin(a)*orb;spd=8;}
+  const dx=tx-g.x,dy=ty-g.y,d=Math.sqrt(dx*dx+dy*dy)||1;if(d>spd){g.x+=dx/d*spd;g.y+=dy/d*spd;}else{g.x=tx;g.y=ty;}
+  if(g.tg&&d<g.tg.size+22&&(frameCount+i)%iv===0){hit(g.tg,dmg);slow(g.tg,50);if(!lowG()&&frameCount%3===0)createParticles(g.tg.x,g.tg.y,'#e2e8f0',2);}}}
+function ghostDraw(w,ctx){const G=w._g;if(!G)return;ctx.save();
+ if(!lowG()){ctx.globalAlpha=0.12+0.05*Math.sin(frameCount*0.06);ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(player.x,player.y,player.size+30,0,7);ctx.fill();}
+ for(let i=0;i<G.length;i++){const g=G[i],b=Math.sin(frameCount*0.12+g.ph)*3;ctx.globalAlpha=g.tg?0.95:0.7;ctx.fillStyle='#f8fafc';ctx.beginPath();ctx.arc(g.x,g.y+b,10,Math.PI,0);ctx.lineTo(g.x+10,g.y+b+11);
+  if(!lowG()){ctx.lineTo(g.x+5,g.y+b+7);ctx.lineTo(g.x,g.y+b+11);ctx.lineTo(g.x-5,g.y+b+7);}ctx.lineTo(g.x-10,g.y+b+11);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#0f172a';ctx.fillRect(g.x-5,g.y+b-3,3,4);ctx.fillRect(g.x+2,g.y+b-3,3,4);}
+ ctx.restore();}
+const _wu4=WeaponInstance.prototype.update;WeaponInstance.prototype.update=function(){if(this.id!=='ghost')return _wu4.call(this);
+ const pb=player.baseDmgMulti;player.baseDmgMulti=pb*M.dmg('ghost');window._wc='ghost';try{ghostStep(this);}finally{player.baseDmgMulti=pb;window._wc=null;}};
+const _wd4=WeaponInstance.prototype.draw;WeaponInstance.prototype.draw=function(ctx){if(this.id==='ghost'){ghostDraw(this,ctx);return;}return _wd4.call(this,ctx);};
+// ledakan Insane Ghost (via kill hook)
+const _bk0=window.__boostKill;window.__boostKill=function(id,x,y){
+ if(id==='ghost'&&M.eh('ghost')){const s=M.st;if(s._gf!==frameCount){s._gf=frameCount;s._gx=0;}
+  if(s._gx<6){s._gx++;const w=owned('ghost')||{level:1};s.q.push({f:frameCount+1,id:'ghost',fn:()=>boom(x,y,110,B(w)*1.5,'#f8fafc')});}}
+ return _bk0(id,x,y);};
+// -- SPOOKY mode
+const _ps0=M.postSpawn;M.postSpawn=function(){
+ if(spookyOn()){const lv=Math.max(1,saveData.weapons.ghost.level);player.weapons.length=0;player.weapons.push(new WeaponInstance('ghost',lv));this._mo=null;
+  entities.particles.push({life:1e9,max:1e9,update(){},draw(ctx){if(!spookyOn())return;ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalCompositeOperation='multiply';ctx.fillStyle='rgb(255,150,55)';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.restore();}});
+  setTimeout(()=>createDamageText(player.x,player.y-115,'🎃 SPOOKY MODE — hanya senjata Ghost','#f97316',16),700);}
+ M.kr=0;M.st.sansT=0;
+ return _ps0.call(this);};
+// -- Nightmare
+const _br0=M.beginRun;M.beginRun=function(){_br0.call(this);if(saveData.nightmareActive&&gmax()>=56&&!saveData.mode67Active){enemyHpScaleMulti*=10;}};
+// -- Fun Value: wrong number
+window.funWrong=function(x,y){const L=gmax();if(L<2)return 1;if(Math.random()>Math.min(0.6,0.04+L*0.008))return 1;
+ let tot=0,w=[];for(let k=1;k<=10;k++){const v=1/Math.pow(k,1.5);w.push(v);tot+=v;}let r=Math.random()*tot,m=1;for(let k=0;k<10;k++){r-=w[k];if(r<=0){m=k+1;break;}}
+ if(m>1)createDamageText(x,y-18,`WRONG NUMBER! x${m}`,'#a855f7',13);else createDamageText(x,y-18,'wrong number...','#94a3b8',10);return m;};
+// -- Sans & Metaton
+SP.sans={k:400,sz:20,st:'#e2e8f0',dmg:6,sp:0.8};SP.metaton={k:250,sz:22,st:'#fde047',dmg:10,sp:1.0};
+function blaster(sx,sy,ang,mega){const tel=mega?55:32,dur=mega?100:48,L=mega?1100:640,W=mega?58:22;
+ entities.particles.push({x:sx,y:sy,life:tel+dur,max:tel+dur,f:0,
+  update(){this.life--;this.f++;if(this.f>tel&&this.f%4===0){const c=Math.cos(ang),s=Math.sin(ang),dx=player.x-sx,dy=player.y-sy,pr=dx*c+dy*s,pd=Math.abs(dx*s-dy*c);if(pr>0&&pr<L&&pd<W+player.size){player.takeDamage(4,true);M.kr=Math.min(30,(M.kr||0)+(mega?3:2));}}},
+  draw(ctx){ctx.save();ctx.translate(sx,sy);ctx.rotate(ang);if(this.f<=tel){ctx.globalAlpha=0.35+0.25*Math.sin(this.f*0.5);ctx.fillStyle='#38bdf8';ctx.fillRect(0,-2,L,4);}
+   else{const k=1-(this.f-tel)/dur;ctx.globalAlpha=0.9;ctx.fillStyle='#e0f2fe';ctx.fillRect(0,-W*(0.4+0.6*k),L,W*2*(0.4+0.6*k));ctx.fillStyle='#fff';ctx.fillRect(0,-W*0.3*k,L,W*0.6*k);}
+   ctx.globalAlpha=1;ctx.fillStyle='#f8fafc';ctx.fillRect(-16,-14,32,28);ctx.fillStyle='#0f172a';ctx.fillRect(-9,-8,6,8);ctx.fillRect(3,-8,6,8);ctx.restore();}});}
+const _eu4=Enemy.prototype.update;Enemy.prototype.update=function(){_eu4.call(this);if(this.dead)return;const t=this.type;if(t!=='sans'&&t!=='metaton')return;
+ const dx=player.x-this.x,dy=player.y-this.y,d=Math.sqrt(dx*dx+dy*dy)||1;this._f=(this._f||0)+1;
+ if(d<(t==='sans'?330:280)){this.x-=dx/d*this.speed*1.6;this.y-=dy/d*this.speed*1.6;}
+ if(t==='sans'){if(!this._easy&&this._f%170===0){const mega=Math.random()<0.4,a=Math.atan2(dy,dx);say2(this,mega?'☠ GASTER BLASTER (KAMEHAMEHA)':'Gaster Blaster',mega);blaster(this.x,this.y,a,mega);}}
+ else if(!this._neo){if(this._f%100===0){const a=Math.atan2(dy,dx);for(let i=-1;i<=1;i++)fireEnemyBullet(this.x,this.y,a+i*0.22,14,5,'#facc15',7,{isBoss:true});}
+  if(this._f%300===0){const L=E();let o=null;for(let k=0;k<6;k++){const c=L[Math.floor(Math.random()*L.length)];if(c&&c!==this&&!c.isBoss&&c.type!=='metaton'){o=c;break;}}
+   if(o){const ox=o.x,oy=o.y;o.x=this.x;o.y=this.y;this.x=ox;this.y=oy;}else{const a=Math.random()*6.28;this.x=player.x+Math.cos(a)*260;this.y=player.y+Math.sin(a)*260;}
+   createDamageText(this.x,this.y-30,'✦ TELEPORT!','#fde047',12);if(!lowG())createParticles(this.x,this.y,'#fde047',6);}}};
+function say2(e,t,big){createDamageText(e.x,e.y-38,t,big?'#38bdf8':'#e2e8f0',big?15:12);}
+const _ed4=Enemy.prototype.draw;Enemy.prototype.draw=function(ctx){_ed4.call(this,ctx);const t=this.type;if(t!=='sans'&&t!=='metaton')return;const x=this.x,y=this.y,s=this.size;ctx.save();
+ if(t==='sans'){ctx.fillStyle='#f8fafc';ctx.beginPath();ctx.arc(x,y-2,s,0,7);ctx.fill();ctx.fillStyle='#0f172a';ctx.beginPath();ctx.arc(x-7,y-4,4.5,0,7);ctx.arc(x+7,y-4,4.5,0,7);ctx.fill();
+  if(!lowG()){ctx.fillStyle=(this._f%170>130)?'#38bdf8':'#0f172a';ctx.beginPath();ctx.arc(x-7,y-4,2,0,7);ctx.fill();}
+  ctx.strokeStyle='#0f172a';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y+4,7,0.15*Math.PI,0.85*Math.PI);ctx.stroke();
+  ctx.fillStyle='#e2e8f0';ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillText(this._dodge>0?`DODGE ${this._dodge}`:'SANS (sekarang bisa dilukai!)',x,y-s-24);}
+ else{ctx.fillStyle='#fde047';ctx.fillRect(x-s*0.8,y-s,s*1.6,s*2);ctx.fillStyle='#0f172a';ctx.fillRect(x-s*0.5,y-s*0.55,s,s*0.7);ctx.fillStyle='#facc15';ctx.fillRect(x-s*0.35,y-s*0.4,s*0.7,s*0.4);
+  ctx.fillStyle='#e2e8f0';ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillText('METATON',x,y-s-24);}
+ ctx.restore();};
+const _td4=Enemy.prototype.takeDamage;Enemy.prototype.takeDamage=function(a){
+ if(this.type==='sans'&&!this.dead){if(frameCount-(this._dc||-999)<15)return;if(this._dodge>0){this._dodge--;this._dc=frameCount;createDamageText(this.x,this.y-24,'MISS','#e2e8f0',14);const an=Math.random()*6.283;this.x+=Math.cos(an)*36;this.y+=Math.sin(an)*36;return;}}
+ return _td4.call(this,a);};
+function spawnSans(test){if(!test&&entities.enemies.some(e=>e.type==='sans'&&!e.dead))return;const a=Math.random()*6.28,e=makeSpecial('sans',player.x+Math.cos(a)*(test?380:560),player.y+Math.sin(a)*(test?380:560),Math.max(gameTime,60));e._dodge=27;e._dc=-999;entities.enemies.push(e);createDamageText(player.x,player.y-90,test?'🧪 TEST: SANS di-summon (27x dodge)':'💀 SANS muncul... (27x dodge)','#e2e8f0',16);}
+function spawnMetaton(test){if(!test&&entities.enemies.some(e=>e.type==='metaton'&&!e.dead))return;const a=Math.random()*6.28,e=makeSpecial('metaton',player.x+Math.cos(a)*(test?380:560),player.y+Math.sin(a)*(test?380:560),Math.max(gameTime,60));entities.enemies.push(e);createDamageText(player.x,player.y-90,test?'🧪 TEST: METATON di-summon':'🤖 METATON muncul!','#fde047',16);}
+let _kb='';document.addEventListener('keydown',ev=>{if(gameState!=='playing'||!player)return;const t=ev.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'))return;if(!ev.key||ev.key.length!==1)return;
+ _kb=(_kb+ev.key.toLowerCase()).slice(-12);if(_kb.endsWith('gaster')){_kb='';jumpscare(true);}else if(_kb.endsWith('unleash')){_kb='';unleashImg();}else if(_kb.endsWith('friend')){_kb='';spawnImg();}else if(_kb.endsWith('sans')){_kb='';spawnSans(true);}else if(_kb.endsWith('metaton')){_kb='';spawnMetaton(true);}});
+function gTick(){if(spookyOn()&&false)return;const g=gmax(),t=gameTime;
+ if(frameCount%600===0&&!campaignRunActive&&!saveData.honoredModeActive&&entities.enemies.length<165){if(g>=40&&Math.random()<0.05)spawnSans();if(g>=46&&Math.random()<0.04)spawnMetaton();}
+ if(M.kr>0){if(frameCount%12===0)player.takeDamage(1,true);if(frameCount%30===0)M.kr--;}
+}
+window.gTick=gTick;
+window.makeSpecial=makeSpecial;
+// tampilan KR di atas player
+{const _da=drawAura;drawAura=function(ctx){_da(ctx);if(M.kr>0&&gameState==='playing'&&player){ctx.save();ctx.textAlign='center';ctx.font='bold 13px sans-serif';ctx.fillStyle='#e879f9';ctx.fillText(`KR ${M.kr}`,player.x,player.y+player.size+22);ctx.restore();}};}
+// -- jumpscare W.D. Gaster
+function jumpscare(bank){try{if(bank&&gameState==='playing')checkAndSaveRunData();else saveGame();}catch(e){}gameState='menu';
+ const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;z-index:2147483000;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column';
+ o.innerHTML='<svg viewBox="0 0 200 240" style="height:80vh;filter:contrast(1.6)"><path d="M100 10C50 10 20 50 22 110C24 160 45 215 100 230C155 215 176 160 178 110C180 50 150 10 100 10Z" fill="#f1f5f9"/><ellipse cx="65" cy="105" rx="26" ry="34" fill="#000"/><ellipse cx="135" cy="105" rx="26" ry="34" fill="#000"/><path d="M65 71L52 30L38 62L48 95Z" fill="#000"/><path d="M135 71L150 40L165 70L150 95Z" fill="#000"/><path d="M62 150C80 160 120 160 138 150" stroke="#000" stroke-width="6" fill="none"/><path d="M100 10L92 55L104 90L94 130" stroke="#000" stroke-width="3" fill="none"/><circle cx="65" cy="112" r="4" fill="#fff"/><circle cx="135" cy="112" r="4" fill="#fff"/></svg><div style="color:#fff;font:900 22px monospace;letter-spacing:6px;margin-top:10px">W.D. GASTER</div>';
+ document.body.appendChild(o);
+ try{const AC=window.AudioContext||window.webkitAudioContext,c=new AC(),n=c.sampleRate*1.4,buf=c.createBuffer(1,n,c.sampleRate),d=buf.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);const s=c.createBufferSource(),gn=c.createGain();gn.gain.value=0.9;s.buffer=buf;s.connect(gn);gn.connect(c.destination);s.start();}catch(e){}
+ let k=0;const iv=setInterval(()=>{o.style.transform=`translate(${(Math.random()-0.5)*30}px,${(Math.random()-0.5)*30}px) scale(${1+Math.random()*0.1})`;o.style.filter=k++%2?'invert(1)':'none';},60);
+ setTimeout(()=>{clearInterval(iv);location.reload();},1700);}
+// -- GASTER: crash, panel palsu, reload
+function toast(t,c){const e=document.createElement('div');e.style.cssText=`position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:999999;background:#0f172a;color:${c||'#fbbf24'};border:2px solid ${c||'#fbbf24'};padding:10px 18px;border-radius:10px;font:700 14px sans-serif;text-align:center;box-shadow:0 4px 20px #000a`;e.innerHTML=t;document.body.appendChild(e);setTimeout(()=>e.remove(),6500);}
+function gasterCrash(){saveData.gst={phase:1,bk:{c:saveData.coins,s:saveData.cosmicCoins,l:saveData.highscoreLevel,t:saveData.highscoreTime}};saveGame();
+ const st=document.createElement('style');st.textContent='@keyframes gsh{0%{transform:translate(0,0)}20%{transform:translate(-8px,4px)}40%{transform:translate(6px,-6px)}60%{transform:translate(-4px,-8px)}80%{transform:translate(9px,5px)}100%{transform:translate(0,0)}}';document.head.appendChild(st);
+ const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;z-index:2147483000;background:#000;color:#fff;font-family:monospace;overflow:hidden;animation:gsh .12s infinite';document.body.appendChild(o);
+ const glyph='☜☼✌☟✋❄✡☠✞☹⚐♓♒♐♑▓▒░█';let n=0;const iv=setInterval(()=>{let s='';for(let i=0;i<600;i++)s+=glyph[Math.floor(Math.random()*glyph.length)]+(i%50===49?'\n':'');o.innerHTML=`<pre style="margin:0;font-size:18px;line-height:1.1;color:${n%2?'#fff':'#a3a3a3'}">${s}</pre>`;n++;},70);
+ setTimeout(()=>{clearInterval(iv);o.style.animation='none';o.style.background='#202124';o.innerHTML='<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;color:#bdc1c6;text-align:center;padding:20px"><div style="font-size:80px">☹</div><h1 style="margin:10px 0;font-weight:400">Aw, Snap!</h1><div style="max-width:420px">Something went wrong while displaying this webpage.<br><small>Error code: GASTER_666</small></div><button id="gs-rl" style="margin-top:24px;background:#8ab4f8;color:#202124;border:0;padding:10px 24px;border-radius:20px;font-weight:700;cursor:pointer">Reload</button></div>';document.getElementById('gs-rl').onclick=()=>location.reload();},2800);}
+CODE_DEFS["INSTAHOLIDAY"]={icon:"🎄",title:"INSTA HOLIDAY!",desc:"Mulai sekarang kode <strong>GIFT</strong> bisa dipakai kapan saja dan selalu berefek 2x lipat, seakan-akan tanggal 25 Desember!",apply(){saveData.instaHoliday=true;}};
+CODE_DEFS["SPOOKY"]={icon:"🎃",title:"SPOOKY MODE!",desc:"Mode Spooky terbuka! Hanya punya senjata <strong>Ghost</strong> dan dunia berubah jadi oranye. Nyalakan/matikan lewat tombol di menu utama.",apply(){saveData.spookyUnlocked=true;saveData.spookyActive=true;}};
+CODE_DEFS["GASTER"]={icon:"❔",title:"...",desc:"",silent:true,apply(){if(saveData.gst)return;setTimeout(gasterCrash,300);}};
+// -- tombol mode di menu
+function mkBtn(id,top,bg){const b=document.createElement('button');b.id=id;b.style.cssText=`display:none;position:absolute;top:${top}px;right:15px;background:${bg};color:#fff;border:none;padding:6px 14px;border-radius:20px;font-weight:bold;font-size:12px;cursor:pointer;z-index:10`;document.getElementById('main-menu').appendChild(b);return b;}
+const sBtn=mkBtn('spooky-toggle',185,'#f97316'),nBtn=mkBtn('nightmare-toggle',225,'#7f1d1d');
+sBtn.onclick=()=>{saveData.spookyActive=!saveData.spookyActive;saveGame();};
+nBtn.onclick=()=>{saveData.nightmareActive=!saveData.nightmareActive;saveGame();};
+const _um=updateMenuUI;updateMenuUI=function(){_um.apply(this,arguments);try{
+ sBtn.style.display=saveData.spookyUnlocked?'block':'none';sBtn.textContent=saveData.spookyActive?'🎃 SPOOKY: ON':'🎃 SPOOKY: OFF';sBtn.style.background=saveData.spookyActive?'linear-gradient(135deg,#f97316,#c2410c)':'linear-gradient(135deg,#64748b,#475569)';
+ const nu=gmax()>=56;nBtn.style.display=nu?'block':'none';nBtn.textContent=saveData.nightmareActive?'😈 NIGHTMARE: ON (HP musuh x10)':'😈 NIGHTMARE: OFF';nBtn.style.background=saveData.nightmareActive?'linear-gradient(135deg,#7f1d1d,#450a0a)':'linear-gradient(135deg,#64748b,#475569)';
+ if(gfake()){const t=document.getElementById('menu-highscore-time');if(t)t.innerText='06:66';}}catch(e){}};
+// -- Fun Value: harga tetap & terkunci
+const _gl4=getStatLockInfo;getStatLockInfo=function(k){if(k==='fun_value'&&!saveData.funUnlocked)return{locked:true,reason:'???'};return _gl4(k);};
+const _bs4=window.buyStat;window.buyStat=function(k,c,cost){if(gfake()){toast('▓▓ ERROR 666 ▓▓','#ef4444');return;}_bs4(k,c,cost);saveData.gstMax=Math.max(gmax(),(saveData.stats.fun_value||{}).level||0);};
+const _ss4=window.sellStat;window.sellStat=function(){if(gfake()){toast('▓▓ ERROR 666 ▓▓','#ef4444');return;}return _ss4.apply(this,arguments);};
+for(const fn of ['buyWeapon','buyArtifact','buyUltimate']){const o=window[fn];if(o)window[fn]=function(){if(gfake()){toast('▓▓ ERROR 666 ▓▓','#ef4444');return;}return o.apply(this,arguments);};}
+const _rs4=renderSubShop;renderSubShop=function(){_rs4.apply(this,arguments);try{const list=document.getElementById('subshop-list');if(!list)return;
+ if(activeSubShop==='stat'&&!saveData.funUnlocked)list.querySelectorAll('.upgrade-cell-left > strong').forEach(s=>{if(s.textContent.trim()==='Fun Value'){const r=s.closest('.upgrade-item');if(r)r.remove();}});
+ if(gfake())list.querySelectorAll('button').forEach(b=>{if(/\d/.test(b.textContent))b.innerHTML=b.innerHTML.replace(/\d[\d.,]*/g,'666');});}catch(e){}};
+// -- Gaster: siklus load (panel palsu -> reload -> hadiah)
+(function(){const G=saveData.gst;if(!G)return;
+ if(G.phase===1){G.phase=2;saveData.coins=666;saveData.cosmicCoins=666;saveData.highscoreLevel=666;saveData.highscoreTime=666;saveGame();}
+ else if(G.phase===2){const bk=G.bk||{};saveData.coins=Math.max(0,(bk.c||0)+(saveData.coins-666));saveData.cosmicCoins=Math.max(0,(bk.s||0)+(saveData.cosmicCoins-666));saveData.highscoreLevel=bk.l||1;saveData.highscoreTime=bk.t||0;
+  G.phase=3;saveData.funUnlocked=true;D.ach[100]=1;saveGame();setTimeout(()=>toast('🏆 Achievement: <b>Mistery Man</b><br>❔ Stat rahasia <b>Fun Value</b> terbuka di Toko → Statistik','#fbbf24'),700);}})();
+{const sb=document.getElementById('btn-start');if(sb){const o=sb.onclick;sb.onclick=function(){if(gfake()){toast('▓▓ ERROR 666 ▓▓ — muat ulang halaman','#ef4444');return;}if(gmax()>=66&&Math.random()<0.001){jumpscare();return;}return o.apply(this,arguments);};}}
+// ---- GASTER BLASTER (ultimate pemain, reskin Kamehameha: 1 dmg/frame + Karma Retribution) ----
+(function(){const k=ULTIMATE_DEFS.kamehameha,ent=Object.entries(ULTIMATE_DEFS);
+ const gb={id:"gaster_blaster",name:"Gaster Blaster",cost:k.cost,costCosmic:k.costCosmic,key:"u",duration:k.duration,cooldown:k.cooldown,desc:"Aktifkan: Tekan [U]. Durasi 6s, Cooldown 18s. Reskin Kamehameha: laser Gaster Blaster ke arah gerak, 1 damage per frame + Karma Retribution (KR) yang menumpuk di musuh dan terus menggerogoti HP mereka. (Terbuka lewat Fun Value Lv 40)"};
+ for(const [id] of ent)delete ULTIMATE_DEFS[id];
+ for(const [id,v] of ent){ULTIMATE_DEFS[id]=v;if(id==='kamehameha')ULTIMATE_DEFS.gaster_blaster=gb;}})();
+UC.gaster_blaster='#e0f2fe';
+const KRL=[];
+function gbTick(){
+ if(activeUltimate==='gaster_blaster'){const a=player.lastMoveAngle||0,c=Math.cos(a),s=Math.sin(a),L=1200,W=60,bd=player.baseDmgMulti,LL=E();
+  for(let i=0;i<LL.length;i++){const e=LL[i];if(e.dead)continue;const dx=e.x-player.x,dy=e.y-player.y,pr=dx*c+dy*s;if(pr>0&&pr<L&&Math.abs(dx*s-dy*c)<W+e.size*0.5){e.takeDamage(1*bd);e._kr=Math.min(99,(e._kr||0)+1);if(!e._krIn){e._krIn=1;KRL.push(e);}}}
+  const px=player.x,py=player.y;entities.particles.push({life:2,update(){this.life--;},draw(ctx){ctx.save();ctx.lineCap='butt';
+   ctx.strokeStyle='rgba(216,180,254,.35)';ctx.lineWidth=W*1.15;ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+c*L,py+s*L);ctx.stroke();
+   ctx.strokeStyle='#f8fafc';ctx.lineWidth=W*0.5;ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+c*L,py+s*L);ctx.stroke();
+   if(!lowG()){ctx.fillStyle='#e879f9';for(let i=0;i<4;i++){const d=Math.random()*L;ctx.fillRect(px+c*d-3+(Math.random()-0.5)*W,py+s*d-3+(Math.random()-0.5)*W,6,6);}}
+   ctx.translate(px+c*46,py+s*46);ctx.rotate(a);ctx.fillStyle='#f8fafc';ctx.fillRect(-18,-15,36,30);ctx.fillRect(14,-9,16,18);ctx.fillStyle='#0f172a';ctx.fillRect(-11,-9,7,9);ctx.fillRect(2,-9,7,9);ctx.fillRect(-9,6,18,3);ctx.restore();}});}
+ for(let i=KRL.length-1;i>=0;i--){const e=KRL[i];if(e.dead||!(e._kr>0)){e._krIn=0;e._kr=0;KRL.splice(i,1);continue;}
+  if(frameCount%5===0)e.takeDamage(e._kr*player.baseDmgMulti*0.6);if(frameCount%10===0)e._kr--;}}
+const _gt5=window.gTick;window.gTick=function(){_gt5();gbTick();};
+{const _dd=Enemy.prototype.draw;Enemy.prototype.draw=function(ctx){_dd.call(this,ctx);if(this._kr>0&&!lowG()){ctx.save();ctx.strokeStyle='#e879f9';ctx.lineWidth=2;ctx.beginPath();ctx.arc(this.x,this.y,this.size+4,0,7);ctx.stroke();ctx.font='bold 10px sans-serif';ctx.fillStyle='#e879f9';ctx.textAlign='center';ctx.fillText('KR '+this._kr,this.x,this.y+this.size+14);ctx.restore();}};}
+{const o=window.buyUltimate;window.buyUltimate=function(k){if(k==='gaster_blaster'&&gmax()<40){toast('🔒 Terkunci — belum terbuka','#ef4444');return;}return o.apply(this,arguments);};}
+{const _r=renderSubShop;renderSubShop=function(){_r.apply(this,arguments);try{if(activeSubShop!=='ultimate'||gmax()>=40)return;const list=document.getElementById('subshop-list');if(!list)return;list.querySelectorAll('.upgrade-cell-left > strong').forEach(s=>{if(s.textContent.trim()==='Gaster Blaster'){const r=s.closest('.upgrade-item');if(r)r.remove();}});}catch(e){}};}
+
+// achievement rahasia (di luar 100)
+A.push({id:100,n:'Mistery Man',d:'???',f:()=>false,p:()=>[D.ach[100]?1:0,1]});
+// ---- CHEAT: EASIEST ENEMY, POWER OF NEO, EGG MAN + jumpscare ketik 'gaster' ----
+BASE_SAVE.stats.egg={level:0,max:5,costBase:1500,val:0.1,name:"EGG"};
+if(!saveData.stats.egg)saveData.stats.egg={level:0,max:5,costBase:1500,val:0.1,name:"EGG"};
+saveData.stats.egg.max=5;
+let _bones=0,_unleash=false;
+function spawnImg(){const a=Math.random()*6.283,e=new Enemy(player.x+Math.cos(a)*420,player.y+Math.sin(a)*420,'boss',Math.max(gameTime,60));e._rolled=true;imgify(e,true);entities.enemies.push(e);createDamageText(player.x,player.y-90,`🧪 TEST: IMG_Friend di-summon (${e.hp.toLocaleString()} HP)`,'#fda4af',16);}
+function unleashImg(){_unleash=true;let n=0;for(const e of entities.enemies)if(e._img&&!e.dead){e.maxHp=e.hp=666666666;n++;}createDamageText(player.x,player.y-90,`😈 UNLEASH! IMG_Friend kini 666.666.666 HP${n?` (${n} aktif)`:' (berlaku untuk yang muncul berikutnya)'}`,'#e11d48',16);}
+const imgLv=()=>saveData.eggUnlocked?((saveData.stats.egg||{}).level||0):0;
+function easyify(e){e._easy=true;e.maxHp=e.hp=27;e.size=46;e._inv=0;e._dodge=27;e._dc=-999;e.knockbackResist=true;createDamageText(e.x,e.y-50,'S A N S','#e2e8f0',18);}
+function neoify(e){e._neo=true;e.maxHp=e.hp=1000000;e.size=46;e._inv=0;e.knockbackResist=true;createDamageText(e.x,e.y-50,'METATON NEO','#fde047',18);}
+function imgify(e,noFlag){if(!noFlag){if(e.isUltimateBoss)ultimateBossActive=false;else bossActive=false;}e._img=true;e.maxHp=e.hp=_unleash?666666666:666666;e.damage=0;e.bossSubType='img_friend';e.size=Math.max(e.size||30,42);createDamageText(e.x,e.y-60,'🖼 IMG_Friend...','#fda4af',18);}
+function imgTick(e){const dx=player.x-e.x,dy=player.y-e.y;if(dx*dx+dy*dy<(e.size+player.size+26)**2&&!(player._img>0)){player._img=666;createDamageText(player.x,player.y-60,'IMG_Friend: 666 damage berkala...','#fda4af',14);}}
+function bone(){if(_bones>50)return;const a=Math.random()*6.283,x0=player.x+Math.cos(a)*430,y0=player.y+Math.sin(a)*430,ang=Math.atan2(player.y-y0,player.x-x0)+(Math.random()-0.5)*0.5;_bones++;
+ entities.particles.push({x:x0,y:y0,life:170,max:170,d:0,update(){this.life--;this.x+=Math.cos(ang)*6.5;this.y+=Math.sin(ang)*6.5;const dx=this.x-player.x,dy=this.y-player.y;
+   if(!this.d&&dx*dx+dy*dy<(player.size+16)**2){this.d=1;player.takeDamage(8,true);this.life=0;}if(this.life<=0&&!this.g){this.g=1;_bones--;}},
+  draw(ctx){ctx.save();ctx.translate(this.x,this.y);ctx.rotate(ang);ctx.fillStyle='#f8fafc';ctx.fillRect(-22,-4,44,8);ctx.beginPath();ctx.arc(-22,-5,5,0,7);ctx.arc(-22,5,5,0,7);ctx.arc(22,-5,5,0,7);ctx.arc(22,5,5,0,7);ctx.fill();ctx.restore();}});}
+function easyAtk(e){const a=Math.atan2(player.y-e.y,player.x-e.x);
+ if(e._f%45===0)blaster(e.x,e.y,a,false);
+ if(e._f%150===0)for(let i=-2;i<=2;i++)blaster(e.x,e.y,a+i*0.3,i===0);
+ if(e._f%12===0)bone();}
+function neoAtk(e){if(e._f%5===0){const b=e._f*0.19;for(let k=0;k<3;k++)fireEnemyBullet(e.x,e.y,b+k*2.094,10,4.5,'#facc15',7,{isBoss:true});}}
+const _eu6=Enemy.prototype.update;Enemy.prototype.update=function(){_eu6.call(this);if(this.dead)return;const t=this.type;
+ if(this._inv>0)this._inv--;
+ if((this.isBoss||this.isUltimateBoss)&&!this._rolled){this._rolled=true;const L=imgLv();if(L>0&&Math.random()<L*0.1&&!entities.enemies.some(x=>x._img&&!x.dead))imgify(this);}
+ if(this._img)imgTick(this);
+ if(t==='sans'){if(saveData.cheatEasiest&&!this._easy)easyify(this);if(this._easy){this._f=this._f||0;easyAtk(this);}}
+ else if(t==='metaton'){if(saveData.cheatNeo&&!this._neo)neoify(this);if(this._neo){this._f=this._f||0;neoAtk(this);}}};
+const _ed6=Enemy.prototype.draw;Enemy.prototype.draw=function(ctx){_ed6.call(this,ctx);const x=this.x,y=this.y,s=this.size;
+ if(this._easy||this._neo){ctx.save();ctx.textAlign='center';ctx.font='bold 12px sans-serif';
+  if(this._easy){ctx.fillStyle='#38bdf8';ctx.fillText(`SANS · kebal x${this._dodge} · HP ${Math.ceil(this.hp)}/27`,x,y-s-40);}
+  else{ctx.fillStyle='#fde047';ctx.fillText(`METATON NEO ${Math.ceil(this.hp).toLocaleString()}`,x,y-s-40);if(this._inv>0){ctx.strokeStyle='#fde047';ctx.lineWidth=4;ctx.globalAlpha=0.6;ctx.beginPath();ctx.arc(x,y,s+8,0,7);ctx.stroke();}}
+  ctx.restore();}
+ if(this._img){ctx.save();ctx.fillStyle='#0f172a';ctx.fillRect(x-s,y-s,s*2,s*2);ctx.strokeStyle='#e11d48';ctx.lineWidth=3;ctx.strokeRect(x-s,y-s,s*2,s*2);ctx.fillStyle='#e2e8f0';ctx.font=`bold ${Math.floor(s)}px sans-serif`;ctx.textAlign='center';ctx.fillText('🖼',x,y+s*0.35);ctx.font='bold 11px sans-serif';ctx.fillStyle='#fda4af';ctx.fillText('IMG_Friend',x,y-s-26);ctx.restore();}};
+const _td6=Enemy.prototype.takeDamage;Enemy.prototype.takeDamage=function(a){
+ if(this._easy&&!this.dead){if(frameCount-(this._dc||-999)<15)return;
+  if(this._dodge>0){this._dc=frameCount;this._dodge--;createDamageText(this.x,this.y-30,'MISS','#e2e8f0',14);const an=Math.random()*6.283;this.x+=Math.cos(an)*30;this.y+=Math.sin(an)*30;return;}
+  this._dc=-999;const r=_td6.call(this,1);this._dodge=27;this._dc=frameCount;if(!this.dead)createDamageText(this.x,this.y-30,'-1  (kebal lagi x27)','#38bdf8',13);return r;}
+ if(this._neo&&!this.dead){if(this._inv>0)return;const r=_td6.call(this,Math.min(a,1000));if(!this.dead){const an=Math.random()*6.283,d=300+Math.random()*150;this.x=player.x+Math.cos(an)*d;this.y=player.y+Math.sin(an)*d;this._inv=180;createDamageText(this.x,this.y-40,'⚡ TELEPORT','#fde047',14);}return r;}
+ return _td6.call(this,a);};
+// DoT IMG_Friend: berhenti hanya setelah total 666 damage benar-benar diterima
+const _gt6=window.gTick;window.gTick=function(){_gt6();if(player&&player._img>0&&frameCount%4===0){const b=player.hp+(player.shieldHp||0);player.takeDamage(1,true);const d=Math.max(0,b-(player.hp+(player.shieldHp||0)));player._img=Math.max(0,player._img-d);}};
+{const _da=drawAura;drawAura=function(ctx){_da(ctx);if(player&&player._img>0&&gameState==='playing'){ctx.save();ctx.textAlign='center';ctx.font='bold 13px sans-serif';ctx.fillStyle='#fda4af';ctx.fillText(`IMG ${Math.ceil(player._img)}`,player.x,player.y+player.size+38);ctx.restore();}};}
+{const _p=M.postSpawn;M.postSpawn=function(){_bones=0;_unleash=false;return _p.call(this);};}
+// EGG stat terkunci sampai cheat EGG MAN
+{const _g=getStatLockInfo;getStatLockInfo=function(k){if(k==='egg'&&!saveData.eggUnlocked)return{locked:true,reason:'???'};return _g(k);};}
+{const _r=renderSubShop;renderSubShop=function(){_r.apply(this,arguments);try{if(activeSubShop!=='stat'||saveData.eggUnlocked)return;const list=document.getElementById('subshop-list');if(!list)return;list.querySelectorAll('.upgrade-cell-left > strong').forEach(s=>{if(s.textContent.trim()==='EGG'){const r=s.closest('.upgrade-item');if(r)r.remove();}});}catch(e){}};}
+// handler cheat Tab
+window.hackNew=function(code){const px=player?player.x:0,py=player?player.y-45:0;
+ if(code==='EASIEST ENEMY'){saveData.cheatEasiest=!saveData.cheatEasiest;saveGame();createDamageText(px,py,`EASIEST ENEMY: ${saveData.cheatEasiest?'ON (semua Sans jadi SANS)':'OFF'}`,'#38bdf8',16);}
+ else if(code==='POWER OF NEO'){saveData.cheatNeo=!saveData.cheatNeo;saveGame();createDamageText(px,py,`POWER OF NEO: ${saveData.cheatNeo?'ON (semua Metaton jadi NEO)':'OFF'}`,'#fde047',16);}
+ else if(code==='EGG MAN'){const first=!saveData.eggUnlocked;saveData.eggUnlocked=true;D.ach[101]=1;saveGame();createDamageText(px,py,first?'🥚 EGG! Stat EGG terbuka + achievement EGG':'🥚 EGG sudah terbuka','#fbbf24',16);if(first)toast('🏆 Achievement: <b>EGG</b><br>🥚 Stat baru <b>EGG</b> terbuka di Toko → Statistik','#fbbf24');}};
+A.push({id:101,n:'EGG',d:'???',f:()=>false,p:()=>[D.ach[101]?1:0,1]});
+
+window.__gasterLevelSync=()=>{saveData.gstMax=Math.max(gmax(),(saveData.stats.fun_value||{}).level||0);};
+window.__gasterLevelSync();
 
 // ---- MASTERY EDIT (Tab -> MASTERYEDIT) ----
 const me=document.createElement('div');me.style.cssText='position:fixed;inset:0;background:rgba(2,6,23,.9);z-index:700;display:none;overflow:auto;padding:20px;font-family:monospace';document.body.appendChild(me);
